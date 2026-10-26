@@ -25,6 +25,8 @@ export interface FileEntry {
   /** Preenchido após o cálculo; undefined = ainda não calculado. */
   sha256?: string;
   hashError?: string;
+  /** 'pasta' = veio de uma pasta conectada (pode ser renomeado/movido/apagado). */
+  source?: 'selecao' | 'pasta';
 }
 
 export interface CategoryStat {

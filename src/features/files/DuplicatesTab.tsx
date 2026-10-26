@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { ChevronDown, Download, ListX } from 'lucide-react';
+import { ChevronDown, Download, ListX, Trash2 } from 'lucide-react';
+import { useFolder } from './folder';
 import { useFiles } from './store';
 import { findDuplicates } from '../../lib/analysis/duplicates';
 import { formatBytes, formatDateTime, formatInt, plural } from '../../lib/format';
@@ -15,11 +16,17 @@ export function DuplicatesTab() {
   const toast = useToast();
   const dup = useMemo(() => findDuplicates(entries), [entries]);
   const [open, setOpen] = useState<string | null>(null);
+  const folder = useFolder();
+  const live = !!folder.backend;
+  /** Qual arquivo manter em cada grupo (padrão: o primeiro). */
+  const [keep, setKeep] = useState<Record<string, string>>({});
+  const keeperOf = (g: { sha256: string; files: { id: string }[] }) => keep[g.sha256] ?? g.files[0].id;
+  const copiesToRemove = () => dup.groups.flatMap((g) => g.files.filter((f) => f.id !== keeperOf(g)));
   const checked = dup.candidates - dup.unresolved.length;
 
   const exportRows = () =>
     dup.groups.flatMap((g, i) =>
-      g.files.map((f, j) => ({ grupo: i + 1, papel: j === 0 ? 'manter (primeiro da lista)' : 'cópia', nome: f.name, caminho: f.path, bytes: f.size, sha256: g.sha256 })),
+      g.files.map((f) => ({ grupo: i + 1, papel: f.id === keeperOf(g) ? 'manter' : 'cópia', nome: f.name, caminho: f.path, bytes: f.size, sha256: g.sha256 })),
     );
 
   const doExport = async (kind: 'csv' | 'json') => {
@@ -32,14 +39,30 @@ export function DuplicatesTab() {
     if (settings.saveHistory) addHistory({ type: 'exportacao', title: `Exportou duplicados (${kind.toUpperCase()})`, files: dup.groups.reduce((s, g) => s + g.files.length, 0), bytes: dup.recoverable, durationMs: 0, result: 'sucesso', notes: [name] }).catch(() => {});
   };
 
+  const trashCopies = async () => {
+    const copies = copiesToRemove();
+    const bytes = copies.reduce((a, f) => a + f.size, 0);
+    const ok = await confirm({
+      title: `Mandar ${plural(copies.length, 'cópia', 'cópias')} para a lixeira?`,
+      body: (
+        <>
+          <p>Fica um arquivo de cada grupo (o marcado como “manter”). <strong>{formatBytes(bytes)}</strong> vão para a lixeira do USB Intelligence na pasta conectada.</p>
+          <p>Para liberar o espaço de fato, esvazie a lixeira depois. Até lá, dá para restaurar ou desfazer.</p>
+        </>
+      ),
+      confirm: 'Mandar para a lixeira',
+    });
+    if (ok) await folder.trashItems(copies.map((f) => f.id));
+  };
+
   const dropCopies = async () => {
-    const copies = dup.groups.flatMap((g) => g.files.slice(1));
+    const copies = copiesToRemove();
     const ok = await confirm({
       title: 'Tirar as cópias da lista de análise?',
       body: (
         <>
-          <p>{plural(copies.length, 'cópia sai', 'cópias saem')} desta lista; fica o primeiro arquivo de cada grupo.</p>
-          <p><strong>Nada é apagado do aparelho ou do pendrive.</strong> Um site não tem permissão para excluir arquivos que você só selecionou. Para liberar espaço, exporte a lista (CSV) e apague as cópias pelo gerenciador de arquivos.</p>
+          <p>{plural(copies.length, 'cópia sai', 'cópias saem')} desta lista; fica o arquivo marcado como “manter” em cada grupo.</p>
+          <p><strong>Nada é apagado do aparelho ou do pendrive.</strong> Arquivos escolhidos pelo seletor não podem ser excluídos pelo app. Para apagar de verdade, use “Conectar pasta”.</p>
         </>
       ),
       confirm: 'Tirar cópias da lista',
@@ -78,7 +101,9 @@ export function DuplicatesTab() {
             <div className="btn-row">
               <button className="btn btn-ghost btn-sm" onClick={() => doExport('csv')}><Download aria-hidden /> CSV</button>
               <button className="btn btn-ghost btn-sm" onClick={() => doExport('json')}><Download aria-hidden /> JSON</button>
-              <button className="btn btn-ghost btn-sm" onClick={dropCopies} disabled={!!run}><ListX aria-hidden /> Tirar cópias da lista</button>
+              {live
+                ? <button className="btn btn-primary btn-sm" onClick={trashCopies} disabled={!!run || !!folder.busy}><Trash2 aria-hidden /> Cópias para a lixeira</button>
+                : <button className="btn btn-ghost btn-sm" onClick={dropCopies} disabled={!!run}><ListX aria-hidden /> Tirar cópias da lista</button>}
             </div>
           </div>
           <ul className="dup-groups">
@@ -97,15 +122,18 @@ export function DuplicatesTab() {
                     <div className="dup-body">
                       <p className="mono muted">SHA-256 <span className="num">{g.sha256}</span></p>
                       <ul>
-                        {g.files.map((f, j) => (
+                        {g.files.map((f) => (
                           <li key={f.id}>
-                            <span className={`tag ${j === 0 ? 'ok' : ''}`}>{j === 0 ? 'manter' : 'cópia'}</span>
+                            <label className="keep-pick">
+                              <input type="radio" name={`keep-${g.sha256}`} checked={keeperOf(g) === f.id} onChange={() => setKeep((k) => ({ ...k, [g.sha256]: f.id }))} />
+                              <span className={`tag ${keeperOf(g) === f.id ? 'ok' : ''}`}>{keeperOf(g) === f.id ? 'manter' : 'cópia'}</span>
+                            </label>
                             <span className="mono">{f.path}</span>
                             <span className="mono muted">{f.lastModified ? formatDateTime(f.lastModified) : ''}</span>
                           </li>
                         ))}
                       </ul>
-                      <p className="hint">“Manter” é só uma sugestão: o primeiro da lista. Você decide qual cópia apagar.</p>
+                      <p className="hint">Escolha qual arquivo manter neste grupo. As outras cópias são as que {live ? 'vão para a lixeira' : 'saem da lista'}.</p>
                     </div>
                   )}
                 </li>

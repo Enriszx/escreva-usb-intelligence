@@ -1,11 +1,14 @@
 import { useMemo, useState } from 'react';
-import { ArrowDownAZ, ArrowUpAZ, Search, Trash2, X } from 'lucide-react';
+import { ArrowDownAZ, ArrowUpAZ, FolderInput, ListX, Pencil, Search, Trash2, X } from 'lucide-react';
 import { useFiles } from './store';
 import { CATEGORIES, CATEGORY_LABEL, type Category, type FileEntry } from '../../lib/analysis/types';
 import { formatBytes, formatDate, formatInt, plural } from '../../lib/format';
 import { CAT_VAR } from '../../components/charts/colors';
 import { useConfirm, useToast } from '../../app/feedback';
 import { FileDetails } from './FileDetails';
+import { useFolder } from './folder';
+import { MoveDialog, RenameFileDialog, foldersOf } from './fileDialogs';
+import { splitPath } from '../../lib/files/backend';
 
 type SortKey = 'nome' | 'tamanho' | 'extensao' | 'data';
 const PAGE = 150;
@@ -20,6 +23,11 @@ export function ArchiveTab({ category, setCategory, ext, setExt }: { category: C
   const [sel, setSel] = useState<Set<string>>(new Set());
   const [limit, setLimit] = useState(PAGE);
   const [detail, setDetail] = useState<FileEntry | null>(null);
+  const folder = useFolder();
+  const live = !!folder.backend;
+  const [renaming, setRenaming] = useState<FileEntry | null>(null);
+  const [moving, setMoving] = useState<FileEntry[] | null>(null);
+  const busy = !!run || !!folder.busy;
 
   const counts = useMemo(() => {
     const m = new Map<Category, number>();
@@ -61,8 +69,26 @@ export function ArchiveTab({ category, setCategory, ext, setExt }: { category: C
     toast({ tone: 'ok', title: 'Lista atualizada', body: `${plural(selected.length, 'item removido', 'itens removidos')} da análise.` });
   };
 
+  const trashSelected = async (list: FileEntry[]) => {
+    const bytes = list.reduce((a, f) => a + f.size, 0);
+    if (!(await confirm({ title: `Mandar ${plural(list.length, 'arquivo', 'arquivos')} para a lixeira?`, body: <p>{formatBytes(bytes)} vão para a lixeira do USB Intelligence dentro da pasta conectada. Dá para restaurar ou desfazer.</p>, confirm: 'Mandar para a lixeira' }))) return;
+    await folder.trashItems(list.map((f) => f.id));
+    setSel(new Set());
+  };
+  const destroySelected = async (list: FileEntry[]) => {
+    const bytes = list.reduce((a, f) => a + f.size, 0);
+    if (!(await confirm({
+      title: `Apagar ${plural(list.length, 'arquivo', 'arquivos')} definitivamente?`,
+      body: <><p><strong>{formatBytes(bytes)} serão apagados do disco/pendrive e não vão para lixeira nenhuma</strong> — nem a do sistema.</p><p>Prefira “Lixeira” se tiver dúvida.</p></>,
+      confirm: 'Apagar de vez', danger: true, typeToConfirm: 'APAGAR',
+    }))) return;
+    await folder.destroy(list.map((f) => f.id));
+    setSel(new Set());
+  };
+
   return (
     <div className="archive">
+      {!live && <p className="hint archive-mode">Modo leitura: arquivos escolhidos pelo seletor só podem ser analisados. Para renomear, mover ou apagar, use “Conectar pasta”{folder.supported ? ' acima' : ' (disponível no Chrome/Edge do computador ou no app Android)'}.</p>}
       <div className="toolbar">
         <label className="search">
           <Search aria-hidden />
@@ -109,11 +135,17 @@ export function ArchiveTab({ category, setCategory, ext, setExt }: { category: C
           {plural(visible.length, 'arquivo', 'arquivos')} · {formatBytes(visibleBytes)}
           {selected.length > 0 && ` · ${formatInt(selected.length)} selecionados (${formatBytes(selected.reduce((s, f) => s + f.size, 0))})`}
         </span>
-        {selected.length > 0 && (
+        {selected.length > 0 && (live ? (
+          <div className="btn-row">
+            <button className="btn btn-ghost btn-sm" disabled={busy} onClick={() => setMoving(selected)}><FolderInput aria-hidden /> Mover</button>
+            <button className="btn btn-ghost btn-sm" disabled={busy} onClick={() => trashSelected(selected)}><Trash2 aria-hidden /> Lixeira</button>
+            <button className="btn btn-danger btn-sm" disabled={busy} onClick={() => destroySelected(selected)}><Trash2 aria-hidden /> Apagar de vez</button>
+          </div>
+        ) : (
           <button className="btn btn-ghost btn-sm" onClick={removeSelected} disabled={!!run}>
-            <Trash2 aria-hidden /> Tirar da lista
+            <ListX aria-hidden /> Tirar da lista
           </button>
-        )}
+        ))}
       </div>
 
       {visible.length === 0 ? (
@@ -144,6 +176,7 @@ export function ArchiveTab({ category, setCategory, ext, setExt }: { category: C
                   <span>{f.name}</span>
                 </button>
                 {f.path !== f.name && <span className="fpath mono muted">{f.path}</span>}
+                {live && <button className="row-rename" aria-label={`Renomear ${f.name}`} disabled={busy} onClick={() => setRenaming(f)}><Pencil aria-hidden /></button>}
               </span>
               <span role="cell" className="mono ftype">{f.ext ? `.${f.ext}` : '—'} <span className="muted">{CATEGORY_LABEL[f.category]}</span></span>
               <span role="cell" className="num r">{formatBytes(f.size)}</span>
@@ -160,7 +193,16 @@ export function ArchiveTab({ category, setCategory, ext, setExt }: { category: C
           Mostrar mais {Math.min(PAGE, visible.length - limit)} de {formatInt(visible.length - limit)} restantes
         </button>
       )}
-      {detail && <FileDetails entry={entries.find((e) => e.id === detail.id) ?? detail} onClose={() => setDetail(null)} />}
+      {renaming && (
+        <RenameFileDialog
+          entry={renaming}
+          siblings={entries.filter((e) => e.id !== renaming.id && splitPath(e.path).dir === splitPath(renaming.path).dir).map((e) => e.name)}
+          onClose={() => setRenaming(null)}
+          onSave={(n) => folder.rename(renaming.id, n)}
+        />
+      )}
+      {moving && folder.backend && <MoveDialog entries={moving} folders={foldersOf(entries)} rootName={folder.backend.rootName} onClose={() => setMoving(null)} onMove={async (d) => { await folder.move(moving.map((m) => m.id), d); setSel(new Set()); }} />}
+      {detail && <FileDetails entry={entries.find((e) => e.id === detail.id) ?? detail} onClose={() => setDetail(null)} onRename={live ? () => { setRenaming(entries.find((e) => e.id === detail.id) ?? detail); setDetail(null); } : undefined} onMove={live ? () => { setMoving([detail]); setDetail(null); } : undefined} onTrash={live ? () => { const d = detail; setDetail(null); trashSelected([d]); } : undefined} />}
     </div>
   );
 }

@@ -8,7 +8,7 @@ import { sha256OfBlob } from '../../lib/analysis/hashing';
 import { findDuplicates } from '../../lib/analysis/duplicates';
 import { normalizeName } from '../../lib/analysis/names';
 
-export function FileDetails({ entry, onClose }: { entry: FileEntry; onClose: () => void }) {
+export function FileDetails({ entry, onClose, onRename, onMove, onTrash }: { entry: FileEntry; onClose: () => void; onRename?: () => void; onMove?: () => void; onTrash?: () => void }) {
   const { entries, getFile, remove } = useFiles();
   const toast = useToast();
   const [hashing, setHashing] = useState<number | null>(null);
@@ -23,7 +23,10 @@ export function FileDetails({ entry, onClose }: { entry: FileEntry; onClose: () 
 
   const calc = async () => {
     const file = getFile(entry.id);
-    if (!file) return;
+    if (!file) {
+      toast({ tone: 'info', title: 'Use “Análise completa”', body: 'Neste modo o hash é calculado pela análise.' });
+      return;
+    }
     setHashing(0);
     try {
       const h = await sha256OfBlob(file, { onProgress: (b) => setHashing(file.size ? b / file.size : 1) });
@@ -83,9 +86,12 @@ export function FileDetails({ entry, onClose }: { entry: FileEntry; onClose: () 
       </dl>
       <p className="hint" style={{ marginTop: 16 }}>Hash prova se dois conteúdos são idênticos. Ele não diz se o arquivo está corrompido nem se tem vírus.</p>
       <div className="btn-row modal-actions">
-        <button className="btn btn-ghost" onClick={() => { remove([entry.id]); onClose(); toast({ tone: 'ok', title: 'Tirado da lista', body: 'O arquivo original não foi alterado.' }); }}>
+        {onRename && <button className="btn btn-ghost" onClick={onRename}>Renomear</button>}
+        {onMove && <button className="btn btn-ghost" onClick={onMove}>Mover</button>}
+        {onTrash && <button className="btn btn-danger" onClick={onTrash}>Lixeira</button>}
+        {!onTrash && <button className="btn btn-ghost" onClick={() => { remove([entry.id]); onClose(); toast({ tone: 'ok', title: 'Tirado da lista', body: 'O arquivo original não foi alterado.' }); }}>
           Tirar da lista
-        </button>
+        </button>}
         <button className="btn btn-primary" onClick={onClose}>Fechar</button>
       </div>
     </Modal>

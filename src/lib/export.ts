@@ -1,3 +1,5 @@
+import { IS_ARTIFACT } from './platform';
+
 /** CSV com ; (padrão do Excel em pt-BR) e BOM para manter acentos. */
 export function toCSV(rows: Record<string, unknown>[], columns?: string[]): string {
   const cols = columns ?? [...new Set(rows.flatMap((r) => Object.keys(r)))];
@@ -30,7 +32,34 @@ export function stamp(ts = Date.now()): string {
  * Entrega um arquivo ao usuário. Usa o seletor "Salvar como" quando o navegador
  * oferece (o usuário escolhe o destino, inclusive o pendrive); senão, download.
  */
+async function saveNative(blob: Blob, fileName: string): Promise<'salvo' | 'cancelado'> {
+  const { registerPlugin } = await import('@capacitor/core');
+  const plugin = registerPlugin<{ saveFile(o: { name: string; mime: string; base64: string }): Promise<{ saved: boolean }> }>('UsbiFiles');
+  const buf = new Uint8Array(await blob.arrayBuffer());
+  let bin = '';
+  for (let i = 0; i < buf.length; i += 0x8000) bin += String.fromCharCode(...buf.subarray(i, i + 0x8000));
+  const r = await plugin.saveFile({ name: fileName, mime: blob.type || 'application/octet-stream', base64: btoa(bin) });
+  return r.saved ? 'salvo' : 'cancelado';
+}
+
+function isNative(): boolean {
+  const c = (window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor;
+  return !!c?.isNativePlatform?.();
+}
+
+export interface ExportRequest {
+  blob: Blob;
+  fileName: string;
+}
+
 export async function saveBlob(blob: Blob, fileName: string): Promise<'salvo' | 'baixado' | 'cancelado'> {
+  if (IS_ARTIFACT) {
+    // Sem downloads neste quadro: mostra o conteúdo para copiar (ver ExportFallback).
+    window.dispatchEvent(new CustomEvent<ExportRequest>('usbi:export', { detail: { blob, fileName } }));
+    return 'cancelado';
+  }
+  // No app Android, downloads da WebView não funcionam: usa o "Salvar como" do sistema.
+  if (isNative()) return saveNative(blob, fileName);
   const w = window as unknown as { showSaveFilePicker?: (o: unknown) => Promise<FileSystemFileHandle> };
   if (typeof w.showSaveFilePicker === 'function') {
     try {

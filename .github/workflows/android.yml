@@ -1,0 +1,54 @@
+# Compila o APK do USB Intelligence na nuvem do GitHub (que já tem o Android SDK).
+# Depois de rodar: aba Actions > execução > Artifacts > usb-intelligence-apk
+name: Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - run: npx cap sync android
+      - name: Compilar APK (debug, instalável)
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: usb-intelligence-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+
+  pages:
+    # Publica a versão web (PWA) no GitHub Pages, com HTTPS.
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci && npm run build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+      - uses: actions/deploy-pages@v4

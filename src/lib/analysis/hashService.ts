@@ -3,7 +3,11 @@ import type { HashWorkerOut } from '../../workers/hash.worker';
 
 export interface HashJob {
   id: string;
-  file: Blob;
+  size: number;
+  /** Conteúdo para o worker. */
+  file?: Blob;
+  /** Ou um cálculo feito fora (ex.: no Android nativo). */
+  hasher?: (onProgress: (bytes: number) => void) => Promise<string>;
 }
 
 export interface HashCallbacks {
@@ -16,8 +20,27 @@ export interface HashCallbacks {
  * Calcula hashes num Web Worker para não travar a interface. Cancelar encerra
  * o worker imediatamente; os resultados já entregues continuam válidos.
  */
-export function hashFiles(jobs: HashJob[], cb: HashCallbacks = {}): Promise<{ cancelled: boolean }> {
-  const total = jobs.reduce((s, j) => s + j.file.size, 0);
+export async function hashFiles(all: HashJob[], cb: HashCallbacks = {}): Promise<{ cancelled: boolean }> {
+  const total = all.reduce((s, j) => s + j.size, 0);
+  const blobJobs = all.filter((j): j is HashJob & { file: Blob } => !!j.file);
+  const external = all.filter((j) => !j.file && j.hasher);
+  const first = blobJobs.length ? await hashBlobs(blobJobs, total, cb) : { cancelled: false };
+  if (first.cancelled || !external.length) return first;
+  let base = blobJobs.reduce((s, j) => s + j.size, 0);
+  for (const j of external) {
+    if (cb.signal?.aborted) return { cancelled: true };
+    try {
+      const sha256 = await j.hasher!((b) => cb.onProgress?.(base + b, total));
+      cb.onResult?.(j.id, { sha256 });
+    } catch (e) {
+      cb.onResult?.(j.id, { error: (e as Error).message });
+    }
+    base += j.size;
+  }
+  return { cancelled: false };
+}
+
+function hashBlobs(jobs: (HashJob & { file: Blob })[], total: number, cb: HashCallbacks): Promise<{ cancelled: boolean }> {
   if (typeof Worker === 'undefined') return hashOnMainThread(jobs, total, cb);
   return new Promise((resolve) => {
     let worker: Worker;
@@ -70,7 +93,7 @@ export function hashFiles(jobs: HashJob[], cb: HashCallbacks = {}): Promise<{ ca
   });
 }
 
-async function hashOnMainThread(jobs: HashJob[], total: number, cb: HashCallbacks, base = 0) {
+async function hashOnMainThread(jobs: (HashJob & { file: Blob })[], total: number, cb: HashCallbacks, base = 0) {
   let done = base;
   for (const j of jobs) {
     try {

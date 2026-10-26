@@ -121,12 +121,29 @@ export default function HelpPage() {
           </details>
 
           <details className="guide">
+            <summary><span className="mono">G0</span> Apagar, renomear e mover arquivos de verdade</summary>
+            <div className="prose">
+              <p>Na Central de arquivos, use <strong>Conectar pasta</strong>. O sistema pede sua permissão para uma pasta (pode ser a raiz do pendrive) e, a partir daí, o app consegue:</p>
+              <ul>
+                <li>renomear (com checagem de nomes que o FAT32/Windows recusam);</li>
+                <li>mover para outras pastas, criando-as quando preciso, sem nunca sobrescrever;</li>
+                <li>mandar para a <strong>lixeira do USB Intelligence</strong> (pasta <code className="inline">.usbi-lixeira</code> dentro da própria pasta, com restauração);</li>
+                <li>apagar definitivamente (exige digitar APAGAR);</li>
+                <li>aplicar a organização proposta, movendo os arquivos;</li>
+                <li>desfazer a última operação da sessão.</li>
+              </ul>
+              <p>Onde funciona: <strong>Chrome ou Edge no computador</strong> (Windows, macOS, Linux, ChromeOS) e o <strong>app Android do USB Intelligence</strong>. O Chrome do Android não oferece acesso a pastas para sites — por isso existe o app.</p>
+            </div>
+          </details>
+
+          <details className="guide">
             <summary><span className="mono">G2</span> Usar o pendrive com OTG</summary>
             <ol className="prose">
               <li>Conecte o pendrive ao adaptador OTG e o adaptador ao celular. O Android mostra uma notificação de “Unidade USB”.</li>
               <li>Pendrives de 16 GB costumam vir em FAT32 ou exFAT, lidos pela maioria dos Android. NTFS geralmente não.</li>
               <li>No app, toque em <strong>Escolher arquivos</strong>. No seletor do Android, abra o menu lateral e escolha o pendrive. Marque vários arquivos com toque longo.</li>
-              <li>Para salvar relatórios no pendrive: exporte (vai para Downloads ou para onde o seletor deixar) e mova pelo app “Arquivos”.</li>
+              <li>No <strong>app Android</strong>: “Conectar pasta” → escolha o pendrive no seletor → “Usar esta pasta” → “Permitir”. Daí dá para renomear, mover e apagar direto no pendrive.</li>
+              <li>Para salvar relatórios no pendrive: no app Android, a exportação abre o “Salvar como” do sistema; no navegador, exporte e mova pelo app “Arquivos”.</li>
               <li>Antes de desconectar, use “Ejetar” na notificação do Android.</li>
             </ol>
             <p className="hint">O app nunca abre o pendrive sozinho nem detecta quando ele é conectado: cada acesso passa pelo seletor do sistema e pela sua escolha.</p>
@@ -149,7 +166,7 @@ export default function HelpPage() {
                 <tr><td>PWA instalada (HTTPS)</td><td>Ícone na tela inicial; cache do navegador</td><td>Sim, após a primeira visita</td><td>Só o que você seleciona</td></tr>
                 <tr><td>Arquivos copiados no pendrive</td><td>Não rodam sozinhos: precisam de um servidor</td><td>—</td><td>—</td></tr>
                 <tr><td>Servidor local (servir.mjs)</td><td>Node.js serve a pasta em localhost</td><td>Sim, sem internet nenhuma</td><td>Só o que você seleciona; no Chrome do PC, também pastas</td></tr>
-                <tr><td>App nativo (futuro)</td><td>Android/desktop empacotado (ex.: Tauri, Capacitor)</td><td>Sim</td><td>Pastas inteiras, com permissão do sistema</td></tr>
+                <tr><td>App Android (APK)</td><td>Capacitor + plugin nativo (pasta <code className="inline">android/</code>)</td><td>Sim, desde a instalação</td><td>Pasta ou pendrive escolhido: renomear, mover, apagar</td></tr>
               </tbody>
             </table>
             <p className="hint">Service worker não deixa qualquer cópia de arquivos offline por mágica: ele só funciona em HTTPS ou localhost, depois de uma visita que preencha o cache.</p>
@@ -158,7 +175,8 @@ export default function HelpPage() {
           <details className="guide">
             <summary><span className="mono">G5</span> Limites conhecidos</summary>
             <ul className="prose">
-              <li>Um site não apaga, move nem renomeia arquivos que você só selecionou. A organização é exportada como plano ou aplicada como cópia (Chrome/Edge no computador).</li>
+              <li>Arquivos escolhidos pelo seletor comum só podem ser analisados. Para apagar, mover ou renomear é preciso “Conectar pasta” (Chrome/Edge no computador ou app Android).</li>
+              <li>A lixeira do app é uma pasta dentro da pasta conectada: só libera espaço quando é esvaziada.</li>
               <li>Hash compara conteúdo; não detecta vírus nem garante que o arquivo abre.</li>
               <li>Cofre: até 1 GB por arquivo, processado na memória.</li>
               <li>Arquivos selecionados não sobrevivem ao recarregar a página — o navegador não guarda esse acesso. Os relatórios ficam.</li>

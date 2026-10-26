@@ -202,3 +202,31 @@ input[type='checkbox'] { width: 20px; height: 20px; accent-color: var(--accent);
   .kpi { padding: 12px 12px 12px 0; }
   .kpi:nth-child(even) { padding-left: 12px; }
 }
+
+/* Pasta conectada */
+.folder-bar { display: grid; grid-template-columns: 1fr auto; gap: 14px 24px; align-items: center; padding: 18px clamp(18px, 3vw, 28px); margin-bottom: 2px; }
+.folder-bar.is-off { background: var(--bg-2); border-left: 3px solid var(--c-rede-claro); }
+.folder-bar.is-on { background: var(--c-mata); --fg-2: #a9c4b8; --accent: var(--c-sinal); --accent-fg: var(--c-grafite); --line-strong: rgba(244,247,242,0.36); border-left: 3px solid var(--c-sinal); margin-bottom: 32px; }
+.fb-copy { display: grid; gap: 6px; min-width: 0; }
+.fb-copy p { font-size: var(--t-small); max-width: 70ch; }
+.fb-name { display: flex; align-items: center; gap: 10px; font-weight: 800; font-stretch: 80%; font-size: 1.6rem !important; text-transform: uppercase; letter-spacing: -0.01em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fb-name svg { flex: none; width: 24px; height: 24px; color: var(--c-sinal); }
+.fb-busy { display: grid; gap: 6px; max-width: 420px; }
+.fb-busy .mono { text-transform: none; letter-spacing: 0; }
+.archive-mode { margin-bottom: 12px; }
+.fname { position: relative; padding-right: 40px; }
+.row-rename { position: absolute; right: 0; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; display: grid; place-items: center; background: none; border: 0; color: var(--fg-2); opacity: 0.6; }
+.row-rename svg { width: 16px; height: 16px; }
+.row-rename:hover, .row-rename:focus-visible, .ftable-row:hover .row-rename { opacity: 1; color: var(--fg); }
+.keep-pick { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.keep-pick input { accent-color: var(--accent); width: 18px; height: 18px; margin: 0; }
+.org-live { display: grid; gap: 10px; justify-items: start; padding: 16px; background: rgba(0, 0, 0, 0.22); border-left: 3px solid var(--c-sol); }
+.trash-intro { max-width: 72ch; margin-bottom: 16px; }
+.trash-list { list-style: none; border-top: 1px solid var(--line-strong); }
+.trash-list li { display: grid; grid-template-columns: 32px 1fr auto; gap: 12px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.trash-name { display: grid; min-width: 0; }
+.trash-name .mono { text-transform: none; letter-spacing: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 760px) {
+  .folder-bar { grid-template-columns: 1fr; }
+  .row-rename { opacity: 1; }
+}

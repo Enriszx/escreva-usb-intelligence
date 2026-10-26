@@ -1,3 +1,4 @@
+import { IS_ARTIFACT } from '../../lib/platform';
 import { Download, Printer } from 'lucide-react';
 import type { Report } from '../../lib/storage/repos';
 import { formatBytes, formatDateTime, formatInt, plural } from '../../lib/format';
@@ -53,7 +54,7 @@ export function ReportView({ report: r }: { report: Report }) {
         <div className="btn-row no-print">
           <button className="btn btn-ghost btn-sm" onClick={() => out('json')}><Download aria-hidden /> JSON</button>
           <button className="btn btn-ghost btn-sm" onClick={() => out('csv')}><Download aria-hidden /> CSV ({formatInt(r.rows.length)} linhas)</button>
-          <button className="btn btn-ghost btn-sm" onClick={() => window.print()}><Printer aria-hidden /> Imprimir / PDF</button>
+          {!IS_ARTIFACT && <button className="btn btn-ghost btn-sm" onClick={() => window.print()}><Printer aria-hidden /> Imprimir / PDF</button>}
         </div>
       </header>
 

@@ -11,6 +11,8 @@ import { supportsDirectoryWrite } from '../../lib/files/intake';
 import { copyPlan, pickDestination } from '../../lib/files/applyPlan';
 import { CancelledError } from '../../lib/analysis/hashing';
 import { useSettings } from '../../app/settings';
+import { useFolder } from './folder';
+import { FolderSync } from 'lucide-react';
 
 export function OrganizeTab() {
   const { entries, getFile, run } = useFiles();
@@ -23,6 +25,26 @@ export function OrganizeTab() {
   const abort = useRef<AbortController | null>(null);
   const plan = useMemo(() => planOrganization(entries, criterion), [entries, criterion]);
   const canWrite = supportsDirectoryWrite();
+  const folder = useFolder();
+  const live = !!folder.backend;
+  const toMove = plan.operations.filter((o) => {
+    const e = entries.find((x) => x.id === o.fileId);
+    return e && e.path !== o.to;
+  });
+
+  const applyMove = async () => {
+    const ok = await confirm({
+      title: 'Aplicar a organização de verdade?',
+      body: (
+        <>
+          <p><strong>{plural(toMove.length, 'arquivo será movido', 'arquivos serão movidos')}</strong> dentro de “{folder.backend?.rootName}”, para {plural(plan.folders.length, 'pasta', 'pastas')} ({CRITERION_LABEL[criterion].toLowerCase()}).</p>
+          <p>Nada é apagado nem sobrescrito. Se um destino já existir, aquele arquivo fica onde está. Dá para desfazer nesta sessão.</p>
+        </>
+      ),
+      confirm: 'Mover arquivos',
+    });
+    if (ok) await folder.applyPlan({ ...plan, operations: toMove });
+  };
 
   if (!entries.length) return <p className="empty-line">Adicione arquivos para gerar um plano de organização.</p>;
 
@@ -148,8 +170,15 @@ export function OrganizeTab() {
         <aside className="org-actions">
           <h3 className="h3">Revise antes de aplicar.</h3>
           <p className="muted">
-            Um site não pode mover ou renomear arquivos que você apenas selecionou. Por isso há três caminhos reais:
+            {live ? 'Outros caminhos:' : 'Arquivos escolhidos pelo seletor não podem ser movidos pelo app. Conecte uma pasta para aplicar de verdade, ou:'}
           </p>
+          {live && (
+            <div className="org-live">
+              <strong>Pasta conectada: dá para aplicar de verdade.</strong>
+              <p>{toMove.length ? `${plural(toMove.length, 'arquivo muda', 'arquivos mudam')} de lugar.` : 'Tudo já está organizado por este critério.'}</p>
+              <button className="btn btn-primary" onClick={applyMove} disabled={!toMove.length || !!run || !!folder.busy}><FolderSync aria-hidden /> Aplicar organização</button>
+            </div>
+          )}
           <ol className="org-paths">
             <li>
               <strong>Exportar o plano</strong> e seguir as instruções no gerenciador de arquivos.

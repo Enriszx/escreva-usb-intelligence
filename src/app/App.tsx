@@ -3,9 +3,11 @@ import { HashRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { SettingsProvider } from './settings';
 import { ConfirmProvider, ToastProvider } from './feedback';
 import { FilesProvider } from '../features/files/store';
+import { FolderProvider } from '../features/files/folder';
 import { Header, MobileTabs } from '../components/layout/Header';
 import { Footer } from '../components/layout/Footer';
 import { StatusBar } from '../components/layout/StatusBar';
+import { ExportFallback } from '../components/layout/ExportFallback';
 import { routeFor } from './routes';
 import HomePage from '../features/home/HomePage';
 
@@ -61,6 +63,7 @@ function Shell() {
       </main>
       <Footer />
       <MobileTabs />
+      <ExportFallback />
     </div>
   );
 }
@@ -71,10 +74,12 @@ export default function App() {
       <ToastProvider>
         <ConfirmProvider>
           <FilesProvider>
+            <FolderProvider>
             {/* HashRouter: funciona em qualquer servidor estático e no pendrive, sem regras de reescrita. */}
             <HashRouter>
               <Shell />
             </HashRouter>
+            </FolderProvider>
           </FilesProvider>
         </ConfirmProvider>
       </ToastProvider>

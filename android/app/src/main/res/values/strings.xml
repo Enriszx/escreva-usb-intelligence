@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">USB Intelligence</string>
+    <string name="title_activity_main">USB Intelligence</string>
+    <string name="package_name">br.usbintelligence.app</string>
+    <string name="custom_url_scheme">br.usbintelligence.app</string>
+</resources>

@@ -43,7 +43,15 @@ interface FilesCtx {
   analyze: (kind: RunKind) => Promise<void>;
   cancel: () => void;
   getFile: (id: string) => File | undefined;
+  /** Substitui a lista inteira (usado ao conectar uma pasta). */
+  replaceAll: (list: { entry: Omit<FileEntry, 'id'>; file?: File }[]) => string[];
+  /** Atualiza um item após renomear/mover, opcionalmente com o novo File. */
+  patch: (id: string, patch: Partial<FileEntry>, file?: File) => void;
+  /** Hash alternativo para itens sem File (ex.: Android nativo). */
+  setExternalHasher: (fn: ExternalHasher | null) => void;
 }
+
+export type ExternalHasher = (id: string, onProgress: (bytes: number) => void) => Promise<string>;
 
 const Ctx = createContext<FilesCtx | null>(null);
 
@@ -59,6 +67,28 @@ export function FilesProvider({ children }: { children: ReactNode }) {
   const seq = useRef(0);
   const { settings } = useSettings();
   const toast = useToast();
+  const externalHasher = useRef<ExternalHasher | null>(null);
+  const setExternalHasher = useCallback((fn: ExternalHasher | null) => { externalHasher.current = fn; }, []);
+
+  const replaceAll = useCallback((list: { entry: Omit<FileEntry, 'id'>; file?: File }[]) => {
+    abort.current?.abort();
+    files.current.clear();
+    keys.current.clear();
+    const fresh = list.map(({ entry, file }) => {
+      const id = `f${++seq.current}`;
+      if (file) files.current.set(id, file);
+      keys.current.set(`${entry.path}|${entry.size}|${entry.lastModified}`, id);
+      return { ...entry, id };
+    });
+    setEntries(fresh);
+    setLastRun(null);
+    return fresh.map((f) => f.id);
+  }, []);
+
+  const patch = useCallback((id: string, p: Partial<FileEntry>, file?: File) => {
+    if (file) files.current.set(id, file);
+    setEntries((list) => list.map((f) => (f.id === id ? { ...f, ...p } : f)));
+  }, []);
 
   const addFiles = useCallback((list: IncomingFile[]) => {
     const fresh: FileEntry[] = [];
@@ -109,11 +139,17 @@ export function FilesProvider({ children }: { children: ReactNode }) {
     if (abort.current) return;
     const current = entriesRef.current;
     const pool = kind === 'completa' ? current : sizeCandidates(current);
-    const jobs = pool.filter((f) => !f.sha256 && files.current.has(f.id)).map((f) => ({ id: f.id, file: files.current.get(f.id)! }));
+    const hasher = externalHasher.current;
+    const jobs = pool
+      .filter((f) => !f.sha256 && (files.current.has(f.id) || hasher))
+      .map((f) => {
+        const file = files.current.get(f.id);
+        return file ? { id: f.id, file, size: f.size } : { id: f.id, size: f.size, hasher: (cb: (b: number) => void) => hasher!(f.id, cb) };
+      });
     const ctrl = new AbortController();
     abort.current = ctrl;
     const startedAt = Date.now();
-    const totalBytes = jobs.reduce((s, j) => s + j.file.size, 0);
+    const totalBytes = jobs.reduce((s, j) => s + j.size, 0);
     setRun({ kind, startedAt, doneBytes: 0, totalBytes, filesDone: 0, filesTotal: jobs.length });
 
     // Resultados chegam aos milhares: acumula e aplica em lotes.
@@ -182,7 +218,10 @@ export function FilesProvider({ children }: { children: ReactNode }) {
 
   const getFile = useCallback((id: string) => files.current.get(id), []);
 
-  const value = useMemo(() => ({ entries, run, lastRun, addFiles, remove, clear, analyze, cancel, getFile }), [entries, run, lastRun, addFiles, remove, clear, analyze, cancel, getFile]);
+  const value = useMemo(
+    () => ({ entries, run, lastRun, addFiles, remove, clear, analyze, cancel, getFile, replaceAll, patch, setExternalHasher }),
+    [entries, run, lastRun, addFiles, remove, clear, analyze, cancel, getFile, replaceAll, patch, setExternalHasher],
+  );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 

@@ -1,0 +1,25 @@
+{
+  "name": "USB Intelligence",
+  "short_name": "USB Intel",
+  "description": "Organize, explore e proteja seus arquivos no seu aparelho.",
+  "lang": "pt-BR",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#101311",
+  "theme_color": "#101311",
+  "categories": ["utilities", "productivity"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ],
+  "shortcuts": [
+    { "name": "Central de arquivos", "url": "./#/arquivos" },
+    { "name": "Meu personagem", "url": "./#/personagem" },
+    { "name": "Segurança", "url": "./#/seguranca" }
+  ]
+}

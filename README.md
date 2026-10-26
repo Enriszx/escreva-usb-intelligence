@@ -2,6 +2,40 @@
 
 Ecossistema de arquivos para o navegador: seleção e análise de arquivos, detecção de duplicados por SHA-256, planejamento de organização, verificação de integridade, cofre AES-256-GCM, relatórios, histórico — e um laboratório 3D com um pendrive conceitual e um personagem (“o Vigia”) personalizável. Tudo roda no aparelho; nada é enviado para servidores.
 
+## Gerenciamento real de arquivos (apagar, renomear, mover)
+
+Na Central de arquivos, **Conectar pasta** dá ao app permissão de leitura e escrita numa pasta (ou na raiz do pendrive). A partir daí:
+
+| Ação | Como funciona | Segurança |
+|---|---|---|
+| Renomear | lápis em cada linha ou nos detalhes | valida nomes que FAT32/Windows recusam; nunca sobrescreve |
+| Mover | selecione → Mover → pasta de destino | cria pastas; se o destino existir, o item fica onde está |
+| Lixeira | selecione → Lixeira; duplicados → “Cópias para a lixeira” | vai para `.usbi-lixeira/` com manifesto; restaurável |
+| Apagar de vez | selecione → Apagar de vez | exige digitar APAGAR |
+| Organizar | Organização → Aplicar organização | move de verdade conforme o plano |
+| Desfazer | botão na faixa da pasta | reverte renomear/mover/lixeira da sessão |
+
+Tudo vai para o Histórico. Implementações:
+- **Navegador:** File System Access API (`src/lib/files/webFolder.ts`) — Chrome/Edge no computador. Usa `move()` nativo quando existe; senão copia, confere o tamanho e só então apaga a origem.
+- **Android:** app Capacitor com plugin próprio em Java usando o Storage Access Framework (`android/app/src/main/java/br/usbintelligence/app/UsbiFilesPlugin.java`, ponte em `src/lib/files/androidFolder.ts`). Funciona com pendrive OTG.
+
+As duas implementações seguem o mesmo contrato (`src/lib/files/backend.ts`) e a mesma lixeira, então a interface é uma só.
+
+## App Android (APK)
+
+O projeto Android está em `android/` (Capacitor 6).
+
+**Opção A — na nuvem, sem instalar nada:** suba o repositório para o GitHub; o workflow `.github/workflows/android.yml` compila o APK a cada push em `main` (ou manualmente em Actions → Android APK → Run workflow). Baixe em Actions → execução → Artifacts → `usb-intelligence-apk`. O mesmo workflow publica a versão web no GitHub Pages (ative Pages → Source: GitHub Actions).
+
+**Opção B — no seu computador:** instale o Android Studio (traz o SDK) e rode:
+```bash
+npm install
+npm run android:apk        # gera android/app/build/outputs/apk/debug/app-debug.apk
+```
+ou `npx cap open android` para abrir no Android Studio.
+
+**Instalar no celular:** copie o `app-debug.apk` para o celular (ou para o próprio pendrive), toque nele e permita “instalar apps desconhecidos” para o app de arquivos. Para a Play Store, gere um build de release assinado (`./gradlew bundleRelease` com sua chave).
+
 ## Tecnologias
 
 | Necessidade | Escolha |
@@ -14,6 +48,7 @@ Ecossistema de arquivos para o navegador: seleção e análise de arquivos, dete
 | Criptografia | Web Crypto API (SHA-256, PBKDF2, AES-GCM) + SHA-256 incremental próprio para arquivos grandes |
 | Offline | Service worker gerado no build (`scripts/vite-plugin-sw.ts`) |
 | Testes | Vitest (unidade) + Playwright (ponta a ponta, `scripts/e2e.mjs`) |
+| Android | Capacitor 6 + plugin Java (Storage Access Framework) |
 | Fontes | Bricolage Grotesque e IBM Plex Mono, empacotadas localmente via Fontsource (SIL OFL) |
 
 Gráficos são SVG próprios (`src/components/charts`) com paleta validada para daltonismo e contraste.
@@ -29,6 +64,7 @@ npm run preview        # serve dist/ em http://localhost:4173 (com service worke
 npm run e2e            # testes no Chromium (exige build antes)
 npm run serve:local    # servidor local sem dependências para dist/ (porta 4321)
 npm run package:usb    # gera release/ com a pasta para o pendrive e o .zip do código-fonte
+npm run android:apk    # APK Android (exige Android SDK)
 ```
 
 ## Estrutura
@@ -101,6 +137,8 @@ Conecte pendrive → adaptador OTG → celular. No app, **Escolher arquivos** ab
 
 ## Depende de permissão ou plataforma
 
+- Apagar/renomear/mover: Chrome/Edge no computador (File System Access) ou app Android. O Chrome do Android e o Safari não oferecem acesso de escrita a pastas para sites.
+
 - Seleção de pasta inteira (`webkitdirectory`): geralmente indisponível no Android.
 - Cópia organizada e “Salvar como…”: Chrome/Edge de computador (File System Access API).
 - Modo offline, instalação e cofre: exigem HTTPS ou localhost.
@@ -109,7 +147,9 @@ Conecte pendrive → adaptador OTG → celular. No app, **Escolher arquivos** ab
 
 ## Limitações conhecidas
 
-- Um site não apaga, move nem renomeia os arquivos selecionados; por isso a organização é plano exportável ou cópia.
+- Arquivos escolhidos pelo seletor comum (sem “Conectar pasta”) só podem ser analisados, nunca alterados.
+- A lixeira do app não é a lixeira do sistema: ela ocupa espaço até ser esvaziada.
+- O APK não foi compilado neste ambiente (o domínio do Android SDK estava bloqueado). O plugin Java foi verificado com `javac` contra o framework Android 34 e assinaturas das bibliotecas; a compilação completa acontece no workflow do GitHub ou no Android Studio.
 - Hash não detecta malware nem corrupção semântica; só compara conteúdo.
 - Cofre processa em memória (limite de 1 GB por arquivo).
 - O acesso a arquivos selecionados não sobrevive a recarregar a página (os relatórios sim).

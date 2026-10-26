@@ -1,4 +1,4 @@
-import { Canvas, type RootState } from '@react-three/fiber';
+import { Canvas, events as pointerEvents, type RootState } from '@react-three/fiber';
 import { Component, useEffect, useRef, useState, type ReactNode } from 'react';
 import { hasWebGL } from './webgl';
 import { useSettings } from '../../app/settings';
@@ -14,6 +14,16 @@ interface StageProps {
   onCreated?: (s: RootState) => void;
   clipping?: boolean;
 }
+
+/**
+ * Eventos de ponteiro padrão, mas tolerantes à desmontagem: se o usuário troca
+ * de página antes de a cena terminar de iniciar, o alvo já é null.
+ */
+const safeEvents: typeof pointerEvents = (store) => {
+  const e = pointerEvents(store);
+  const connect = e.connect;
+  return { ...e, connect: (target: HTMLElement) => { if (target) connect?.(target); } };
+};
 
 class GLBoundary extends Component<{ fallback: ReactNode; children: ReactNode }, { failed: boolean }> {
   state = { failed: false };
@@ -61,6 +71,7 @@ export function Stage({ children, fallback, className = '', camera, label, captu
           camera={{ position: camera?.position ?? [0, 0.6, 6], fov: camera?.fov ?? 32 }}
           gl={{ antialias: quality === 'alta', preserveDrawingBuffer: !!capture, alpha: true, powerPreference: 'high-performance' }}
           shadows={false}
+          events={safeEvents}
           onCreated={(s) => {
             s.gl.localClippingEnabled = !!clipping;
             s.gl.domElement.addEventListener('webglcontextlost', (e) => {

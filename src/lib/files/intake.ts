@@ -1,3 +1,4 @@
+import { IS_ARTIFACT } from '../platform';
 import type { IncomingFile } from '../../features/files/store';
 
 /** Lê o que foi solto na página, incluindo pastas quando o navegador expõe entradas. */
@@ -33,5 +34,6 @@ export function supportsFolderInput(): boolean {
 }
 
 export function supportsDirectoryWrite(): boolean {
+  if (IS_ARTIFACT) return false;
   return typeof (window as unknown as { showDirectoryPicker?: unknown }).showDirectoryPicker === 'function' && window.isSecureContext;
 }

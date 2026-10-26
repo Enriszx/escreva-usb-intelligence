@@ -1,10 +1,11 @@
 import { del, get, getAll, put, uid } from './db';
 
 /* ---------- Histórico ---------- */
-export type HistoryType = 'analise' | 'duplicados' | 'hash' | 'verificacao' | 'organizacao' | 'criptografia' | 'descriptografia' | 'exportacao' | 'dados';
+export type HistoryType = 'arquivos' | 'analise' | 'duplicados' | 'hash' | 'verificacao' | 'organizacao' | 'criptografia' | 'descriptografia' | 'exportacao' | 'dados';
 export type HistoryResult = 'sucesso' | 'parcial' | 'cancelado' | 'erro';
 
 export const HISTORY_LABEL: Record<HistoryType, string> = {
+  arquivos: 'Gerenciamento de arquivos',
   analise: 'Análise de arquivos',
   duplicados: 'Busca de duplicados',
   hash: 'Cálculo de hash',

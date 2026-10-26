@@ -154,3 +154,5 @@ main { flex: 1; outline: none; }
   .index-item { grid-template-columns: 40px 1fr; }
   .index-arrow { display: none; }
 }
+
+.export-text { min-height: 280px; font-size: 0.75rem; white-space: pre; }

@@ -1,3 +1,4 @@
+import { IS_ARTIFACT } from '../platform';
 /**
  * Registro do service worker e estado offline. Só registra em build de
  * produção servido por HTTPS ou localhost — exigência dos navegadores.
@@ -62,7 +63,9 @@ export function registerPWA() {
   });
   window.addEventListener('appinstalled', () => set({ installed: true, installable: false }));
 
-  if (!state.supported || !state.secure || import.meta.env.DEV) return;
+  // No app nativo os arquivos já estão dentro do APK: service worker é desnecessário.
+  const native = (window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor?.isNativePlatform?.();
+  if (!state.supported || !state.secure || import.meta.env.DEV || native || IS_ARTIFACT) return;
   navigator.serviceWorker
     .register('./sw.js', { scope: './' })
     .then((reg) => {

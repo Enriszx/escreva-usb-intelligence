@@ -30,8 +30,8 @@ const context = await browser.newContext({ viewport: { width: 1366, height: 860 
 // Força o caminho de download (o seletor "Salvar como" abriria uma janela nativa).
 await context.addInitScript(() => { delete window.showSaveFilePicker; });
 const page = await context.newPage();
-page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
-page.on('pageerror', (e) => errors.push(e.message));
+page.on('console', (m) => m.type() === 'error' && errors.push(`${m.text()} @ ${page.url()} ${m.location().url}:${m.location().lineNumber}`));
+page.on('pageerror', (e) => errors.push(`${e.message} @ ${page.url()} :: ${(e.stack || '').split('\n').slice(1, 4).join(' | ')}`));
 const go = async (r) => { await page.goto(`${BASE}#${r}`); await page.waitForLoadState('networkidle'); };
 const toast = (t) => page.locator('.toast', { hasText: t }).first().waitFor({ timeout: 8000 });
 
@@ -194,6 +194,17 @@ await test('13. Estados de erro: hash divergente e senha errada no cofre', async
   assert((await (await import('node:fs')).promises.readFile(await dec.path(), 'utf8')) === 'segredo', 'conteúdo recuperado');
 });
 
+await test('14a. Manifesto PWA válido e instalável', async () => {
+  const r = await page.request.get(`${BASE}manifest.webmanifest`);
+  assert(r.ok(), `manifesto HTTP ${r.status()}`);
+  const m = await r.json();
+  assert(m.name && m.start_url && m.display === 'standalone', 'campos obrigatórios');
+  for (const size of ['192x192', '512x512']) assert(m.icons.some((i) => i.sizes === size && i.type === 'image/png'), `ícone ${size}`);
+  for (const i of m.icons) assert((await page.request.get(new URL(i.src, BASE).href)).ok(), `ícone ausente: ${i.src}`);
+  const sw = await (await page.request.get(`${BASE}sw.js`)).text();
+  assert(sw.includes('"manifest.webmanifest"'), 'manifesto fora do cache offline');
+});
+
 await test('14. Funciona offline depois da preparação', async () => {
   await go('/ajuda');
   await page.waitForFunction(() => !!navigator.serviceWorker?.controller, null, { timeout: 15000 }).catch(async () => { await page.reload(); });
@@ -212,6 +223,112 @@ await test('14. Funciona offline depois da preparação', async () => {
   await page.getByRole('button', { name: /Análise completa/ }).click();
   await toast('Análise concluída');
   await context.setOffline(false);
+});
+
+await test('17. Pasta conectada: renomear, mover, lixeira, organizar, apagar e desfazer (arquivos reais)', async () => {
+  const fx = await browser.newContext({ viewport: { width: 1366, height: 860 } });
+  // O seletor de pasta nativo não abre em modo automático: entrega uma pasta real do OPFS.
+  await fx.addInitScript(() => {
+    window.showDirectoryPicker = async () => {
+      const root = await navigator.storage.getDirectory();
+      return root.getDirectoryHandle('PENDRIVE', { create: true });
+    };
+  });
+  const p = await fx.newPage();
+  const perr = [];
+  p.on('pageerror', (e) => perr.push(e.message));
+  await p.goto(`${BASE}#/arquivos`);
+  await p.evaluate(async () => {
+    const root = await navigator.storage.getDirectory();
+    await root.removeEntry('PENDRIVE', { recursive: true }).catch(() => {});
+    const d = await root.getDirectoryHandle('PENDRIVE', { create: true });
+    const put = async (dir, name, text) => { const w = await (await dir.getFileHandle(name, { create: true })).createWritable(); await w.write(text); await w.close(); };
+    await put(d, 'foto.jpg', 'IMAGEM-123');
+    await put(d, 'foto (1).jpg', 'IMAGEM-123');
+    await put(d, 'nota.txt', 'texto');
+    const sub = await d.getDirectoryHandle('antigos', { create: true });
+    await put(sub, 'velho.pdf', 'PDF');
+  });
+  const tree = () => p.evaluate(async () => {
+    const out = [];
+    const walk = async (d, pre) => { for await (const [n, h] of d.entries()) { if (h.kind === 'directory') await walk(h, pre + n + '/'); else out.push(pre + n); } };
+    await walk(await (await navigator.storage.getDirectory()).getDirectoryHandle('PENDRIVE'), '');
+    return out.sort();
+  });
+  const t = (txt) => p.locator('.toast', { hasText: txt }).first().waitFor({ timeout: 10000 });
+  await p.getByRole('button', { name: 'Conectar pasta' }).click();
+  await t('conectada');
+  assert((await p.locator('.ftable-row').count()) === 4, 'listou 4 arquivos');
+
+  // renomear
+  await p.getByRole('button', { name: 'Renomear nota.txt' }).click();
+  await p.getByLabel('Novo nome').fill('anotacoes.txt');
+  await p.getByRole('button', { name: 'Renomear', exact: true }).click();
+  await t('Renomeado');
+  assert((await tree()).includes('anotacoes.txt') && !(await tree()).includes('nota.txt'), 'renomeou no disco');
+  // nome inválido é recusado antes de tocar no disco
+  await p.getByRole('button', { name: 'Renomear anotacoes.txt' }).click();
+  await p.getByLabel('Novo nome').fill('a:b.txt');
+  assert(await p.getByRole('button', { name: 'Renomear', exact: true }).isDisabled(), 'nome inválido bloqueado');
+  await p.getByRole('button', { name: 'Cancelar' }).click();
+
+  // desfazer o renome
+  await p.getByRole('button', { name: /Desfazer renomear/ }).click();
+  await t('Desfeito');
+  assert((await tree()).includes('nota.txt'), 'desfez renome');
+
+  // mover
+  await p.getByRole('checkbox', { name: 'Selecionar nota.txt' }).check();
+  await p.getByRole('button', { name: 'Mover', exact: true }).click();
+  await p.getByLabel(/Pasta de destino/).fill('Documentos/Textos');
+  await p.getByRole('button', { name: /Mover para Documentos/ }).click();
+  await t('movido');
+  assert((await tree()).includes('Documentos/Textos/nota.txt'), 'moveu no disco');
+
+  // duplicados -> lixeira
+  await p.getByRole('button', { name: /Só duplicados/ }).click();
+  await t('Análise concluída');
+  await p.getByRole('tab', { name: /Duplicados/ }).click();
+  await p.getByRole('button', { name: /Cópias para a lixeira/ }).click();
+  await p.getByRole('button', { name: 'Mandar para a lixeira' }).click();
+  await t('lixeira');
+  const afterTrash = await tree();
+  assert(afterTrash.filter((x) => x.startsWith('foto')).length === 1, 'sobrou 1 foto');
+  assert(afterTrash.some((x) => x.startsWith('.usbi-lixeira/') && x.endsWith('.jpg')), 'cópia está na lixeira');
+  assert(afterTrash.includes('.usbi-lixeira/manifesto.json'), 'manifesto');
+
+  // restaurar pela aba Lixeira
+  await p.getByRole('tab', { name: /Lixeira/ }).click();
+  await p.getByRole('checkbox', { name: 'Selecionar tudo' }).check();
+  await p.getByRole('button', { name: /Restaurar/ }).click();
+  await t('restaurado');
+  assert((await tree()).filter((x) => x.startsWith('foto')).length === 2, 'restaurou');
+
+  // organizar de verdade
+  await p.getByRole('tab', { name: /Organização/ }).click();
+  await p.getByRole('button', { name: 'Aplicar organização' }).click();
+  await p.getByRole('button', { name: 'Mover arquivos' }).click();
+  await t('Organização aplicada');
+  const org = await tree();
+  assert(org.includes('Imagens/foto.jpg') && org.includes('Documentos/velho.pdf') && org.includes('Documentos/nota.txt'), `organizado: ${org.join(', ')}`);
+
+  // apagar definitivo exige digitar APAGAR
+  await p.getByRole('tab', { name: /Acervo/ }).click();
+  await p.getByRole('checkbox', { name: 'Selecionar velho.pdf' }).check();
+  await p.getByRole('button', { name: /Apagar de vez/ }).click();
+  const confirmBtn = p.locator('.modal').getByRole('button', { name: 'Apagar de vez' });
+  assert(await confirmBtn.isDisabled(), 'confirmação exige digitação');
+  await p.locator('.modal input').fill('APAGAR');
+  await confirmBtn.click();
+  await t('apagado');
+  assert(!(await tree()).some((x) => x.includes('velho.pdf')), 'apagou do disco');
+
+  // histórico registrou as operações reais
+  await p.goto(`${BASE}#/historico`);
+  await p.locator('.h-item', { hasText: 'Apagou definitivamente' }).first().waitFor();
+  await p.locator('.h-item', { hasText: 'Renomeou' }).first().waitFor();
+  assert(!perr.length, perr.join(' | '));
+  await fx.close();
 });
 
 await test('15. Telas pequenas (360 px): sem rolagem horizontal', async () => {
@@ -239,7 +356,8 @@ await test('16. Sem botões falsos (href="#", sem nome) e sem erros no console',
     assert(!bad.length, `${r}: ${bad.join('; ')}`);
   }
   const real = errors.filter((e) => !/net::ERR_INTERNET_DISCONNECTED|Failed to load resource/.test(e));
-  assert(!real.length, real.join(' | '));
+  if (real.length && process.env.E2E_SHOTS) (await import('node:fs')).writeFileSync(`${process.env.E2E_SHOTS}/console-errors.txt`, real.join('\n----\n'));
+  assert(!real.length, real.map((e) => e.replace(/\s+/g, ' ')).join(' | '));
 });
 
 await browser.close();

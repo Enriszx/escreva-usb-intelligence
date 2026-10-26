@@ -9,6 +9,9 @@ import { DashboardTab } from './DashboardTab';
 import { DuplicatesTab } from './DuplicatesTab';
 import { NamesTab } from './NamesTab';
 import { OrganizeTab } from './OrganizeTab';
+import { TrashTab } from './TrashTab';
+import { FolderBar } from './FolderBar';
+import { useFolder } from './folder';
 import { useDocumentTitle } from '../../app/hooks';
 import { useConfirm } from '../../app/feedback';
 import { formatBytes, plural } from '../../lib/format';
@@ -21,15 +24,18 @@ const TABS = [
   { id: 'duplicados', label: 'Duplicados' },
   { id: 'nomes', label: 'Nomes' },
   { id: 'organizacao', label: 'Organização' },
+  { id: 'lixeira', label: 'Lixeira' },
 ] as const;
 type TabId = (typeof TABS)[number]['id'];
 
 export default function FilesPage() {
   useDocumentTitle('Central de arquivos');
   const { entries, clear, run } = useFiles();
+  const folder = useFolder();
+  const tabs = TABS.filter((t) => t.id !== 'lixeira' || folder.backend);
   const confirm = useConfirm();
   const [params, setParams] = useSearchParams();
-  const tab = (TABS.find((t) => t.id === params.get('aba'))?.id ?? 'acervo') as TabId;
+  const tab = (tabs.find((t) => t.id === params.get('aba'))?.id ?? 'acervo') as TabId;
   const setTab = (id: TabId) => setParams((p) => { p.set('aba', id); return p; }, { replace: true });
   const [category, setCategory] = useState<Category | null>(null);
   const [ext, setExt] = useState<string | null>(null);
@@ -38,11 +44,11 @@ export default function FilesPage() {
   const hashed = entries.filter((f) => f.sha256).length;
 
   const onTabKey = (e: KeyboardEvent, i: number) => {
-    const n = TABS.length;
+    const n = tabs.length;
     const go = e.key === 'ArrowRight' ? (i + 1) % n : e.key === 'ArrowLeft' ? (i - 1 + n) % n : e.key === 'Home' ? 0 : e.key === 'End' ? n - 1 : -1;
     if (go < 0) return;
     e.preventDefault();
-    setTab(TABS[go].id);
+    setTab(tabs[go].id);
     tabRefs.current[go]?.focus();
   };
 
@@ -64,7 +70,7 @@ export default function FilesPage() {
             ) : (
               <p className="lead muted">Nenhum arquivo selecionado.</p>
             )}
-            {entries.length > 0 && (
+            {entries.length > 0 && !folder.backend && (
               <button
                 className="btn btn-quiet btn-sm"
                 disabled={!!run}
@@ -82,13 +88,14 @@ export default function FilesPage() {
           </div>
         </header>
 
-        <Intake compact={entries.length > 0} />
+        <FolderBar />
+        {!folder.backend && <Intake compact={entries.length > 0} />}
         <AnalysisBar />
 
-        {entries.length > 0 ? (
+        {entries.length > 0 || folder.backend ? (
           <>
             <div className="tabs" role="tablist" aria-label="Ferramentas da central">
-              {TABS.map((t, i) => (
+              {tabs.map((t, i) => (
                 <button
                   key={t.id}
                   ref={(el) => (tabRefs.current[i] = el)}
@@ -111,6 +118,7 @@ export default function FilesPage() {
               {tab === 'duplicados' && <DuplicatesTab />}
               {tab === 'nomes' && <NamesTab />}
               {tab === 'organizacao' && <OrganizeTab />}
+              {tab === 'lixeira' && <TrashTab />}
             </div>
           </>
         ) : (
