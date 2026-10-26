@@ -1,0 +1,58 @@
+.sec-page { position: relative; overflow: hidden; isolation: isolate; }
+.sec-topo { position: absolute; inset: 0 0 auto 0; width: 100%; height: 900px; z-index: -1; }
+.sec-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr); gap: 0 56px; }
+.sec-block { grid-column: 1 / -1; padding: 40px 0; border-bottom: 1px solid var(--line); display: grid; gap: 18px; }
+.sec-hash { grid-column: 1; }
+.sec-label { display: flex; align-items: baseline; gap: 16px; }
+.sec-label .mono { color: var(--accent); font-size: 1rem; }
+.sec-intro { max-width: 60ch; }
+.sec-truth { grid-column: 2; grid-row: 1; align-self: start; margin-top: 40px; padding: 24px; background: var(--c-sol); color: var(--c-grafite); display: grid; gap: 12px; --fg-2: #4c4200; clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 0 100%); }
+.sec-truth-big { font-weight: 800; font-stretch: 75%; text-transform: uppercase; font-size: 2.6rem; line-height: 0.9; letter-spacing: -0.02em; }
+.hash-tool, .vault-form { display: grid; gap: 14px; max-width: 720px; }
+.hash-progress { display: grid; grid-template-columns: 1fr auto; gap: 8px 12px; align-items: center; }
+.hash-progress .progress { grid-column: 1 / -1; }
+.hash-result { display: grid; gap: 10px; padding: 18px; background: var(--bg-2); border-left: 3px solid var(--signal); }
+.hash-big { font-size: clamp(0.8rem, 0.6rem + 0.6vw, 1.05rem); word-break: break-all; line-height: 1.6; color: var(--fg); }
+.verdict { display: grid; gap: 8px; justify-items: start; padding: 18px; border-left: 4px solid; }
+.verdict strong { font-weight: 800; font-stretch: 78%; text-transform: uppercase; font-size: 1.6rem; line-height: 1; }
+.verdict.is-ok { border-color: var(--c-sinal); background: rgba(0, 230, 118, 0.08); }
+.verdict.is-ok strong { color: var(--c-sinal); }
+.verdict.is-bad { border-color: var(--c-erro); background: rgba(255, 107, 87, 0.08); }
+.verdict.is-bad strong { color: var(--c-erro); }
+.save-ref { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: end; padding-top: 14px; border-top: 1px dashed var(--line-strong); }
+.refs { display: grid; gap: 12px; }
+.ref-list { list-style: none; border-top: 1px solid var(--line-strong); }
+.ref-list li { display: grid; grid-template-columns: 1fr auto; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--line); align-items: start; }
+.ref-main { display: grid; gap: 6px; justify-items: start; min-width: 0; }
+.ref-main .mono { text-transform: none; letter-spacing: 0; }
+.ref-main .progress { width: 100%; }
+.ref-hash { font-size: 0.74rem; color: var(--fg-2); word-break: break-all; }
+.ref-actions { display: flex; gap: 6px; }
+.sec-vault { background: transparent; }
+.vault { display: grid; gap: 18px; }
+.vault-grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 40px; }
+.vault-spec { margin: 0; display: grid; align-content: start; border-top: 1px solid var(--line-strong); }
+.vault-spec > div { display: grid; grid-template-columns: 90px 1fr; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.vault-spec dt { font-size: var(--t-micro); text-transform: uppercase; letter-spacing: 0.08em; padding-top: 3px; }
+.vault-spec dd { margin: 0; font-size: 0.92rem; }
+.pw-wrap { position: relative; display: block; }
+.pw-wrap .input { padding-right: 52px; }
+.pw-eye { position: absolute; right: 2px; top: 2px; bottom: 2px; width: 46px; background: none; border: 0; color: var(--fg-2); display: grid; place-items: center; }
+.pw-eye svg { width: 18px; height: 18px; }
+.strength { display: flex; align-items: center; gap: 12px; }
+.strength-bar { display: grid; grid-template-columns: repeat(4, 40px); gap: 4px; }
+.strength-bar i { height: 6px; background: var(--bg-3); }
+.strength-bar i.on.s1 { background: var(--c-erro); }
+.strength-bar i.on.s2 { background: var(--c-sol); }
+.strength-bar i.on.s3, .strength-bar i.on.s4 { background: var(--c-sinal); }
+.ack { align-items: flex-start; font-weight: 500; font-size: 0.92rem; }
+.ack input { margin-top: 2px; flex: none; }
+.callout-err { padding: 16px 18px; border-left: 4px solid var(--c-erro); background: rgba(255, 107, 87, 0.1); margin-bottom: 24px; }
+.priv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+@media (max-width: 960px) {
+  .sec-grid, .vault-grid, .priv-grid { grid-template-columns: 1fr; }
+  .sec-hash, .sec-truth { grid-column: 1; grid-row: auto; }
+  .sec-truth { margin-top: 0; }
+  .save-ref { grid-template-columns: 1fr; }
+  .ref-list li { grid-template-columns: 1fr; }
+}

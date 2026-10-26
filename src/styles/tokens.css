@@ -1,0 +1,109 @@
+/* ==========================================================================
+   USB Intelligence — tokens do sistema de design
+   Paleta "Cerrado Digital": verdes de mata e de sinal, amarelo de sol a pino,
+   azul de rede e de noite. Cada seção escolhe UM par principal (tom) e usa os
+   demais apenas para estado e detalhe.
+   ========================================================================== */
+:root {
+  /* Cores de marca */
+  --c-mata: #063d2e;        /* verde profundo */
+  --c-sinal: #00e676;       /* verde elétrico */
+  --c-sol: #ffd600;         /* amarelo solar */
+  --c-rede: #1464f4;        /* azul tecnológico */
+  --c-noite: #07152d;       /* azul noturno */
+  --c-gelo: #f4f7f2;        /* branco gelo */
+  --c-grafite: #101311;     /* grafite */
+
+  /* Derivadas (calculadas à mão para contraste AA sobre seus fundos) */
+  --c-grafite-2: #171b18;
+  --c-grafite-3: #222723;
+  --c-mata-2: #0a4a38;
+  --c-noite-2: #0d2142;
+  --c-gelo-2: #e6ebe3;
+  --c-cinza: #8d968f;       /* texto secundário em fundos escuros: 6.3:1 no grafite */
+  --c-cinza-escuro: #4c544e;/* texto secundário em gelo: 7.6:1 */
+  --c-erro: #ff6b57;
+  --c-erro-escuro: #b3261e;
+  --c-rede-claro: #6c9dff;  /* azul legível sobre noite/grafite */
+
+  /* Tipografia */
+  --f-display: 'Bricolage Grotesque Variable', 'Arial Narrow', system-ui, sans-serif;
+  --f-mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Mono', monospace;
+
+  /* Escala tipográfica (razão ~1.333, com saltos editoriais no topo) */
+  --t-micro: 0.6875rem;   /* 11 — índices, legendas mono */
+  --t-small: 0.8125rem;   /* 13 */
+  --t-body: 1rem;         /* 16 */
+  --t-lead: 1.25rem;      /* 20 */
+  --t-h3: clamp(1.375rem, 1.1rem + 0.9vw, 1.75rem);
+  --t-h2: clamp(2rem, 1.3rem + 2.6vw, 3.5rem);
+  --t-h1: clamp(2.75rem, 1.2rem + 6.4vw, 7.5rem);
+  --t-mega: clamp(3.9rem, 0.6rem + 12.5vw, 13.5rem);
+
+  /* Espaços (base 4) */
+  --s-1: 4px;  --s-2: 8px;  --s-3: 12px; --s-4: 16px; --s-5: 24px;
+  --s-6: 32px; --s-7: 48px; --s-8: 64px; --s-9: 96px; --s-10: 144px;
+
+  --gutter: clamp(16px, 4vw, 56px);
+  --max: 1440px;
+
+  /* Bordas: quase retas. O sistema é de recortes, não de cápsulas. */
+  --r-0: 0;
+  --r-1: 2px;
+  --r-2: 4px;
+  --hair: 1px;
+
+  /* Movimento */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-io: cubic-bezier(0.65, 0, 0.35, 1);
+  --d-fast: 140ms;
+  --d-base: 260ms;
+  --d-slow: 600ms;
+
+  --z-nav: 40;
+  --z-overlay: 60;
+  --z-toast: 80;
+
+  --nav-h: 64px;
+  --tab-h: 64px;
+}
+
+/* Tons de seção: cada página escolhe um com data-tone */
+[data-tone='grafite'] {
+  --bg: var(--c-grafite); --bg-2: var(--c-grafite-2); --bg-3: var(--c-grafite-3);
+  --fg: var(--c-gelo); --fg-2: var(--c-cinza);
+  --accent: var(--c-sol); --accent-fg: var(--c-grafite);
+  --signal: var(--c-sinal); --line: rgba(244, 247, 242, 0.14); --line-strong: rgba(244, 247, 242, 0.32);
+  --topo: rgba(0, 230, 118, 0.10);
+}
+[data-tone='mata'] {
+  --bg: var(--c-mata); --bg-2: var(--c-mata-2); --bg-3: #0e5944;
+  --fg: var(--c-gelo); --fg-2: #a9c4b8;
+  --accent: var(--c-sinal); --accent-fg: var(--c-grafite);
+  --signal: var(--c-sol); --line: rgba(244, 247, 242, 0.16); --line-strong: rgba(244, 247, 242, 0.36);
+  --topo: rgba(255, 214, 0, 0.10);
+}
+[data-tone='noite'] {
+  --bg: var(--c-noite); --bg-2: var(--c-noite-2); --bg-3: #132950;
+  --fg: var(--c-gelo); --fg-2: #9cabc4;
+  --accent: var(--c-sol); --accent-fg: var(--c-grafite);
+  --signal: var(--c-rede-claro); --line: rgba(244, 247, 242, 0.14); --line-strong: rgba(244, 247, 242, 0.34);
+  --topo: rgba(20, 100, 244, 0.22);
+}
+[data-tone='gelo'] {
+  --bg: var(--c-gelo); --bg-2: var(--c-gelo-2); --bg-3: #d9e0d6;
+  --fg: var(--c-grafite); --fg-2: var(--c-cinza-escuro);
+  --accent: var(--c-mata); --accent-fg: var(--c-gelo);
+  --signal: var(--c-rede); --line: rgba(16, 19, 17, 0.14); --line-strong: rgba(16, 19, 17, 0.4);
+  --topo: rgba(6, 61, 46, 0.10);
+}
+
+/* Séries de gráfico e estados — passos escuros validados contra o grafite */
+[data-tone='grafite'], [data-tone='mata'], [data-tone='noite'] {
+  --cat-1: #3987e5; --cat-2: #d95926; --cat-3: #199e70; --cat-4: #c98500; --cat-5: #d55181; --cat-0: #7f8a83;
+  --st-ok: #00e676; --st-warn: #ffd600; --st-err: #ff6b57;
+}
+[data-tone='gelo'] {
+  --cat-1: #2a78d6; --cat-2: #eb6834; --cat-3: #1baf7a; --cat-4: #eda100; --cat-5: #e87ba4; --cat-0: #8d968f;
+  --st-ok: #00a152; --st-warn: #c99400; --st-err: #b3261e;
+}

@@ -1,0 +1,35 @@
+.diag { display: grid; gap: 16px; padding-bottom: 40px; border-bottom: 1px solid var(--line); }
+.diag-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 16px; }
+.diag-list { list-style: none; border-top: 1px solid var(--line-strong); }
+.diag-item { display: grid; grid-template-columns: 32px minmax(180px, 280px) 1fr; gap: 14px; align-items: start; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.diag-icon { width: 26px; height: 26px; display: grid; place-items: center; }
+.diag-icon svg { width: 16px; height: 16px; }
+.diag-item.is-ok .diag-icon { background: var(--c-sinal); color: var(--c-grafite); }
+.diag-item.is-aviso .diag-icon { background: var(--c-sol); color: var(--c-grafite); }
+.diag-item.is-falha .diag-icon { background: var(--c-erro); color: var(--c-grafite); }
+.diag-label { font-weight: 700; font-stretch: 88%; }
+.diag-detail { font-size: 0.9rem; word-break: break-word; }
+.off-title { margin-top: 24px; }
+.diag > .btn-quiet { justify-self: start; padding-left: 0; }
+.off-list { list-style: none; display: grid; }
+.off-list li { display: grid; grid-template-columns: 130px minmax(0, 1fr) minmax(0, 1fr); gap: 14px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 0.92rem; }
+.guides { display: grid; padding-top: 24px; }
+.guide { border-bottom: 1px solid var(--line); }
+.guide summary {
+  list-style: none; cursor: pointer; display: flex; align-items: baseline; gap: 16px; padding: 22px 0;
+  font-weight: 800; font-stretch: 78%; text-transform: uppercase; font-size: clamp(1.3rem, 1rem + 1.2vw, 2rem); letter-spacing: -0.01em;
+}
+.guide summary::-webkit-details-marker { display: none; }
+.guide summary::after { content: '+'; margin-left: auto; font-family: var(--f-mono); font-weight: 400; color: var(--accent); }
+.guide[open] summary::after { content: '−'; }
+.guide summary .mono { color: var(--accent); font-size: 0.8rem; }
+.guide > :not(summary) { margin-bottom: 24px; }
+.guide ol.prose, .guide ul.prose { padding-left: 22px; display: grid; gap: 8px; }
+.cmp { width: 100%; border-collapse: collapse; font-size: 0.9rem; display: block; overflow-x: auto; }
+.cmp th, .cmp td { text-align: left; padding: 10px 12px 10px 0; border-bottom: 1px solid var(--line); vertical-align: top; min-width: 140px; }
+.cmp th { font-family: var(--f-mono); font-size: var(--t-micro); text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-2); font-weight: 400; }
+@media (max-width: 760px) {
+  .diag-item { grid-template-columns: 32px 1fr; }
+  .diag-detail { grid-column: 2; }
+  .off-list li { grid-template-columns: 1fr; gap: 4px; }
+}
