@@ -13,7 +13,8 @@
     "package:usb": "node scripts/package-usb.mjs",
     "serve:local": "node scripts/serve-local.mjs",
     "android:sync": "npm run build && npx cap sync android",
-    "android:apk": "npm run android:sync && cd android && ./gradlew assembleDebug"
+    "android:apk": "npm run android:sync && cd android && ./gradlew assembleDebug",
+    "deploy:firebase": "sh scripts/deploy-firebase.sh"
   },
   "dependencies": {
     "@capacitor/core": "^6.2.0",
