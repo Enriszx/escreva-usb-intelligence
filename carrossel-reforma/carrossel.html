@@ -3,363 +3,211 @@
 <head>
 <meta charset="utf-8">
 <title>A Reforma 509</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo+Black&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@500;800&family=UnifrakturCook:wght@700&display=block" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@600;800;900&family=Instrument+Serif:ital@0;1&family=UnifrakturCook:wght@700&display=block" rel="stylesheet">
 <style>
-/* ====== IDENTIDADE (troque aqui para casar com o perfil da igreja) ====== */
 :root{
-  --ink:#0c0a08;        /* fundo */
-  --ink2:#17120d;
-  --paper:#f3ead6;      /* texto claro / papel */
-  --fire:#ff1f2d;       /* vermelho da logo */
-  --gold:#ff8466;       /* coral (brilho da logo) */
-  --wood1:#5a3519; --wood2:#3b220f; --wood3:#2a170a;
+  --ink:#0a0807; --paper:#f3ead6; --red:#ff1f2d; --coral:#ff8466;
   --W:1080px; --H:1350px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{background:#000}
-body{width:calc(var(--W) * 7);height:var(--H);overflow:hidden}
-
-#stage{position:relative;width:calc(var(--W) * 7);height:var(--H);overflow:hidden;
+body{width:7560px;height:1350px;overflow:hidden}
+#stage{position:relative;width:7560px;height:1350px;overflow:hidden;color:var(--paper);font-family:Archivo,sans-serif;
   background:
-    radial-gradient(900px 700px at 540px 420px, rgba(255,31,45,.22), transparent 70%),
-    radial-gradient(800px 800px at 2400px 900px, rgba(255,132,102,.12), transparent 70%),
-    radial-gradient(900px 700px at 3800px 300px, rgba(255,31,45,.16), transparent 70%),
-    radial-gradient(900px 900px at 5000px 700px, rgba(255,132,102,.14), transparent 70%),
-    radial-gradient(900px 800px at 6900px 600px, rgba(255,31,45,.24), transparent 70%),
-    linear-gradient(180deg,var(--ink2),var(--ink) 60%);
-  color:var(--paper);font-family:"Archivo Black",sans-serif}
-.grain{position:absolute;inset:0;pointer-events:none;mix-blend-mode:overlay;opacity:.35;z-index:50;
-  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
-
+    radial-gradient(700px 900px at 760px 600px, rgba(255,31,45,.30), transparent 70%),
+    radial-gradient(800px 700px at 2300px 500px, rgba(255,120,60,.16), transparent 70%),
+    radial-gradient(800px 600px at 3000px 1200px, rgba(255,31,45,.22), transparent 70%),
+    radial-gradient(700px 900px at 4100px 500px, rgba(255,31,45,.26), transparent 70%),
+    radial-gradient(900px 700px at 5300px 1200px, rgba(255,140,80,.18), transparent 70%),
+    radial-gradient(900px 900px at 7100px 600px, rgba(255,31,45,.32), transparent 70%),
+    linear-gradient(180deg,#140d0b,#0a0807 55%,#070505)}
 .abs{position:absolute}
-.mono{font-family:"JetBrains Mono",monospace;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
-.goth{font-family:"UnifrakturCook",serif}
+.grain{position:absolute;inset:0;pointer-events:none;mix-blend-mode:overlay;opacity:.45;z-index:90;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='260' height='260'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.95' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+.dust{position:absolute;inset:0;pointer-events:none;z-index:89;mix-blend-mode:screen;opacity:.22;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='900' height='900'><filter id='d'><feTurbulence type='fractalNoise' baseFrequency='.012' numOctaves='2' seed='7'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 .3  0 0 0 0 .25  0 0 0 1.6 -.9'/></filter><rect width='100%' height='100%' filter='url(%23d)'/></svg>")}
+
+.lbl{position:absolute;top:58px;font-weight:800;font-size:22px;letter-spacing:.22em;text-transform:uppercase;display:flex;gap:16px;align-items:center;z-index:60}
+.lbl::before{content:"";width:34px;height:3px;background:var(--red);box-shadow:0 0 14px var(--red)}
+.pg{position:absolute;bottom:50px;font-weight:800;font-size:20px;letter-spacing:.2em;z-index:60;opacity:.7}
+.anton{font-family:Anton,sans-serif;text-transform:uppercase;line-height:.95}
 .serif{font-family:"Instrument Serif",serif}
-.anton{font-family:Anton,sans-serif;text-transform:uppercase;line-height:.94}
-.fire{color:var(--fire)} .gold{color:var(--gold)}
-
-/* HUD de cada slide */
-.hud{position:absolute;top:56px;font-size:22px;display:flex;gap:18px;align-items:center;z-index:40}
-.hud .dot{width:14px;height:14px;border-radius:50%;background:var(--fire);box-shadow:0 0 18px var(--fire)}
-.pg{position:absolute;bottom:52px;font-size:22px;z-index:40;opacity:.8}
-.swipe{position:absolute;bottom:44px;font-size:22px;z-index:40;display:flex;gap:12px;align-items:center;
-  background:var(--paper);color:var(--ink);padding:12px 22px;border-radius:999px}
-
-/* palco 3D */
-.p3d{perspective:1400px;transform-style:preserve-3d}
+.goth{font-family:UnifrakturCook,serif}
+.red{color:var(--red)} .coral{color:var(--coral)}
+.p3d{perspective:1300px}
 .pres{transform-style:preserve-3d}
+.shadowtxt{text-shadow:0 3px 22px rgba(0,0,0,.9)}
 
-/* fitas que costuram os slides */
-.tape{position:absolute;height:84px;display:flex;align-items:center;white-space:nowrap;overflow:hidden;
-  font-family:Anton;font-size:46px;letter-spacing:.04em;z-index:30;box-shadow:0 20px 40px rgba(0,0,0,.55)}
-.tape.f{background:var(--fire);color:var(--ink)}
-.tape.g{background:var(--gold);color:var(--ink)}
+/* fotos reais: integração de luz */
+.photo{position:absolute;display:block}
+.lit{filter:contrast(1.08) saturate(.92) drop-shadow(-10px 0 22px rgba(255,31,45,.45)) drop-shadow(0 50px 50px rgba(0,0,0,.75))}
+.contact{position:absolute;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.85),transparent);filter:blur(10px)}
+
+.tape{position:absolute;height:82px;display:flex;align-items:center;white-space:nowrap;overflow:hidden;
+  font-family:Anton;font-size:44px;letter-spacing:.04em;z-index:70;box-shadow:0 18px 30px rgba(0,0,0,.6)}
+.tape::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.18),transparent 40%,rgba(0,0,0,.15));pointer-events:none}
+.tape.r{background:var(--red);color:#120303}
 .tape.p{background:var(--paper);color:var(--ink)}
-
-/* adesivos */
-.sticker{position:absolute;z-index:35;padding:16px 26px;border-radius:18px;font-family:Anton;text-transform:uppercase;
-  box-shadow:0 14px 0 rgba(0,0,0,.45), 0 30px 60px rgba(0,0,0,.5)}
-
-/* ===== porta 3D ===== */
-.door{position:absolute;width:560px;height:900px;transform-style:preserve-3d}
-.door .face{position:absolute;inset:0;border-radius:280px 280px 0 0;
-  background:
-   repeating-linear-gradient(90deg, transparent 0 108px, rgba(0,0,0,.45) 108px 112px),
-   repeating-linear-gradient(0deg, rgba(255,255,255,.03) 0 3px, transparent 3px 9px),
-   linear-gradient(90deg,var(--wood1),var(--wood2) 50%,var(--wood1));
-  box-shadow: inset 0 0 0 22px var(--wood3), inset 0 0 80px rgba(0,0,0,.7)}
-.door .side{position:absolute;top:0;height:100%;width:70px;background:linear-gradient(90deg,#1c0f05,#2e1a0b)}
-.door .band{position:absolute;left:22px;right:22px;height:34px;background:linear-gradient(#2b2b2b,#111);
-  box-shadow:0 4px 0 #000, inset 0 2px 0 #555}
-.door .band i{position:absolute;top:9px;width:16px;height:16px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#aaa,#333)}
-.thesis{position:absolute;width:300px;height:400px;background:linear-gradient(170deg,#fbf3df,#e6d6b2);
-  color:#2a1d10;padding:30px 26px;box-shadow:0 30px 50px rgba(0,0,0,.55);font-family:"Instrument Serif";}
-.thesis h4{font-family:UnifrakturCook;font-size:40px;line-height:1;margin-bottom:8px}
-.thesis .ln{height:7px;background:rgba(42,29,16,.32);margin:11px 0;border-radius:3px}
-.nail{position:absolute;width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ddd,#444 60%,#111);box-shadow:0 4px 6px rgba(0,0,0,.6)}
-
-/* ===== moedas 3D ===== */
-.coin{position:absolute;width:200px;height:200px;transform-style:preserve-3d}
-.coin .l{position:absolute;inset:0;border-radius:50%;background:#8a5a00}
-.coin .top{position:absolute;inset:0;border-radius:50%;
-  background:radial-gradient(circle at 35% 30%,#ffe9a3,#ffbe2e 45%,#b77800 100%);
-  box-shadow:inset 0 0 0 14px rgba(0,0,0,.12), inset 0 0 0 18px rgba(255,255,255,.25);
-  display:flex;align-items:center;justify-content:center;font-family:Anton;font-size:84px;color:#7a4b00}
-
-/* ===== livro 3D ===== */
-.book{position:absolute;width:420px;height:560px;transform-style:preserve-3d}
-.book .cv{position:absolute;inset:0;background:linear-gradient(135deg,#3a0e06,#1d0602);border-radius:6px 18px 18px 6px;
-  box-shadow:inset 18px 0 0 rgba(0,0,0,.35), inset 0 0 0 10px rgba(255,132,102,.35);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
-.book .pages{position:absolute;top:10px;bottom:10px;width:90px;right:-1px;transform-origin:right;
-  background:repeating-linear-gradient(90deg,#efe3c5 0 3px,#cdbb94 3px 5px)}
-.book .spine{position:absolute;top:0;bottom:0;left:0;width:90px;transform-origin:left;background:linear-gradient(90deg,#120301,#3a0e06)}
-.book .topp{position:absolute;left:0;right:10px;top:0;height:90px;transform-origin:top;background:repeating-linear-gradient(0deg,#efe3c5 0 3px,#cdbb94 3px 5px)}
-
-/* ===== cubos 3D ===== */
-.cube{position:absolute;transform-style:preserve-3d}
-.cube .fc{position:absolute;display:flex;align-items:center;justify-content:center;text-align:center;
-  font-family:Anton;text-transform:uppercase;line-height:.9;backface-visibility:hidden}
-
-/* ===== cruz 3D ===== */
-.bar{position:absolute;transform-style:preserve-3d}
-.bar .f{position:absolute}
+.sticker{position:absolute;z-index:65;padding:16px 26px;border-radius:14px;font-family:Anton;text-transform:uppercase;
+  box-shadow:0 10px 0 rgba(0,0,0,.35),0 30px 50px rgba(0,0,0,.6)}
 </style>
 </head>
 <body>
 <div id="stage">
 
-  <!-- grade de chão contínua (liga todos os slides) -->
-  <svg class="abs" style="left:0;top:0;z-index:1" width="7560" height="1350" id="grid"></svg>
-  <!-- linha dourada contínua -->
-  <svg class="abs" style="left:0;top:0;z-index:28;pointer-events:none" width="7560" height="1350">
-    <defs><filter id="glow"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
-    <path id="thread" fill="none" stroke="var(--gold)" stroke-width="5" stroke-dasharray="2 16" stroke-linecap="round" filter="url(#glow)"
-      d="M 120 1180 C 500 1250, 760 1080, 1080 1150 S 1700 1300, 2160 1210 S 2900 1000, 3240 1120 S 3900 1290, 4320 1180 S 5000 1010, 5400 1150 S 6100 1290, 6480 1160 S 7200 1050, 7440 1120"/>
-  </svg>
+<!-- ================= 1 · CAPA ================= -->
+<div class="lbl" style="left:64px">Igreja da Gratidão</div>
+<img src="assets/logo.png" class="abs" style="left:930px;top:34px;width:104px;z-index:60;filter:drop-shadow(0 0 22px rgba(255,31,45,.7))">
+<div class="abs" style="left:0;top:140px;width:1080px;height:900px;perspective:1000px;perspective-origin:30% 30%;z-index:10">
+  <div class="pres" style="position:absolute;left:40px;top:40px;transform:rotateY(24deg) rotateX(6deg);transform-origin:0 50%">
+    <div class="goth x3d" data-d="10" data-c="#5c0009" style="font-size:150px;line-height:.8;margin-left:12px">A</div>
+    <div class="anton x3d" data-d="26" data-c="#4d0007" style="font-size:330px;color:var(--red);line-height:.86">Refor</div>
+    <div class="anton x3d" data-d="26" data-c="#4d0007" style="font-size:330px;color:var(--red);line-height:.86">ma.</div>
+  </div>
+</div>
+<!-- Lutero (Cranach, 1528) atravessando 1→2 -->
+<div class="contact" style="left:520px;top:1250px;width:700px;height:120px;z-index:19"></div>
+<img src="assets/luther.png" class="photo lit" style="left:450px;top:440px;width:820px;z-index:20;-webkit-mask-image:linear-gradient(180deg,#000 78%,transparent 99%)">
+<div class="sticker" style="left:400px;top:170px;background:var(--paper);color:var(--ink);transform:rotate(6deg);font-size:58px;line-height:.9;text-align:center;z-index:66">509<br><span style="font-size:26px">anos</span></div>
+<div class="abs serif shadowtxt" style="left:64px;top:1010px;width:520px;font-size:44px;line-height:1.04;font-style:italic;z-index:30">
+  31 de outubro de 1517. Um monge, uma porta — e o mundo nunca mais foi o mesmo.</div>
+<div class="sticker" style="left:64px;top:1236px;background:var(--red);color:#120303;font-size:30px;padding:12px 22px;border-radius:999px;z-index:66">Arrasta →</div>
 
-  <!-- ================= SLIDE 1 — CAPA ================= -->
-  <div class="hud mono" style="left:64px"><span class="dot"></span>Igreja da Gratidão <span style="opacity:.5">apresenta</span></div>
-  <img src="logo.png" class="abs" style="left:900px;top:30px;width:130px;z-index:40;filter:drop-shadow(0 0 30px rgba(255,31,45,.7))">
-  <div class="abs mono" style="left:64px;top:140px;font-size:26px;color:var(--gold)">31 · OUT · 1517 → 31 · OUT · 2026</div>
+<!-- ================= 2 · WITTENBERG ================= -->
+<div class="lbl" style="left:1290px">Wittenberg · 1517</div>
+<div class="abs" style="left:1290px;top:130px;z-index:30">
+  <div class="anton" style="font-size:130px">Um monge.</div>
+  <div class="anton coral" style="font-size:130px">Uma porta.</div>
+  <div class="anton red" style="font-size:130px">95 teses.</div>
+</div>
+<div class="abs serif shadowtxt" style="left:1290px;top:560px;width:430px;font-size:36px;line-height:1.12;z-index:30">
+  Martinho Lutero prega na porta da Igreja do Castelo suas <i>95 teses</i>, chamando a igreja a voltar para a Palavra.</div>
+<!-- a porta real (hoje em bronze, com as teses gravadas) atravessando 2→3 -->
+<div class="abs" style="left:1700px;top:330px;width:1000px;height:1100px;perspective:1500px;perspective-origin:0% 40%;z-index:22">
+  <div class="contact" style="left:60px;top:930px;width:860px;height:110px"></div>
+  <img src="assets/porta.png" class="photo" style="left:40px;top:0;width:880px;transform:rotateY(-26deg);transform-origin:0 50%;filter:contrast(1.12) saturate(.85) brightness(.78) drop-shadow(-14px 0 26px rgba(255,31,45,.5)) drop-shadow(30px 40px 40px rgba(0,0,0,.8))">
+</div>
+<div class="abs serif" style="left:1290px;top:1180px;width:420px;font-size:20px;opacity:.6;z-index:30;font-style:italic">Porta das Teses, Schlosskirche, Wittenberg (foto real)</div>
+<div class="pg" style="left:1290px">02 / 07</div>
+<div class="tape p" style="left:860px;top:1240px;width:470px;transform:rotate(-4deg)"><span id="tp1"></span></div>
 
-  <div class="abs p3d" style="left:0;top:100px;width:1080px;height:900px;perspective:1100px;perspective-origin:50% 20%;z-index:10">
-    <div class="pres" style="position:absolute;left:40px;top:40px;transform:rotateX(18deg) rotateY(-18deg) rotateZ(-4deg)">
-      <div class="goth x3d" data-d="16" data-c="#5c0009" style="font-size:190px;color:var(--paper);line-height:.9;margin-left:20px">A</div>
-      <div class="anton x3d" data-d="34" data-c="#5c0009" style="font-size:350px;color:var(--fire);letter-spacing:-.01em">Refor</div>
-      <div class="anton x3d" data-d="34" data-c="#7a1a0c" style="font-size:350px;color:var(--gold);margin-left:230px;margin-top:-8px">ma.</div>
-    </div>
-  </div>
-  <div class="sticker" style="left:690px;top:250px;background:var(--paper);color:var(--ink);transform:rotate(8deg);font-size:64px;line-height:.9;text-align:center">509<br><span style="font-size:30px">anos</span></div>
-  <div class="abs serif" style="left:64px;top:1070px;width:660px;font-size:42px;line-height:1.05;font-style:italic;z-index:20;text-shadow:0 2px 18px #000,0 0 6px #000">
-    A história de <span class="gold">uma porta</span> que mudou o mundo — e de uma <span class="fire">graça</span> que muda você.</div>
-  <div class="swipe mono" style="left:64px">Arrasta <span style="font-size:30px">→</span></div>
+<!-- ================= 3 · INDULGÊNCIAS ================= -->
+<div class="lbl" style="left:2640px">O problema</div>
+<div class="abs" style="left:2640px;top:130px;width:560px;z-index:30">
+  <div class="anton" style="font-size:118px">Perdão</div>
+  <div class="anton" style="font-size:118px">à <span class="red">venda</span>?</div>
+</div>
+<div class="abs serif shadowtxt" style="left:2640px;top:380px;width:540px;font-size:33px;line-height:1.12;z-index:30">
+  Vendiam-se <b class="coral">indulgências</b>: papéis que prometiam aliviar a pena dos pecados em troca de dinheiro.</div>
+<div class="abs" style="left:2640px;top:540px;width:540px;z-index:30;border-left:8px solid var(--red);padding:8px 0 8px 26px">
+  <div class="serif shadowtxt" style="font-size:38px;font-style:italic;line-height:1.06">“Assim que a moeda no cofre tilinta, a alma do purgatório salta.”</div>
+  <div style="font-size:16px;font-weight:800;letter-spacing:.18em;margin-top:12px;color:var(--coral);text-transform:uppercase">Slogan atribuído a Johann Tetzel</div>
+</div>
+<!-- moedas reais (Joachimsthaler, 1525) caindo no cofre real de Tetzel -->
+<div class="abs" style="left:2620px;top:640px;width:900px;height:500px;perspective:900px;z-index:34">
+  <img src="assets/coin2.png" class="photo" style="left:120px;top:150px;width:240px;transform:rotateX(58deg) rotateZ(-30deg);filter:brightness(1.05) sepia(.25) drop-shadow(0 30px 20px rgba(0,0,0,.7))">
+  <img src="assets/coin1.png" class="photo" style="left:350px;top:60px;width:200px;transform:rotateY(62deg) rotateZ(12deg);filter:brightness(1.05) sepia(.25) blur(.6px) drop-shadow(0 30px 20px rgba(0,0,0,.7))">
+  <img src="assets/coin2.png" class="photo" style="left:420px;top:250px;width:200px;transform:rotateX(-40deg) rotateY(30deg);filter:brightness(1.1) sepia(.25) drop-shadow(0 30px 20px rgba(0,0,0,.7))">
+  <img src="assets/coin1.png" class="photo" style="left:640px;top:-20px;width:110px;transform:rotateX(70deg) rotateZ(50deg);filter:sepia(.25) blur(1.4px) drop-shadow(0 20px 14px rgba(0,0,0,.7))">
+</div>
+<div class="contact" style="left:2560px;top:1300px;width:1200px;height:110px;z-index:31"></div>
+<img src="assets/tetzel.png" class="photo lit" style="left:2480px;top:800px;width:1220px;z-index:32">
+<div class="pg" style="left:2640px;bottom:auto;top:1290px;color:#fff;z-index:40">03 / 07</div>
 
-  <!-- ================= SLIDE 2 — 1517 ================= -->
-  <!-- 1517 gigante deitado em perspectiva, atravessando 1→2 -->
-  <div class="abs" style="left:620px;top:520px;width:1500px;height:700px;perspective:900px;perspective-origin:50% 0%;z-index:5">
-    <div class="anton x3d" data-d="40" data-c="#2a0005" data-dx="0" data-dy="1"
-      style="position:absolute;left:0;top:0;font-size:640px;color:transparent;-webkit-text-stroke:6px var(--fire);transform:rotateX(52deg) translateZ(-40px);transform-origin:50% 100%;opacity:.55">1517</div>
+<!-- ================= 4 · WORMS ================= -->
+<div class="lbl" style="left:3304px">Worms · 1521</div>
+<div class="abs" style="left:3240px;top:120px;width:900px;height:560px;perspective:900px;perspective-origin:20% 50%;z-index:20">
+  <div class="pres" style="position:absolute;left:60px;top:20px;transform:rotateY(28deg);transform-origin:0 50%">
+    <div class="anton x3d" data-d="20" data-c="#4d0007" style="font-size:250px;line-height:.9">Aqui</div>
+    <div class="anton x3d red" data-d="20" data-c="#4d0007" style="font-size:250px;line-height:.9">estou.</div>
   </div>
-  <div class="hud mono" style="left:1144px"><span class="dot"></span>Wittenberg · Alemanha</div>
-  <div class="abs" style="left:1144px;top:150px;width:700px;z-index:20">
-    <div class="anton" style="font-size:150px">Um monge.</div>
-    <div class="anton gold" style="font-size:150px">Uma porta.</div>
-    <div class="anton fire" style="font-size:150px">95 teses.</div>
-  </div>
-  <div class="abs serif" style="left:1144px;top:690px;width:560px;font-size:40px;line-height:1.12;z-index:20">
-    No dia <b class="gold">31 de outubro de 1517</b>, Martinho Lutero, monge e professor de teologia, prega na porta da Igreja do Castelo suas <i>95 teses</i> — um convite público ao debate.</div>
-  <div class="pg mono" style="left:1144px">02 / 07</div>
+</div>
+<!-- estátua real de Lutero em Worms, à frente do texto -->
+<div class="contact" style="left:3760px;top:1270px;width:560px;height:100px;z-index:24"></div>
+<img src="assets/worms.png" class="photo lit" style="left:3720px;top:250px;width:800px;z-index:25">
+<div class="abs serif shadowtxt" style="left:3304px;top:690px;width:440px;font-size:35px;line-height:1.12;z-index:30">
+  Diante do imperador, pressionado a negar o que escreveu, Lutero responde:<br><i class="coral">“Aqui estou. Não posso fazer outra coisa. Que Deus me ajude.”</i></div>
+<div class="abs serif" style="left:3304px;top:1080px;width:400px;font-size:20px;opacity:.6;z-index:30;font-style:italic">Monumento a Lutero, Worms — “Hier stehe ich”</div>
+<div class="pg" style="left:3304px">04 / 07</div>
 
-  <!-- PORTA 3D atravessando 2→3 -->
-  <div class="abs p3d" style="left:1700px;top:250px;width:900px;height:1100px;perspective:1600px;perspective-origin:20% 40%;z-index:12">
-    <div class="door" style="left:120px;top:60px;transform:rotateY(-28deg) rotateX(4deg)">
-      <div class="side" style="right:-70px;transform:rotateY(90deg);transform-origin:left"></div>
-      <div class="face"></div>
-      <div class="band" style="top:250px"><i style="left:30px"></i><i style="right:30px"></i></div>
-      <div class="band" style="top:700px"><i style="left:30px"></i><i style="right:30px"></i></div>
-      <div class="abs" style="left:420px;top:470px;width:70px;height:70px;border-radius:50%;border:12px solid #1a1a1a;box-shadow:0 6px 0 #000"></div>
-      <div class="thesis" style="left:120px;top:300px;transform:translateZ(14px) rotate(-3deg)">
-        <span class="nail" style="left:139px;top:-6px"></span>
-        <h4>Disputatio</h4>
-        <div style="font-size:20px;margin-bottom:6px">pro declaratione virtutis indulgentiarum</div>
-        <div class="ln"></div><div class="ln" style="width:86%"></div><div class="ln"></div><div class="ln" style="width:70%"></div>
-        <div class="ln"></div><div class="ln" style="width:90%"></div><div class="ln" style="width:60%"></div><div class="ln"></div>
-        <div style="position:absolute;right:20px;bottom:16px;font-family:Anton;font-size:58px;color:#9b1c00">95</div>
-      </div>
-    </div>
+<!-- ================= 5 · 5 SOLAS ================= -->
+<div class="lbl" style="left:4570px">O coração da Reforma</div>
+<div class="abs" style="left:4570px;top:120px;z-index:30">
+  <span class="anton" style="font-size:170px">Os <span class="red">5</span></span>
+  <span class="goth coral" style="font-size:150px;margin-left:14px">Solas</span>
+</div>
+<div class="abs" style="left:4560px;top:330px;width:700px;height:520px;perspective:900px;perspective-origin:50% 0%;z-index:30">
+  <div class="pres" style="position:absolute;left:0;right:0;top:0;transform:rotateX(26deg);transform-origin:50% 0">
+    <div id="solas"></div>
   </div>
-  <!-- martelo -->
-  <svg class="abs" style="left:1960px;top:170px;z-index:14;transform:rotate(-28deg);filter:drop-shadow(0 30px 30px rgba(0,0,0,.6))" width="260" height="300" viewBox="0 0 260 300">
-    <defs><linearGradient id="hm" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#d9d9d9"/><stop offset=".5" stop-color="#777"/><stop offset="1" stop-color="#2a2a2a"/></linearGradient>
-    <linearGradient id="hw" x1="0" x2="1"><stop offset="0" stop-color="#8a5627"/><stop offset="1" stop-color="#4a2a10"/></linearGradient></defs>
-    <rect x="112" y="70" width="36" height="220" rx="12" fill="url(#hw)"/>
-    <rect x="30" y="20" width="200" height="66" rx="10" fill="url(#hm)"/>
-    <rect x="30" y="20" width="200" height="14" rx="7" fill="#fff" opacity=".35"/>
-  </svg>
+</div>
+<!-- Bíblia de Lutero, 1534 (exemplar real) atravessando 5→6 -->
+<div class="contact" style="left:4760px;top:1290px;width:1000px;height:120px;z-index:33"></div>
+<img src="assets/bible2.png" class="photo lit" style="left:4700px;top:830px;width:1060px;transform:rotate(-5deg);z-index:34">
+<div class="abs serif" style="left:4570px;top:1240px;width:300px;font-size:19px;opacity:.65;z-index:40;font-style:italic">Bíblia de Lutero, 1534 — a Palavra na língua do povo</div>
+<div class="pg" style="left:4570px;bottom:auto;top:58px;left:5250px">05/07</div>
 
-  <!-- ================= SLIDE 3 — INDULGÊNCIAS ================= -->
-  <div class="hud mono" style="left:2224px;left:2520px"><span class="dot"></span>O problema</div>
-  <div class="abs" style="left:2520px;top:150px;width:640px;z-index:20;text-align:right">
-    <div class="anton" style="font-size:118px">Perdão</div>
-    <div class="anton" style="font-size:118px">à <span class="gold">venda</span>?</div>
+<!-- ================= 6 · GRAÇA → GRATIDÃO ================= -->
+<!-- página real de Gênesis (1534) em perspectiva, atravessando 6→7 -->
+<div class="abs" style="left:5750px;top:-40px;width:1100px;height:1400px;perspective:1400px;z-index:5">
+  <img src="assets/genesis1534.jpg" class="photo" style="left:120px;top:60px;width:820px;transform:rotateY(-32deg) rotateZ(4deg);opacity:.14;filter:sepia(.5) contrast(1.2);mix-blend-mode:screen;-webkit-mask-image:radial-gradient(closest-side,#000 20%,transparent 100%)">
+</div>
+<div class="lbl" style="left:5464px">Efésios 2.8</div>
+<div class="abs serif shadowtxt" style="left:5464px;top:140px;width:940px;font-size:60px;line-height:1.03;z-index:30">
+  “Porque <i class="coral">pela graça</i> sois salvos, mediante a fé; e isto não vem de vós; <i class="red">é dom de Deus</i>.”</div>
+<div class="abs" style="left:5400px;top:430px;width:1080px;height:700px;perspective:1000px;perspective-origin:0% 40%;z-index:36">
+  <div class="pres" style="position:absolute;left:150px;top:0;text-align:left;transform:rotateY(22deg) scale(1.12);transform-origin:0 0">
+    <div class="anton x3d" data-d="22" data-c="#5c1a0c" style="font-size:240px;color:var(--coral)">Graça</div>
+    <div class="anton" style="font-size:80px;margin:-4px 0 6px 8px">gera ↓</div>
+    <div class="anton x3d red" data-d="22" data-c="#4d0007" style="font-size:240px">Gratidão</div>
   </div>
-  <div class="abs serif" style="left:2560px;top:430px;width:600px;font-size:38px;line-height:1.12;z-index:20;text-align:right">
-    A igreja da época vendia <b class="gold">indulgências</b>: papéis que prometiam diminuir a pena dos pecados em troca de dinheiro.</div>
-  <div class="abs" style="left:2470px;top:700px;width:690px;z-index:20;border-left:10px solid var(--fire);padding:26px 0 26px 34px;background:linear-gradient(90deg,rgba(255,31,45,.16),transparent)">
-    <div class="serif" style="font-size:44px;font-style:italic;line-height:1.08">“Assim que a moeda no cofre tilinta, a alma do purgatório salta.”</div>
-    <div class="mono" style="font-size:20px;margin-top:16px;color:var(--gold)">— slogan atribuído a Johann Tetzel</div>
-  </div>
-  <!-- moedas 3D caindo, atravessando 3→4 -->
-  <div class="abs p3d" style="left:2740px;top:930px;width:900px;height:450px;perspective:900px;z-index:22" id="coins" data-x></div>
-  <div class="pg mono" style="left:2584px">03 / 07</div>
+</div>
+<div class="abs serif shadowtxt" style="left:5900px;top:1060px;width:520px;font-size:34px;line-height:1.1;font-style:italic;z-index:40;text-align:right">Por isso somos a <b class="red" style="font-style:normal">Igreja da Gratidão</b>: quem recebe graça, vive grato.</div>
 
-  <!-- fita 3→4 -->
-  <div class="tape f" style="left:2960px;top:1050px;width:900px;transform:rotate(-9deg)"><span id="tp1"></span></div>
+<div class="tape r" style="left:6080px;top:1250px;width:470px;transform:rotate(5deg)"><span id="tp2"></span></div>
 
-  <!-- ================= SLIDE 4 — WORMS + BÍBLIA ================= -->
-  <div class="hud mono" style="left:3304px"><span class="dot"></span>Worms · 1521</div>
-  <div class="abs" style="left:3240px;top:110px;width:1080px;height:640px;perspective:800px;perspective-origin:50% 100%;z-index:10">
-    <div class="pres" style="position:absolute;left:0;right:0;top:40px;text-align:center;transform:rotateX(38deg);transform-origin:50% 100%">
-      <div class="anton x3d" data-d="26" data-c="#4a0008" data-dx="0" data-dy="1" style="font-size:290px;color:var(--paper)">Aqui</div>
-      <div class="anton x3d" data-d="26" data-c="#4a0008" data-dx="0" data-dy="1" style="font-size:290px;color:var(--fire)">estou.</div>
-    </div>
-  </div>
-  <div class="abs serif" style="left:3304px;top:730px;width:520px;font-size:37px;line-height:1.12;z-index:20">
-    Pressionado a negar o que escreveu, Lutero responde: <i class="gold">“Não posso fazer outra coisa. Que Deus me ajude.”</i>
-    <br><br>Depois, traduz a Bíblia para o alemão — <b>a Palavra na língua do povo.</b></div>
-  <!-- livro 3D atravessando 4→5 -->
-  <div class="abs p3d" style="left:3900px;top:700px;width:700px;height:700px;perspective:1300px;z-index:24">
-    <div class="book" style="left:80px;top:40px;transform:rotateY(-32deg) rotateX(14deg) rotateZ(6deg)">
-      <div class="spine" style="transform:rotateY(-90deg)"></div>
-      <div class="topp" style="transform:rotateX(90deg) translateZ(0)"></div>
-      <div class="pages" style="transform:rotateY(90deg)"></div>
-      <div class="cv">
-        <div class="goth gold" style="font-size:76px;line-height:.9;text-align:center">Biblia</div>
-        <div class="mono" style="font-size:18px;color:var(--gold);opacity:.8">Deudsch · 1522</div>
-        <svg width="70" height="100" viewBox="0 0 70 100"><rect x="28" y="0" width="14" height="100" fill="var(--gold)"/><rect x="0" y="26" width="70" height="14" fill="var(--gold)"/></svg>
-      </div>
-    </div>
-  </div>
-  <div class="pg mono" style="left:3304px">04 / 07</div>
+<!-- ================= 7 · CTA ================= -->
+<div class="lbl" style="left:6544px">Semper reformanda</div>
+<div class="abs" style="left:6544px;top:140px;z-index:30">
+  <div class="anton" style="font-size:150px">A Reforma</div>
+  <div class="anton coral" style="font-size:150px">não acabou.</div>
+</div>
+<div class="abs serif shadowtxt" style="left:6544px;top:490px;width:470px;font-size:42px;line-height:1.08;z-index:30;font-style:italic">
+  Ela continua toda vez que alguém abre a Bíblia, crê na graça e vive <span class="red">grato</span>.</div>
+<div class="abs" style="left:7040px;top:420px;width:520px;height:620px;z-index:20">
+  <div style="position:absolute;inset:-60px;background:radial-gradient(closest-side,rgba(255,31,45,.55),transparent);filter:blur(30px)"></div>
+  <img src="assets/logo.png" style="position:absolute;left:60px;top:40px;width:400px;filter:drop-shadow(0 0 16px rgba(255,31,45,.7)) drop-shadow(0 30px 30px rgba(0,0,0,.7))">
+</div>
+<div class="abs" style="left:6544px;top:870px;width:960px;z-index:30">
+  <div class="anton x3d" data-d="12" data-c="#3a0006" style="font-size:120px;line-height:1">Ela continua</div>
+  <div class="anton x3d red" data-d="12" data-c="#3a0006" style="font-size:120px;line-height:1">em você.</div>
+</div>
+<div class="abs" style="left:6600px;bottom:56px;font-weight:900;font-size:26px;letter-spacing:.06em;z-index:40">@igrejadagratidao</div>
+<div class="abs" style="left:6930px;bottom:46px;display:flex;gap:12px;z-index:40;font-weight:800;font-size:20px;letter-spacing:.08em;text-transform:uppercase">
+  <span style="background:var(--paper);color:var(--ink);padding:10px 18px;border-radius:999px">Salva</span>
+  <span style="background:var(--red);color:#120303;padding:10px 18px;border-radius:999px">Compartilha</span>
+</div>
 
-  <!-- ================= SLIDE 5 — 5 SOLAS ================= -->
-  <div class="hud mono" style="left:4384px"><span class="dot"></span>O coração da Reforma</div>
-  <div class="abs" style="left:4384px;top:130px;z-index:20">
-    <div class="anton" style="font-size:200px">Os <span class="fire">5</span></div>
-    <div class="goth gold" style="font-size:150px;line-height:.8;margin-top:-6px">Solas</div>
-  </div>
-  <div class="abs p3d" style="left:4320px;top:0;width:1300px;height:1350px;perspective:1600px;perspective-origin:40% 50%;z-index:15" id="solas"></div>
-  <div class="pg mono" style="left:4384px">05 / 07</div>
-
-  <!-- fita 5→6 -->
-  <div class="tape g" style="left:5180px;top:96px;width:560px;transform:rotate(7deg)"><span id="tp2"></span></div>
-
-  <!-- ================= SLIDE 6 — GRAÇA → GRATIDÃO ================= -->
-  <div class="hud mono" style="left:5464px"><span class="dot"></span>Efésios 2.8</div>
-  <div class="abs" style="left:5464px;top:200px;width:960px;z-index:20">
-    <div class="serif" style="font-size:66px;line-height:1.02">“Porque <i class="gold">pela graça</i> sois salvos, mediante a fé; e isto não vem de vós; <i class="fire">é dom de Deus</i>.”</div>
-  </div>
-  <!-- equação em perspectiva -->
-  <div class="abs" style="left:5400px;top:640px;width:1080px;height:600px;perspective:1000px;perspective-origin:50% 0%;z-index:18">
-    <div class="pres" style="position:absolute;left:90px;top:-40px;transform:rotateY(24deg) rotateX(8deg) scale(1.22);transform-origin:0 0">
-      <div class="anton x3d" data-d="24" data-c="#7a1a0c" style="font-size:230px;color:var(--gold)">Graça</div>
-      <div class="anton" style="font-size:90px;color:var(--paper);margin:-6px 0 4px 10px">gera ↓</div>
-      <div class="anton x3d" data-d="24" data-c="#5c0009" style="font-size:230px;color:var(--fire)">Gratidão</div>
-    </div>
-  </div>
-  <div class="pg mono" style="left:5464px">06 / 07</div>
-  <div class="abs serif" style="left:5920px;top:390px;width:500px;font-size:36px;line-height:1.1;text-align:right;font-style:italic;z-index:20">Por isso somos a <b class="fire" style="font-style:normal">Igreja da Gratidão</b>: quem recebe graça, vive grato.</div>
-
-  <!-- ================= SLIDE 7 — CTA ================= -->
-  <div class="hud mono" style="left:6544px"><span class="dot"></span>Semper reformanda</div>
-  <div class="abs p3d" style="left:6800px;top:120px;width:780px;height:1000px;perspective:1400px;z-index:12" id="cross"></div>
-  <div class="abs" style="left:6544px;top:150px;z-index:20">
-    <div class="anton" style="font-size:150px;line-height:1">A Reforma</div>
-    <div class="anton gold" style="font-size:150px;line-height:1">não acabou.</div>
-  </div>
-  <div class="abs serif" style="left:6544px;top:500px;width:520px;font-size:44px;line-height:1.08;z-index:20;font-style:italic">
-    Ela continua toda vez que alguém abre a Bíblia, crê na graça e vive <span class="fire">grato</span>.</div>
-  <div class="abs" style="left:6544px;top:780px;width:960px;z-index:20">
-    <div class="anton x3d" data-d="14" data-c="#3a0006" style="font-size:120px;line-height:1">Ela continua</div><div class="anton fire x3d" data-d="14" data-c="#3a0006" style="font-size:120px;line-height:1">em você.</div>
-  </div>
-  <div class="abs mono" style="left:6544px;top:1110px;display:flex;gap:14px;z-index:25;font-size:22px">
-    <span style="background:var(--paper);color:var(--ink);padding:14px 22px;border-radius:999px">♥ Curte</span>
-    <span style="background:var(--gold);color:var(--ink);padding:14px 22px;border-radius:999px">⤴ Compartilha</span>
-    <span style="border:3px solid var(--paper);padding:11px 22px;border-radius:999px">⌑ Salva</span>
-  </div>
-  <div class="abs mono" style="left:6544px;bottom:52px;font-size:24px;z-index:25">@igrejadagratidao</div>
-  <div class="pg mono" style="left:7380px;opacity:.6">07/07</div>
-
-  <!-- fitas nas emendas 1→2 e 6→7 -->
-  <div class="tape p" style="left:880px;top:1260px;width:520px;transform:rotate(-4deg)"><span id="tp3"></span></div>
-  <div class="tape f" style="left:6260px;top:1240px;width:560px;transform:rotate(5deg)"><span id="tp4"></span></div>
-
-  <div class="grain"></div>
+<div class="grain"></div>
 </div>
 
 <script>
-// texto 3D extrudado
 document.querySelectorAll('.x3d').forEach(el=>{
-  const d=+el.dataset.d||20, c=el.dataset.c||'#000', dx=el.dataset.dx!==undefined?+el.dataset.dx:1, dy=el.dataset.dy!==undefined?+el.dataset.dy:1;
-  const s=[]; for(let i=1;i<=d;i++) s.push(`${(i*dx*0.9).toFixed(1)}px ${(i*dy).toFixed(1)}px 0 ${c}`);
-  s.push(`${d*dx}px ${d*dy+10}px 40px rgba(0,0,0,.65)`);
+  const d=+el.dataset.d||20, c=el.dataset.c||'#000', dx=el.dataset.dx!==undefined?+el.dataset.dx:1;
+  const s=[]; for(let i=1;i<=d;i++) s.push(`${(i*dx*0.8).toFixed(1)}px ${i}px 0 ${c}`);
+  s.push(`${d*dx}px ${d+14}px 40px rgba(0,0,0,.75)`);
   el.style.textShadow=s.join(',');
 });
-
-// grade de chão contínua em perspectiva (2D, sem emendas)
-(function(){
-  const g=document.getElementById('grid'), NS='http://www.w3.org/2000/svg';
-  const vx=3780, vy=-2600, horizon=760, W=7560, H=1350;
-  g.innerHTML='<defs><linearGradient id="fd" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".45" stop-color="#fff" stop-opacity=".7"/><stop offset="1" stop-color="#fff"/></linearGradient><mask id="gm" maskUnits="userSpaceOnUse" x="0" y="0" width="7560" height="1350"><rect x="0" y="'+horizon+'" width="7560" height="'+(H-horizon)+'" fill="url(#fd)"/></mask></defs><g id="gl" mask="url(#gm)"></g>';
-  const gl=g.querySelector('#gl');
-  const add=(x1,y1,x2,y2,o)=>{const l=document.createElementNS(NS,'line');l.setAttribute('x1',x1);l.setAttribute('y1',y1);l.setAttribute('x2',x2);l.setAttribute('y2',y2);l.setAttribute('stroke','#ff1f2d');l.setAttribute('stroke-opacity',o);l.setAttribute('stroke-width',2);gl.appendChild(l)};
-  for(let x=-4000;x<=W+4000;x+=160){const t=(horizon-vy)/(H-vy); add(vx+(x-vx)*t,horizon,x,H,.28)}
-  let y=horizon, step=8; while(y<H){ add(0,y,W,y,.32); step*=1.32; y+=step }
-})();
-
-// fitas
-const strip=(id,txt)=>{document.getElementById(id).textContent=(txt+'  ✦  ').repeat(8)};
-strip('tp1','A SALVAÇÃO NÃO TEM PREÇO');
-strip('tp2','SOLA SCRIPTURA ✦ SOLA FIDE ✦ SOLA GRATIA');
-strip('tp3','1517 ✦ 2026 ✦ 509 ANOS');
-strip('tp4','IGREJA DA GRATIDÃO');
-
-// moedas 3D
-(function(){
-  const box=document.getElementById('coins');
-  const coins=[{x:0,y:90,rx:62,ry:-18,rz:20,s:1},{x:250,y:-10,rx:30,ry:40,rz:-10,s:.8},{x:470,y:170,rx:70,ry:10,rz:40,s:.9},{x:210,y:250,rx:10,ry:-50,rz:-30,s:.7}];
-  coins.forEach(c=>{
-    const el=document.createElement('div');el.className='coin';
-    el.style.cssText=`left:${c.x}px;top:${c.y}px;transform:scale(${c.s}) rotateX(${c.rx}deg) rotateY(${c.ry}deg) rotateZ(${c.rz}deg)`;
-    let h='';for(let i=0;i<16;i++)h+=`<div class="l" style="transform:translateZ(${-i*1.6}px);filter:brightness(${.55+i*.01})"></div>`;
-    h+=`<div class="top" style="transform:translateZ(1px)">$</div>`;
-    el.innerHTML=h;box.appendChild(el);
-  });
-})();
-
-// cubos dos 5 Solas
-(function(){
-  const box=document.getElementById('solas');
-  const data=[
-    ['Sola','Scriptura','Só a Escritura',  'fire', 330, 520, -24, 30, 0],
-    ['Sola','Fide','Só a fé',              'gold', 720, 380, -18,-28, 6],
-    ['Sola','Gratia','Só a graça',         'paper',90,  830, -20, 22,-4],
-    ['Solus','Christus','Só Cristo',       'fire', 450, 900, -28,-14, 3],
-    ['Soli Deo','Gloria','Glória só a Deus','gold', 790, 720, -16,-36,-6],
-  ];
-  const col={fire:['var(--fire)','#b2310a','#7a1f05','#0c0a08'],gold:['var(--gold)','#c48a12','#86600a','#0c0a08'],paper:['var(--paper)','#c9bc9f','#948769','#0c0a08']};
-  data.forEach(([a,b,pt,c,x,y,rx,ry,rz])=>{
-    const S=300, k=col[c];
-    const cu=document.createElement('div');cu.className='cube';
-    cu.style.cssText=`left:${x}px;top:${y}px;width:${S}px;height:${S}px;transform:rotateX(${rx}deg) rotateY(${ry}deg) rotateZ(${rz}deg)`;
-    const f=(t,bg,html,fs)=>`<div class="fc" style="width:${S}px;height:${S}px;background:${bg};color:${k[3]};transform:${t};font-size:${fs}px;box-shadow:inset 0 0 0 4px rgba(0,0,0,.15)">${html}</div>`;
-    cu.innerHTML=
-      f(`translateZ(${S/2}px)`,k[0],`<div><div style="font-size:52px">${a}</div><div style="font-size:${b.length>7?66:82}px">${b}</div><div class="mono" style="font-size:17px;margin-top:12px;opacity:.75">${pt}</div></div>`,60)+
-      f(`rotateY(90deg) translateZ(${S/2}px)`,k[1],'',10)+
-      f(`rotateY(-90deg) translateZ(${S/2}px)`,k[1],'',10)+
-      f(`rotateX(90deg) translateZ(${S/2}px)`,k[2],'',10)+
-      f(`rotateX(-90deg) translateZ(${S/2}px)`,k[2],'',10)+
-      f(`rotateY(180deg) translateZ(${S/2}px)`,k[1],'',10);
-    box.appendChild(cu);
-  });
-})();
-
-// logo em 3D sobre plataforma
-(function(){
-  const box=document.getElementById('cross');
-  box.innerHTML=`
-   <div style="position:absolute;left:170px;top:250px;width:600px;height:700px;background:radial-gradient(closest-side,rgba(255,31,45,.45),transparent);filter:blur(30px)"></div>
-   <div class="pres" style="position:absolute;left:250px;top:620px;width:440px;height:440px;transform:rotateX(76deg)">
-     <div style="position:absolute;inset:0;border-radius:50%;border:6px solid rgba(255,31,45,.9);box-shadow:0 0 40px #ff1f2d, inset 0 0 60px rgba(255,31,45,.6)"></div>
-     <div style="position:absolute;inset:70px;border-radius:50%;border:3px dashed rgba(255,132,102,.8)"></div>
-     <div style="position:absolute;inset:150px;border-radius:50%;background:radial-gradient(rgba(255,31,45,.7),transparent 70%)"></div>
-   </div>
-   <div class="pres" style="position:absolute;left:290px;top:330px;width:360px;height:379px;transform:rotateY(-24deg) rotateX(6deg)">
-     <img src="logo.png" style="position:absolute;inset:0;width:100%;transform:translateZ(-30px);filter:brightness(0) blur(14px);opacity:.6">
-     <img src="logo.png" style="position:absolute;inset:0;width:100%;filter:drop-shadow(0 0 14px rgba(255,31,45,.6)) drop-shadow(0 20px 20px rgba(0,0,0,.6))">
-   </div>`;
-})();
+const strip=(id,t)=>document.getElementById(id).textContent=(t+'  ✦  ').repeat(8);
+strip('tp1','1517 ✦ 2026 ✦ 509 ANOS');
+strip('tp2','IGREJA DA GRATIDÃO');
+const solas=[['Sola Scriptura','Só a Escritura'],['Sola Fide','Só a fé'],['Sola Gratia','Só a graça'],['Solus Christus','Só Cristo'],['Soli Deo Gloria','Glória só a Deus']];
+document.getElementById('solas').innerHTML=solas.map(([l,p],i)=>`
+  <div style="display:flex;align-items:baseline;gap:22px;border-top:2px solid rgba(243,234,214,.18);padding:8px 0 4px">
+    <span class="anton" style="font-size:40px;color:var(--red);width:60px">0${i+1}</span>
+    <span class="anton" style="font-size:70px;letter-spacing:.01em;text-shadow:0 6px 0 #4d0007,0 12px 24px rgba(0,0,0,.8)">${l}</span>
+    <span class="serif" style="font-size:26px;font-style:italic;color:var(--coral);margin-left:auto;white-space:nowrap">${p}</span>
+  </div>`).join('');
 </script>
 </body>
 </html>
