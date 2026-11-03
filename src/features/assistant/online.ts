@@ -113,6 +113,7 @@ export async function runOnline(history: OAMsg[], userText: string, ctx: ToolCon
   history.push({ role: 'user', content: userText });
   try {
     let shown = '';
+    let emptyRetry = true;
     for (let round = 0; round < MAX_ROUNDS; round++) {
       // Corta o histórico antigo sem separar uma chamada de ferramenta do seu resultado.
       let from = Math.max(0, history.length - KEEP);
@@ -138,6 +139,11 @@ export async function runOnline(history: OAMsg[], userText: string, ctx: ToolCon
         throw new OnlineError('A conexão com a IA online caiu no meio da resposta.', 'rede');
       }
       const real = calls.filter(Boolean);
+      // Resposta vazia (conexão cortada no meio): pede de novo uma vez.
+      if (!real.length && !text.trim() && emptyRetry) {
+        emptyRetry = false;
+        continue;
+      }
       if (!real.length) {
         const final = text.trim() || 'Não consegui uma resposta agora. Tente perguntar de outro jeito.';
         history.push({ role: 'assistant', content: final });

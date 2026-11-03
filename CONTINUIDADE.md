@@ -9,7 +9,7 @@
 
 - **O que é:** web app 3D "USB Intelligence", com estética brasileira futurista. Usa React 18, TypeScript, Vite 5, three.js e React Three Fiber. Analisa arquivos de verdade (SHA-256, duplicados por conteúdo, plano de organização), gerencia pastas reais (renomear, mover, lixeira, apagar, desfazer) e tem cofre AES-GCM, personagem 3D editável, relatórios, histórico e PWA offline. Tem também app Android (Capacitor + plugin SAF próprio) e o assistente **Vigia IA**.
 - **Idioma:** tudo em **português do Brasil**: interface, commits, README e respostas ao usuário.
-- **Estado atual:** todos os testes passam: **72 unitários (Vitest)** e **24 grupos e2e (Playwright)**. Os builds `dist/` e `dist-artifact/` estão gerados, e os pacotes `.zip` em `release/` foram regenerados.
+- **Estado atual:** todos os testes passam: **74 unitários (Vitest)** e **24 grupos e2e (Playwright)**. Os builds `dist/` e `dist-artifact/` estão gerados, e os pacotes `.zip` em `release/` foram regenerados.
 - **Publicado:** Artifact privado em https://claude.ai/artifact/2sEcU5zeBd4jDTUN19HXXS (prévia). Ele não usa mais nenhuma capacidade do Claude.
 - **GitHub:** https://github.com/Enriszx/escreva-usb-intelligence (repositório **público**). Tudo foi enviado, e o site público está em https://enriszx.github.io/escreva-usb-intelligence/. **A senha nunca vai para o repositório**: ela entra no build pela variável `VITE_PASS_HASH` (seção 4).
 - **Decisão do usuário (03/11):** "desconecte do Claude e coloque um código de IA PRÓPRIO e grátis que não gaste nada". Por isso não há mais SDK da Anthropic nem capacidade `sample`. Não reintroduzir sem pedido.
@@ -171,7 +171,7 @@ Pedido do usuário: "quero que funcione como uma IA completa e lance um HTTPS...
 - `Settings.aiOnline` (padrão `false`): o usuário liga com um toque ("Ativar IA online grátis") porque os dados saem do aparelho.
 - Ordem dos motores: `online` (ligado e com internet) → `aparelho` → `local`. Se o online falhar, o plano B é o aparelho ou os comandos (`runLocal` strict), com aviso em `.ai-note`.
 - `Markdown.tsx`: formatador seguro (sem HTML cru; links só http/https). Botão copiar. A conversa fica em `localStorage['usbi.vigia.conversa']`.
-- Testes: `tests/online.test.ts` (6), `tests/markdown.test.tsx` (3) e o e2e 25 (serviço simulado com `c.route`).
+- Testes: `tests/online.test.ts` (8; inclui nova tentativa quando a conexão cai ou a resposta vem vazia), `tests/markdown.test.tsx` (3) e o e2e 25 (serviço simulado com `c.route`).
 
 ## 6. Vigia IA: IA no aparelho
 
@@ -296,7 +296,7 @@ Não passe `capabilities`: elas foram limpas com `{}`, e omitir mantém assim. E
 
 ## 11. Checklist ao assumir
 
-1. `npm ci && npm test` deve dar 72 aprovados.
+1. `npm ci && npm test` deve dar 74 aprovados.
 2. `npm run build && npm run e2e` deve dar 23/23, com o teste 18 (senha) pulado. Com senha: build com `VITE_PASS_HASH` (o `.env.local` só existe neste container; peça ao usuário para recriar se precisar) e `E2E_SENHA=<senha> npm run e2e` dá 24/24.
 3. Ler a seção 9 e perguntar ao usuário só o que estiver bloqueado (envio ao GitHub e a senha).
 4. Depois de qualquer mudança visível: rodar os testes, olhar capturas em desktop e celular, republicar o Artifact (seção 7), `npm run package:usb`, commit e, se liberado, push.

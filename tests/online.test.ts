@@ -106,5 +106,12 @@ describe('IA online grátis', () => {
     expect(c.onTool).not.toHaveBeenCalled();
   });
 
+  it('resposta vazia: pede de novo uma vez', async () => {
+    let n = 0;
+    vi.stubGlobal('fetch', vi.fn(async () => (++n === 1 ? ok([delta({ reasoning: 'só pensei' })]) : ok([delta({ content: 'agora sim' })]))));
+    expect(await runOnline([], 'oi', ctx(), cb())).toBe('agora sim');
+    expect(n).toBe(2);
+  });
+
   it('é um erro tipado', () => expect(new OnlineError('x', 'limite')).toBeInstanceOf(Error));
 });
