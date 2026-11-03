@@ -72,11 +72,28 @@ describe('IA online grátis', () => {
     vi.useRealTimers();
   });
 
-  it('sem rede: erro explicado e histórico intacto', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => { throw new TypeError('Failed to fetch'); }));
+  it('conexão que cai uma vez: tenta de novo sozinho', async () => {
+    vi.useFakeTimers();
+    let n = 0;
+    vi.stubGlobal('fetch', vi.fn(async () => { if (++n === 1) throw new TypeError('Failed to fetch'); return ok([delta({ content: 'voltei' })]); }));
+    const p = runOnline([], 'oi', ctx(), cb());
+    await vi.advanceTimersByTimeAsync(1600);
+    expect(await p).toBe('voltei');
+    vi.useRealTimers();
+  });
+
+  it('sem rede de vez: erro explicado e histórico intacto', async () => {
+    vi.useFakeTimers();
+    const f = vi.fn(async () => { throw new TypeError('Failed to fetch'); });
+    vi.stubGlobal('fetch', f);
     const h: OAMsg[] = [{ role: 'user', content: 'antes' }, { role: 'assistant', content: 'oi' }];
-    await expect(runOnline(h, 'nova', ctx(), cb())).rejects.toMatchObject({ kind: 'rede' });
+    const p = runOnline(h, 'nova', ctx(), cb());
+    const done = expect(p).rejects.toMatchObject({ kind: 'rede' });
+    await vi.advanceTimersByTimeAsync(5000);
+    await done;
+    expect(f).toHaveBeenCalledTimes(3);
     expect(h).toHaveLength(2);
+    vi.useRealTimers();
   });
 
   it('ferramenta inventada não executa nada', async () => {

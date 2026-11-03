@@ -80,6 +80,11 @@ async function request(messages: OAMsg[], signal: AbortSignal): Promise<Response
       });
     } catch (e) {
       if ((e as Error).name === 'AbortError') throw new OnlineError('Parado.', 'cancelled');
+      // Conexão caiu (comum no celular): tenta de novo até 2 vezes antes de desistir.
+      if (attempt < 2) {
+        await wait(1500 * (attempt + 1), signal);
+        continue;
+      }
       throw new OnlineError('Sem conexão com a IA online. Confira a internet.', 'rede');
     }
     if (res.ok && res.body) return res;
