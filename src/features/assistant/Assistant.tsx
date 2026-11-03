@@ -20,7 +20,7 @@ interface Msg {
   role: 'user' | 'assistant';
   text: string;
   tools: string[];
-  state?: 'pensando' | 'erro' | 'parado';
+  state?: 'pensando' | 'escrevendo' | 'erro' | 'parado';
   note?: string;
 }
 
@@ -139,7 +139,7 @@ export function Assistant() {
     };
     const cb = {
       signal: c.signal,
-      onText: (s: string) => patch(aid, { text: s, state: undefined }),
+      onText: (s: string) => patch(aid, { text: s, state: 'escrevendo' }),
       onTool: (tool: AssistantTool) => patch(aid, (m) => ({ tools: [...m.tools, tool.label] })),
     };
     try {
