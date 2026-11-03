@@ -11,7 +11,7 @@
 - **Idioma:** tudo em **português do Brasil**: interface, commits, README e respostas ao usuário.
 - **Estado atual:** todos os testes passam: **62 unitários (Vitest)** e **23 grupos e2e (Playwright)**. Os builds `dist/` e `dist-artifact/` estão gerados, e os pacotes `.zip` em `release/` foram regenerados.
 - **Publicado:** Artifact privado em https://claude.ai/artifact/2sEcU5zeBd4jDTUN19HXXS (prévia). Ele não usa mais nenhuma capacidade do Claude.
-- **GitHub:** https://github.com/Enriszx/escreva-usb-intelligence (repositório **público**). Veja a seção 9 para saber o que já foi enviado. **A senha nunca vai para o repositório**: ela entra no build pela variável `VITE_PASS_HASH` (seção 4).
+- **GitHub:** https://github.com/Enriszx/escreva-usb-intelligence (repositório **público**). Tudo foi enviado, e o site público está em https://enriszx.github.io/escreva-usb-intelligence/. **A senha nunca vai para o repositório**: ela entra no build pela variável `VITE_PASS_HASH` (seção 4).
 - **Decisão do usuário (03/11):** "desconecte do Claude e coloque um código de IA PRÓPRIO e grátis que não gaste nada". Por isso não há mais SDK da Anthropic nem capacidade `sample`. Não reintroduzir sem pedido.
 
 ---
@@ -254,9 +254,9 @@ Não passe `capabilities`: elas foram limpas com `{}`, e omitir mantém assim. E
 
 ## 9. Pendências (por prioridade)
 
-1. **GitHub.** O histórico local foi reorganizado para que a senha nunca apareça no repositório público. Os commits antigos não enviados, que tinham o hash e a senha no README, foram juntados num commit limpo sobre `origin/main`. Confira com `git log origin/main..HEAD` e `git status`. Se o push desta sessão falhou ou foi negado, a próxima sessão deve tentar `git push -u origin main` (o conteúdo já está limpo).
+1. **GitHub: feito (03/11).** O commit `b60a445` foi enviado ao `main`: os commits locais antigos, que tinham a senha, viraram um único commit limpo. O GitHub Actions passou nos dois jobs (`apk` e `pages`). **Site público no ar:** https://enriszx.github.io/escreva-usb-intelligence/ (sem tela de senha até o segredo do item 2 existir). O APK fica em *Actions → execução → Artifacts → usb-intelligence-apk*.
 2. **Senha no site público.** Para o GitHub Pages e o APK terem a tela de senha, o usuário precisa criar o segredo `USBI_PASS_HASH` em *Settings → Secrets and variables → Actions* com o SHA-256 de `usbi|<senha>`. O workflow já lê esse segredo. Sem ele, o site abre direto. Nunca peça a senha no chat; dê o comando para ele gerar o hash (README, seção "Acesso por senha").
-3. **GitHub Pages.** O usuário precisa ativar em *Settings → Pages → Source: GitHub Actions* e rodar o workflow de novo. O link fica `https://enriszx.github.io/escreva-usb-intelligence/`.
+3. **GitHub Pages:** já ativo e funcionando. O workflow publica a cada push no `main`.
 4. **Autor dos commits.** Os commits já no GitHub (e41a6fc, b0ba737, 4cf4404) têm autor `enriquenormando014@gmail.com`; o hook da sessão reclama disso. Reescrevê-los exigiria push forçado, e a ação foi negada antes. Só com pedido explícito do usuário.
 5. **"A senha não está indo".** Nunca foi esclarecido. Agora a senha tolera espaço e maiúsculas/minúsculas. Se ele voltar a reclamar, pergunte onde (site do GitHub sem o segredo não tem senha; prévia do claude.ai; APK) e verifique o cache do service worker.
 6. **IA no celular.** Testar num Android real com Chrome. A WebGPU no Android depende do aparelho. Se ficar lento, recomende o modelo Leve.
