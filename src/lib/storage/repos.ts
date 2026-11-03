@@ -124,6 +124,8 @@ export interface Settings {
   aiModel: string;
   /** Modelo que já foi baixado e carregado com sucesso neste aparelho. */
   aiInstalled: string | null;
+  /** IA online grátis (gpt-oss-20b via Pollinations) autorizada pelo usuário. */
+  aiOnline: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -136,6 +138,7 @@ export const DEFAULT_SETTINGS: Settings = {
   assistant: true,
   aiModel: 'Qwen2.5-1.5B-Instruct-q4f16_1-MLC',
   aiInstalled: null,
+  aiOnline: false,
 };
 
 export async function loadSettings(): Promise<Settings> {

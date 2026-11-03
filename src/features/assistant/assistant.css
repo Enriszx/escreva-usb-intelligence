@@ -92,3 +92,27 @@
 }
 .ai-progress small { font-size: 11px; opacity: 0.8; overflow-wrap: anywhere; }
 @media (prefers-reduced-motion: reduce) { .ai-progress > span { transition: none; } }
+
+/* Respostas formatadas (Markdown simples) */
+.ai-text.md { white-space: normal; display: grid; gap: 8px; }
+.md p, .md ul, .md ol, .md blockquote, .md pre { margin: 0; }
+.md ul, .md ol { padding-left: 1.3em; display: grid; gap: 3px; }
+.md .md-h { font-weight: 700; margin-top: 4px; }
+.md code { font-family: var(--font-mono, ui-monospace, monospace); font-size: 0.86em; padding: 1px 4px; background: var(--line); }
+.md pre { padding: 10px; background: rgba(0, 0, 0, 0.28); overflow-x: auto; max-width: 100%; }
+.md pre code { padding: 0; background: none; white-space: pre; }
+.md blockquote { border-left: 3px solid var(--line-strong); padding-left: 10px; color: var(--fg-2); }
+.md a { color: var(--signal); text-decoration: underline; }
+.md-table { overflow-x: auto; max-width: 100%; }
+.md table { border-collapse: collapse; font-size: 0.88em; }
+.md th, .md td { border: 1px solid var(--line); padding: 4px 8px; text-align: left; vertical-align: top; }
+.md th { font-weight: 700; }
+.ai-note { font-size: 0.78rem; color: var(--fg-2); margin: 0; }
+.ai-copy {
+  justify-self: start; display: inline-grid; place-items: center; width: 28px; height: 28px;
+  background: none; border: 1px solid transparent; color: var(--fg-2); cursor: pointer; padding: 0;
+}
+.ai-copy:hover, .ai-copy:focus-visible { border-color: var(--line-strong); color: var(--fg); }
+.ai-copy svg { width: 14px; height: 14px; }
+.ai-activate.is-alt { border-left-color: var(--line-strong); }
+.ai-engine.is-online { color: var(--signal); }

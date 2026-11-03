@@ -9,7 +9,7 @@
 
 - **O que é:** web app 3D "USB Intelligence", com estética brasileira futurista. Usa React 18, TypeScript, Vite 5, three.js e React Three Fiber. Analisa arquivos de verdade (SHA-256, duplicados por conteúdo, plano de organização), gerencia pastas reais (renomear, mover, lixeira, apagar, desfazer) e tem cofre AES-GCM, personagem 3D editável, relatórios, histórico e PWA offline. Tem também app Android (Capacitor + plugin SAF próprio) e o assistente **Vigia IA**.
 - **Idioma:** tudo em **português do Brasil**: interface, commits, README e respostas ao usuário.
-- **Estado atual:** todos os testes passam: **62 unitários (Vitest)** e **23 grupos e2e (Playwright)**. Os builds `dist/` e `dist-artifact/` estão gerados, e os pacotes `.zip` em `release/` foram regenerados.
+- **Estado atual:** todos os testes passam: **72 unitários (Vitest)** e **24 grupos e2e (Playwright)**. Os builds `dist/` e `dist-artifact/` estão gerados, e os pacotes `.zip` em `release/` foram regenerados.
 - **Publicado:** Artifact privado em https://claude.ai/artifact/2sEcU5zeBd4jDTUN19HXXS (prévia). Ele não usa mais nenhuma capacidade do Claude.
 - **GitHub:** https://github.com/Enriszx/escreva-usb-intelligence (repositório **público**). Tudo foi enviado, e o site público está em https://enriszx.github.io/escreva-usb-intelligence/. **A senha nunca vai para o repositório**: ela entra no build pela variável `VITE_PASS_HASH` (seção 4).
 - **Decisão do usuário (03/11):** "desconecte do Claude e coloque um código de IA PRÓPRIO e grátis que não gaste nada". Por isso não há mais SDK da Anthropic nem capacidade `sample`. Não reintroduzir sem pedido.
@@ -154,7 +154,26 @@ No build Artifact (`IS_ARTIFACT`) ficam escondidos ou ganham alternativa: servic
 - **PWA instalável** e offline, com manifesto e ícones.
 - **Senha (por variável de build), tema e Vigia IA com IA grátis no aparelho.**
 
-## 6. Vigia IA: IA própria e grátis (o trabalho mais recente)
+## 6a. IA online grátis (o trabalho mais recente, 03/11 à noite)
+
+Pedido do usuário: "quero que funcione como uma IA completa e lance um HTTPS... pronto para abrir no Google".
+
+- `src/features/assistant/online.ts`: `runOnline(history, texto, ctx, cb)` faz `POST https://text.pollinations.ai/openai` (model `openai` = **gpt-oss-20b**, aberto), `stream: true`, `tools` no formato OpenAI (as 15 ferramentas), laço de até 8 rodadas. O `readSSE` junta linhas partidas e ignora os deltas `reasoning`.
+- Erros tipados (`OnlineError`):
+  - 429/503: espera `Retry-After` (até 20 s) e tenta 2 vezes;
+  - 402/429 persistente: `limite`;
+  - 403: `servico`;
+  - rede: `rede`.
+  - Se a rodada falhar, o histórico volta ao estado anterior.
+- **Testado de verdade (curl):** sem chave, CORS `*`, com tool calls em streaming. **Origem `localhost` recebe 403 "Missing Turnstile token"; origem `https://enriszx.github.io` funciona.** Logo, só funciona no site publicado. Pendrive, `serve:local` e APK (origem `https://localhost`) caem no plano B. Ideia ainda não testada para o APK: `server.hostname` no Capacitor.
+- `gen.pollinations.ai/v1` exige chave; não usar.
+- `prompt.ts`: `onlinePrompt()` (IA completa, de uso geral, com a data de hoje) e `DEVICE_RULES` (só para a IA do aparelho).
+- `Settings.aiOnline` (padrão `false`): o usuário liga com um toque ("Ativar IA online grátis") porque os dados saem do aparelho.
+- Ordem dos motores: `online` (ligado e com internet) → `aparelho` → `local`. Se o online falhar, o plano B é o aparelho ou os comandos (`runLocal` strict), com aviso em `.ai-note`.
+- `Markdown.tsx`: formatador seguro (sem HTML cru; links só http/https). Botão copiar. A conversa fica em `localStorage['usbi.vigia.conversa']`.
+- Testes: `tests/online.test.ts` (6), `tests/markdown.test.tsx` (3) e o e2e 25 (serviço simulado com `c.route`).
+
+## 6. Vigia IA: IA no aparelho
 
 **Motor:** [WebLLM](https://github.com/mlc-ai/web-llm) (`@mlc-ai/web-llm@0.2.86`, Apache 2.0) roda o modelo **Qwen2.5** (Apache 2.0) no navegador pela **WebGPU**. Não há servidor, conta, chave nem custo. Os pesos vêm do Hugging Face (`huggingface.co/mlc-ai/...`), e o WebLLM os guarda no Cache API (não nos caches `usbi-*` do service worker). A biblioteca de wasm vem do GitHub (`raw.githubusercontent.com/mlc-ai/binary-mlc-llm-libs`).
 
@@ -277,7 +296,7 @@ Não passe `capabilities`: elas foram limpas com `{}`, e omitir mantém assim. E
 
 ## 11. Checklist ao assumir
 
-1. `npm ci && npm test` deve dar 62 aprovados.
-2. `npm run build && npm run e2e` deve dar 22/22, com o teste 18 (senha) pulado. Com senha: build com `VITE_PASS_HASH` (o `.env.local` só existe neste container; peça ao usuário para recriar se precisar) e `E2E_SENHA=<senha> npm run e2e` dá 23/23.
+1. `npm ci && npm test` deve dar 72 aprovados.
+2. `npm run build && npm run e2e` deve dar 23/23, com o teste 18 (senha) pulado. Com senha: build com `VITE_PASS_HASH` (o `.env.local` só existe neste container; peça ao usuário para recriar se precisar) e `E2E_SENHA=<senha> npm run e2e` dá 24/24.
 3. Ler a seção 9 e perguntar ao usuário só o que estiver bloqueado (envio ao GitHub e a senha).
 4. Depois de qualquer mudança visível: rodar os testes, olhar capturas em desktop e celular, republicar o Artifact (seção 7), `npm run package:usb`, commit e, se liberado, push.

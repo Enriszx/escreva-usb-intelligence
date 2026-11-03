@@ -1,10 +1,10 @@
-import { SYSTEM_PROMPT } from './prompt';
+import { DEVICE_RULES, SYSTEM_PROMPT } from './prompt';
 import { TOOLS, toolByName, type AssistantTool, type ToolContext } from './tools';
 import { runLocal } from './local';
 import { completeJSON, type ChatMsg } from './webllm';
 
-/** 'aparelho' = IA grátis rodando no navegador; 'local' = comandos fixos, sem IA. */
-export type EngineKind = 'aparelho' | 'local';
+/** 'online' = IA grátis online (gpt-oss-20b); 'aparelho' = IA grátis no navegador; 'local' = comandos fixos. */
+export type EngineKind = 'online' | 'aparelho' | 'local';
 
 export interface TurnCallbacks {
   signal: AbortSignal;
@@ -58,6 +58,7 @@ const SCHEMA = {
 };
 
 export const DEVICE_PROMPT = `${SYSTEM_PROMPT}
+${DEVICE_RULES}
 
 Ferramentas (você é quem decide usar):
 ${toolCatalog()}

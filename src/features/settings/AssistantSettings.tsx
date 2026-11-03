@@ -56,14 +56,23 @@ export function AssistantSettings({ set }: { set: (p: Partial<Settings>, msg: st
         <input type="checkbox" checked={settings.assistant} onChange={(e) => set({ assistant: e.target.checked }, e.target.checked ? 'Assistente ligado' : 'Assistente desligado')} />
       </label>
 
+      <label className="switch">
+        <span>
+          IA online grátis (mais completa)
+          <small className="hint">Modelo aberto gpt-oss-20b, servido de graça pelo Pollinations (pollinations.ai), sem conta e sem chave. Responde qualquer assunto e usa o app por você. Vão para o serviço suas mensagens e os dados dos arquivos que ela consultar (nomes, tamanhos, datas, hashes), nunca o conteúdo. O serviço gratuito pode ter limites de uso ou ficar fora do ar.</small>
+        </span>
+        <input id="ai-online" type="checkbox" checked={settings.aiOnline} onChange={(e) => set({ aiOnline: e.target.checked }, e.target.checked ? 'IA online ligada' : 'IA online desligada')} />
+      </label>
+
       <div className="ai-modes">
         <div>
           <p className="label">Como ele funciona</p>
           <ul className="ai-mode-list">
-            <li><strong>IA grátis no aparelho</strong>: um modelo de código aberto (Qwen2.5, da Alibaba, licença Apache 2.0) roda dentro do navegador pela WebGPU, com a biblioteca WebLLM. Não tem conta, chave nem cobrança. É baixado uma vez e depois funciona até sem internet.</li>
-            <li><strong>Sem IA (comandos)</strong>: antes de baixar, ou em aparelhos sem WebGPU, ele entende comandos diretos (“procurar duplicados”, “organizar por tipo”…).</li>
+            <li><strong>IA online grátis</strong> (se ligada acima): a mais completa. Precisa de internet.</li>
+            <li><strong>IA no aparelho</strong>: um modelo de código aberto (Qwen2.5, licença Apache 2.0) roda dentro do navegador pela WebGPU, com a biblioteca WebLLM. É baixado uma vez e depois funciona sem internet; nada sai do aparelho. É menor e erra mais.</li>
+            <li><strong>Sem IA (comandos)</strong>: sem as duas acima, ele entende comandos diretos (“procurar duplicados”, “organizar por tipo”…).</li>
           </ul>
-          <p className="hint">Nos dois modos, nada sai do aparelho: nem a conversa, nem os arquivos. Mudanças em arquivos sempre pedem sua confirmação, e ele nunca apaga nada de vez. Uma IA pequena erra mais que as grandes da internet; confira o que ela disser.</p>
+          <p className="hint">Se a IA online falhar, ele usa a do aparelho (se baixada) ou os comandos. Mudanças em arquivos sempre pedem sua confirmação, e ele nunca apaga nada de vez. Toda IA pode errar: confira o que ela disser.</p>
         </div>
 
         <div className="ai-key">

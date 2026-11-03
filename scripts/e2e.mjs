@@ -422,6 +422,59 @@ await test('24. IA grátis do aparelho: sem Claude, escolha de modelo e ativaç�
   await c.close();
 });
 
+await test('25. IA online grátis: ativa com um toque, usa ferramenta, formata, lembra a conversa e tem plano B', async () => {
+  const c = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  await c.addInitScript(UNLOCK);
+  const bodies = [];
+  let falhar = false;
+  const cors = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': 'POST, OPTIONS' };
+  const sse = (chunks) => chunks.map((d) => `data: ${JSON.stringify({ choices: [{ index: 0, delta: d }] })}\n\n`).join('') + 'data: [DONE]\n\n';
+  await c.route('https://text.pollinations.ai/**', async (route) => {
+    const req = route.request();
+    if (req.method() === 'OPTIONS') return route.fulfill({ status: 204, headers: cors });
+    if (falhar) return route.fulfill({ status: 500, headers: cors, body: 'erro' });
+    const body = req.postDataJSON();
+    bodies.push(body);
+    const last = body.messages.at(-1);
+    const chunks = last.role === 'tool'
+      ? [{ content: `Você tem **${JSON.parse(last.content).arquivos} arquivos**:\n- um PDF\n- uma imagem` }]
+      : [{ reasoning: 'vou consultar' }, { tool_calls: [{ index: 0, id: 'c1', type: 'function', function: { name: 'resumo_biblioteca', arguments: '{}' } }] }];
+    return route.fulfill({ status: 200, headers: { ...cors, 'content-type': 'text/event-stream' }, body: sse(chunks) });
+  });
+  const p = await c.newPage();
+  const perr = [];
+  p.on('pageerror', (e) => perr.push(e.message));
+  await p.goto(`${BASE}#/arquivos`);
+  await p.locator('.intake input[type=file]:not([webkitdirectory])').first().setInputFiles([
+    { name: 'nota.pdf', mimeType: 'application/pdf', buffer: Buffer.from('1') },
+    { name: 'foto.png', mimeType: 'image/png', buffer: Buffer.from('22') },
+  ]);
+  await p.getByRole('button', { name: /Abrir o assistente/ }).click();
+  assert(!bodies.length, 'nada é enviado antes de ativar');
+  await p.getByRole('button', { name: 'Ativar IA online grátis' }).click();
+  await p.locator('.ai-engine', { hasText: /online/i }).waitFor();
+  await p.locator('#ai-input').fill('o que tem na minha biblioteca?');
+  await p.locator('#ai-input').press('Enter');
+  const msg = p.locator('.ai-msg.is-assistant').last();
+  await msg.locator('.md strong', { hasText: '2 arquivos' }).waitFor({ timeout: 15000 });
+  assert(await msg.locator('.md li').count() === 2, 'lista formatada');
+  assert(/resumo da biblioteca/i.test(await msg.locator('.ai-tools').innerText()), 'mostrou a ferramenta usada');
+  assert(bodies.length === 2 && bodies[0].stream === true && bodies[0].tools.some((t) => t.function.name === 'renomear'), 'streaming com as ferramentas do app');
+  assert(!JSON.stringify(bodies).includes('"content":"1"'), 'conteúdo de arquivo não vai para o serviço');
+  // A conversa continua depois de recarregar.
+  await p.reload();
+  await p.getByRole('button', { name: /Abrir o assistente/ }).click();
+  await p.locator('.ai-msg.is-assistant .md strong', { hasText: '2 arquivos' }).waitFor();
+  // Plano B: serviço fora do ar → comandos, com aviso.
+  falhar = true;
+  await p.locator('#ai-input').fill('tema escuro');
+  await p.locator('#ai-input').press('Enter');
+  await p.locator('.ai-note', { hasText: /modo de comandos/ }).waitFor({ timeout: 15000 });
+  assert((await p.evaluate(() => document.documentElement.dataset.theme)) === 'dark', 'plano B executou o comando');
+  assert(!perr.length, perr.join(' | '));
+  await c.close();
+});
+
 await test('14a. Manifesto PWA válido e instalável', async () => {
   const r = await page.request.get(`${BASE}manifest.webmanifest`);
   assert(r.ok(), `manifesto HTTP ${r.status()}`);

@@ -42,11 +42,21 @@ Tudo vai para o Histórico. Implementações:
 
 As duas implementações seguem o mesmo contrato (`src/lib/files/backend.ts`) e a mesma lixeira, então a interface é uma só.
 
-## Vigia IA (assistente organizador): IA própria e grátis
+## Vigia IA (assistente organizador): IA completa e grátis
 
-Botão **Pergunte ao Vigia** em todas as telas (atalho Ctrl+K). Ele entende pedidos em português e age pelas mesmas funções dos botões: resumo dos arquivos, duplicados, maiores arquivos, busca, plano de organização, mover para a lixeira, renomear, mudar tema, ajustar o personagem e abrir qualquer área.
+Botão **Pergunte ao Vigia** em todas as telas (atalho Ctrl+K). Ele conversa sobre qualquer assunto e age no app pelas mesmas funções dos botões: resumo dos arquivos, duplicados, maiores arquivos, busca, plano de organização, mover para a lixeira, renomear, mudar tema, ajustar o personagem e abrir qualquer área. Respostas formatadas (listas, negrito, código, tabelas), botão de copiar e conversa guardada neste navegador.
 
-**Sem Claude, sem conta, sem chave, sem custo.** A IA é um modelo aberto (**Qwen2.5**, licença Apache 2.0) que roda **dentro do navegador** pela WebGPU, com a biblioteca de código aberto **WebLLM** (MLC). Ativação em *Configurações → Assistente* ou no próprio painel:
+Três motores, tudo **sem conta, sem chave e sem custo**:
+
+1. **IA online grátis (a mais completa):** o modelo aberto **gpt-oss-20b**, servido de graça pelo [Pollinations](https://pollinations.ai) (`text.pollinations.ai`, formato OpenAI, com ferramentas e streaming). Liga com um toque no painel ou em *Configurações → Assistente*. Vão para o serviço as mensagens e os dados dos arquivos que a IA consultar (nomes, tamanhos, datas, hashes), nunca o conteúdo. **Só funciona no site publicado** (`enriszx.github.io`): o serviço recusa cópias locais (localhost, pendrive, APK) com erro 403. O plano grátis pode ter limites; o app espera e tenta de novo quando pedem.
+2. **IA no aparelho (privada e offline):** veja abaixo.
+3. **Comandos diretos:** quando nenhuma das duas está disponível.
+
+Se a IA online falhar, o Vigia usa a do aparelho (se baixada) ou os comandos, e avisa.
+
+### IA no aparelho
+
+Modelo aberto (**Qwen2.5**, licença Apache 2.0) rodando **dentro do navegador** pela WebGPU, com a biblioteca de código aberto **WebLLM** (MLC):
 
 | Modelo | Memória de vídeo* | Para quem |
 |---|---|---|
