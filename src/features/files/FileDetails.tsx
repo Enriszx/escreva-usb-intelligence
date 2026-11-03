@@ -9,7 +9,7 @@ import { findDuplicates } from '../../lib/analysis/duplicates';
 import { normalizeName } from '../../lib/analysis/names';
 
 export function FileDetails({ entry, onClose, onRename, onMove, onTrash }: { entry: FileEntry; onClose: () => void; onRename?: () => void; onMove?: () => void; onTrash?: () => void }) {
-  const { entries, getFile, remove } = useFiles();
+  const { entries, getFile, remove, isReadable } = useFiles();
   const toast = useToast();
   const [hashing, setHashing] = useState<number | null>(null);
   const [local, setLocal] = useState<string | null>(null);
@@ -70,6 +70,8 @@ export function FileDetails({ entry, onClose, onRename, onMove, onTrash }: { ent
               </span>
             ) : hashing !== null ? (
               <span className="hash-line"><span className="progress" style={{ width: 160 }}><i style={{ width: `${hashing * 100}%` }} /></span> <span className="mono muted">lendo…</span></span>
+            ) : !isReadable(entry.id) ? (
+              <span className="muted">Item do registro salvo: escolha o arquivo de novo para calcular.</span>
             ) : (
               <button className="btn btn-ghost btn-sm" onClick={calc}><Hash aria-hidden /> Calcular agora</button>
             )}

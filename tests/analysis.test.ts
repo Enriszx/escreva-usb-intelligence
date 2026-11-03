@@ -7,6 +7,7 @@ import { findNameGroups, normalizeName } from '../src/lib/analysis/names';
 import { planOrganization, planToInstructions } from '../src/lib/analysis/organize';
 import { sha256OfBlob } from '../src/lib/analysis/hashing';
 import { entry } from './helpers';
+import { isJunkFile } from '../src/lib/analysis/junk';
 
 async function hashed(list: ReturnType<typeof entry>[]) {
   for (const x of list) x.entry.sha256 = await sha256OfBlob(x.blob);
@@ -20,11 +21,23 @@ describe('categorias', () => {
     expect(extensionOf('arquivo.')).toBe('');
     expect(extensionOf('a.tar.gz')).toBe('gz');
     expect(categorize('nota.pdf')).toBe('documentos');
+    expect(categorize('orcamento.xlsx')).toBe('planilhas');
+    expect(categorize('dados.CSV')).toBe('planilhas');
+    expect(categorize('aula.pptx')).toBe('apresentacoes');
     expect(categorize('musica.flac')).toBe('audios');
     expect(categorize('clip.mkv')).toBe('videos');
     expect(categorize('pacote.7z')).toBe('compactados');
     expect(categorize('semext', 'image/png')).toBe('imagens');
     expect(categorize('x.qqq')).toBe('outros');
+  });
+});
+
+describe('arquivos de sistema', () => {
+  it('ignora lixo do sistema e ocultos, mas não arquivos normais', () => {
+    for (const n of ['Thumbs.db', 'desktop.ini', '.DS_Store', '.oculto']) expect(isJunkFile(n)).toBe(true);
+    expect(isJunkFile('a.txt', 'System Volume Information/x')).toBe(true);
+    expect(isJunkFile('foto.jpg', '$RECYCLE.BIN/S-1/foto.jpg')).toBe(true);
+    expect(isJunkFile('relatorio.pdf', 'Documentos')).toBe(false);
   });
 });
 

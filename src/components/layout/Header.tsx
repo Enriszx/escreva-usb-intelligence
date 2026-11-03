@@ -1,16 +1,25 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
-import { ArrowUpRight, X } from 'lucide-react';
+import { ArrowUpRight, Moon, Sun, SunMoon, X } from 'lucide-react';
 import { Wordmark } from '../ui/Logo';
 import { ROUTES, routeFor } from '../../app/routes';
 import { useSettings } from '../../app/settings';
+import { useOnline } from '../../app/hooks';
+import { useToast } from '../../app/feedback';
 
 export function Header() {
   const { pathname } = useLocation();
   const [open, setOpen] = useState(false);
   const current = routeFor(pathname);
+  const online = useOnline();
+  const { settings, update } = useSettings();
+  const toast = useToast();
   useEffect(() => setOpen(false), [pathname]);
+  const THEMES = ['automatico', 'claro', 'escuro'] as const;
+  const THEME_LABEL = { automatico: 'automático', claro: 'claro', escuro: 'escuro' } as const;
+  const next = THEMES[(THEMES.indexOf(settings.theme) + 1) % THEMES.length];
+  const ThemeIcon = settings.theme === 'claro' ? Sun : settings.theme === 'escuro' ? Moon : SunMoon;
   return (
     <>
       <header className="site-header">
@@ -33,10 +42,23 @@ export function Header() {
             </NavLink>
           ))}
         </nav>
-        <button className="index-btn" aria-expanded={open} aria-controls="indice" onClick={() => setOpen(true)}>
-          <span className="index-btn-bars" aria-hidden><i /><i /></span>
-          <span>Índice</span>
-        </button>
+        <div className="head-actions">
+          <span className={`net ${online ? 'on' : 'off'}`} role="status">
+            <span className="sr-only">Conexão: </span><span className="net-t">{online ? 'Online' : 'Offline'}</span>
+          </span>
+          <button
+            className="theme-btn"
+            aria-label={`Tema ${THEME_LABEL[settings.theme]}. Alternar para ${THEME_LABEL[next]}`}
+            title={`Tema: ${THEME_LABEL[settings.theme]} (toque para ${THEME_LABEL[next]})`}
+            onClick={() => update({ theme: next }).then(() => toast({ tone: 'info', title: `Tema ${THEME_LABEL[next]}`, body: next === 'automatico' ? 'Cada página usa o seu desenho original.' : 'Aplicado a todas as páginas.' })).catch(() => {})}
+          >
+            <ThemeIcon aria-hidden />
+          </button>
+          <button className="index-btn" aria-expanded={open} aria-controls="indice" onClick={() => setOpen(true)}>
+            <span className="index-btn-bars" aria-hidden><i /><i /></span>
+            <span>Índice</span>
+          </button>
+        </div>
       </header>
       <AnimatePresence>{open && <IndexMenu onClose={() => setOpen(false)} />}</AnimatePresence>
     </>

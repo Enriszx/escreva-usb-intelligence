@@ -23,6 +23,8 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+        env:
+          VITE_PASS_HASH: ${{ secrets.USBI_PASS_HASH }}
       - run: npx cap sync android
       - name: Compilar APK (debug, instalável)
         working-directory: android
@@ -48,6 +50,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci && npm run build
+        env:
+          VITE_PASS_HASH: ${{ secrets.USBI_PASS_HASH }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

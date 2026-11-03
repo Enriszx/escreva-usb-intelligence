@@ -1,4 +1,4 @@
-import { useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Eraser } from 'lucide-react';
 import { useFiles } from './store';
@@ -20,7 +20,7 @@ import './files.css';
 
 const TABS = [
   { id: 'acervo', label: 'Acervo' },
-  { id: 'painel', label: 'Painel' },
+  { id: 'painel', label: 'Visão geral' },
   { id: 'duplicados', label: 'Duplicados' },
   { id: 'nomes', label: 'Nomes' },
   { id: 'organizacao', label: 'Organização' },
@@ -37,8 +37,13 @@ export default function FilesPage() {
   const [params, setParams] = useSearchParams();
   const tab = (tabs.find((t) => t.id === params.get('aba'))?.id ?? 'acervo') as TabId;
   const setTab = (id: TabId) => setParams((p) => { p.set('aba', id); return p; }, { replace: true });
-  const [category, setCategory] = useState<Category | null>(null);
-  const [ext, setExt] = useState<string | null>(null);
+  const [category, setCategory] = useState<Category | null>(() => (params.get('cat') as Category | null) || null);
+  const [ext, setExt] = useState<string | null>(() => params.get('ext') || null);
+  // Links vindos do assistente trocam os filtros mesmo com a página já aberta.
+  useEffect(() => {
+    setCategory((params.get('cat') as Category | null) || null);
+    setExt(params.get('ext') || null);
+  }, [params.get('cat'), params.get('ext')]); // eslint-disable-line react-hooks/exhaustive-deps
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const total = entries.reduce((s, f) => s + f.size, 0);
   const hashed = entries.filter((f) => f.sha256).length;
@@ -75,7 +80,7 @@ export default function FilesPage() {
                 className="btn btn-quiet btn-sm"
                 disabled={!!run}
                 onClick={async () => {
-                  if (await confirm({ title: 'Esvaziar a lista?', body: <p>A lista de análise fica vazia. <strong>Nenhum arquivo é apagado</strong>; relatórios já salvos continuam em Relatórios.</p>, confirm: 'Esvaziar lista' })) {
+                  if (await confirm({ title: 'Esvaziar a lista?', body: <p>A lista e o registro de arquivos guardado neste aparelho ficam vazios. <strong>Nenhum arquivo é apagado</strong>; relatórios já salvos continuam em Relatórios.</p>, confirm: 'Esvaziar lista' })) {
                     clear();
                     setCategory(null);
                     setExt(null);
@@ -114,7 +119,7 @@ export default function FilesPage() {
             </div>
             <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`} className="tabpanel">
               {tab === 'acervo' && <ArchiveTab category={category} setCategory={setCategory} ext={ext} setExt={setExt} />}
-              {tab === 'painel' && <DashboardTab category={category} setCategory={setCategory} setExt={setExt} goArchive={() => setTab('acervo')} />}
+              {tab === 'painel' && <DashboardTab category={category} setCategory={setCategory} setExt={setExt} goArchive={() => setTab('acervo')} goTab={setTab} />}
               {tab === 'duplicados' && <DuplicatesTab />}
               {tab === 'nomes' && <NamesTab />}
               {tab === 'organizacao' && <OrganizeTab />}

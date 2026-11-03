@@ -114,6 +114,16 @@ export interface Settings {
   motion: 'sistema' | 'reduzido' | 'completo';
   quality: 'auto' | 'economia' | 'alta';
   saveHistory: boolean;
+  /** 'automatico' respeita o desenho de cada página; claro/escuro forçam todas. */
+  theme: 'automatico' | 'claro' | 'escuro';
+  /** Guarda o registro (nome, tamanho, hash) dos arquivos importados; nunca o conteúdo. */
+  saveLibrary: boolean;
+  /** Assistente (Vigia IA) visível. */
+  assistant: boolean;
+  /** Modelo de IA que roda no próprio aparelho (WebLLM). */
+  aiModel: string;
+  /** Modelo que já foi baixado e carregado com sucesso neste aparelho. */
+  aiInstalled: string | null;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -121,13 +131,44 @@ export const DEFAULT_SETTINGS: Settings = {
   motion: 'sistema',
   quality: 'auto',
   saveHistory: true,
+  theme: 'automatico',
+  saveLibrary: true,
+  assistant: true,
+  aiModel: 'Qwen2.5-1.5B-Instruct-q4f16_1-MLC',
+  aiInstalled: null,
 };
 
 export async function loadSettings(): Promise<Settings> {
   const row = await get<{ key: string; value: Partial<Settings> }>('settings', 'app');
-  return { ...DEFAULT_SETTINGS, ...(row?.value ?? {}) };
+  const s = { ...DEFAULT_SETTINGS, ...(row?.value ?? {}) };
+  // Versões antigas usavam o Claude: troca pelo modelo grátis e apaga a chave guardada.
+  if (s.aiModel.startsWith('claude')) {
+    s.aiModel = DEFAULT_SETTINGS.aiModel;
+    forgetOldApiKey();
+  }
+  return s;
 }
 
 export async function saveSettings(s: Settings): Promise<void> {
   await put('settings', { key: 'app', value: s });
 }
+
+/* ---------- Biblioteca (registro de arquivos; nunca o conteúdo) ---------- */
+export interface LibraryRecord {
+  id: string;
+  name: string;
+  path: string;
+  mime: string;
+  size: number;
+  lastModified: number;
+  importedAt: number;
+  sha256?: string;
+  hashError?: string;
+}
+
+export const listLibrary = () => getAll<LibraryRecord>('library');
+
+/* ---------- Chave antiga da API (versões anteriores) ---------- */
+/** Linha que versões antigas usavam para a chave da Anthropic. Não é mais usada: apagamos e nunca exportamos. */
+export const API_KEY_ROW = 'anthropicKey';
+export const forgetOldApiKey = () => del('settings', API_KEY_ROW).catch(() => {});

@@ -8,12 +8,15 @@ import { clear, clearAll, type StoreName } from '../../lib/storage/db';
 import { makeBackup, checkBackup, restoreBackup, type BackupCheck } from '../../lib/storage/backup';
 import { saveJSON, stamp } from '../../lib/export';
 import { formatInt } from '../../lib/format';
-import type { Settings } from '../../lib/storage/repos';
+import { DEFAULT_SETTINGS, type Settings } from '../../lib/storage/repos';
+import { useFiles } from '../files/store';
+import { AssistantSettings } from './AssistantSettings';
 import './settings.css';
 
 const CLEARABLE: { store: StoreName; label: string; note: string }[] = [
   { store: 'history', label: 'Histórico', note: 'Todos os registros de operações.' },
   { store: 'reports', label: 'Relatórios', note: 'Relatórios salvos (o histórico perde os links).' },
+  { store: 'library', label: 'Registro de arquivos', note: 'A lista de arquivos lembrada entre sessões (a lista atual na tela não muda).' },
   { store: 'characters', label: 'Personagens', note: 'Toda a coleção do laboratório de personagem.' },
   { store: 'integrity', label: 'Referências de integridade', note: 'Hashes guardados para verificação posterior.' },
 ];
@@ -24,6 +27,7 @@ export default function SettingsPage() {
   const toast = useToast();
   const confirm = useConfirm();
   const input = useRef<HTMLInputElement>(null);
+  const files = useFiles();
   const [pending, setPending] = useState<BackupCheck | null>(null);
   const [nonce, setNonce] = useState(0);
 
@@ -76,6 +80,19 @@ export default function SettingsPage() {
             </label>
           </section>
 
+          <section className="set-sec" aria-labelledby="st-theme">
+            <h2 id="st-theme" className="h3">Tema</h2>
+            <div className="seg seg-wrap" role="radiogroup" aria-label="Tema">
+              {(['automatico', 'claro', 'escuro'] as const).map((t) => (
+                <label key={t}>
+                  <input type="radio" name="theme" checked={settings.theme === t} onChange={() => set({ theme: t }, 'Tema atualizado')} />
+                  <span>{t === 'automatico' ? 'Automático' : t === 'claro' ? 'Claro' : 'Escuro'}</span>
+                </label>
+              ))}
+            </div>
+            <p className="hint">Automático mantém o desenho original de cada página (algumas são claras, outras escuras). Claro e Escuro valem para todas.</p>
+          </section>
+
           <section className="set-sec" aria-labelledby="st-3d">
             <h2 id="st-3d" className="h3">Qualidade 3D</h2>
             <div className="seg seg-wrap" role="radiogroup" aria-label="Qualidade 3D">
@@ -97,6 +114,17 @@ export default function SettingsPage() {
             </label>
             <p className="hint">Desligado, nada novo é gravado. Os registros existentes continuam até você apagá-los.</p>
           </section>
+
+          <section className="set-sec" aria-labelledby="st-lib">
+            <h2 id="st-lib" className="h3">Registro de arquivos</h2>
+            <label className="switch">
+              <span>Lembrar os arquivos importados neste aparelho</span>
+              <input type="checkbox" checked={settings.saveLibrary} onChange={(e) => set({ saveLibrary: e.target.checked }, e.target.checked ? 'Registro ligado' : 'Registro desligado')} />
+            </label>
+            <p className="hint">Guarda só nome, caminho, tamanho, datas e hash — nunca o conteúdo. Depois de recarregar, os itens aparecem como “registro” e dá para escolher os arquivos de novo para voltar a analisá-los.</p>
+          </section>
+
+          <AssistantSettings set={set} />
 
           <section className="set-sec set-wide" aria-labelledby="st-data">
             <h2 id="st-data" className="h3">Dados locais</h2>
@@ -123,6 +151,7 @@ export default function SettingsPage() {
                         <button className="btn btn-danger btn-sm" onClick={async () => {
                           if (await confirm({ title: `Apagar ${c.label.toLowerCase()}?`, body: <p>{c.note} Não pode ser desfeito. Exporte um backup antes, se quiser guardar.</p>, confirm: 'Apagar', danger: true })) {
                             await clear(c.store);
+                            if (c.store === 'library') files.remove(files.entries.filter((e) => e.source === 'registro').map((e) => e.id));
                             setNonce((n) => n + 1);
                             toast({ tone: 'ok', title: `${c.label}: apagado` });
                           }
@@ -135,7 +164,8 @@ export default function SettingsPage() {
                   <button className="btn btn-danger" onClick={async () => {
                     if (await confirm({ title: 'Apagar todos os dados locais?', body: <><p>Configurações, personagens, histórico, relatórios e referências deste aparelho serão removidos.</p><p><strong>Seus arquivos não são afetados</strong> — o app nunca guardou o conteúdo deles.</p></>, confirm: 'Apagar tudo', danger: true, typeToConfirm: 'APAGAR' })) {
                       await clearAll();
-                      await update({ intro: true, motion: 'sistema', quality: 'auto', saveHistory: true });
+                      files.clear();
+                      await update({ ...DEFAULT_SETTINGS });
                       setNonce((n) => n + 1);
                       toast({ tone: 'ok', title: 'Dados locais apagados' });
                     }

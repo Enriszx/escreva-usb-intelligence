@@ -7,8 +7,9 @@ import { useMemo } from 'react';
 
 export function AnalysisBar() {
   const { entries, run, lastRun, analyze, cancel } = useFiles();
-  const pendingAll = entries.filter((f) => !f.sha256);
-  const pendingCandidates = useMemo(() => sizeCandidates(entries).filter((f) => !f.sha256), [entries]);
+  const readable = useMemo(() => entries.filter((f) => f.source !== 'registro'), [entries]);
+  const pendingAll = readable.filter((f) => !f.sha256);
+  const pendingCandidates = useMemo(() => sizeCandidates(readable).filter((f) => !f.sha256), [readable]);
   const bytesAll = pendingAll.reduce((s, f) => s + f.size, 0);
   const bytesCand = pendingCandidates.reduce((s, f) => s + f.size, 0);
 
@@ -40,8 +41,10 @@ export function AnalysisBar() {
         <span className="label">Análise</span>
         {entries.length === 0 ? (
           <p className="muted">Adicione arquivos para analisar.</p>
+        ) : readable.length === 0 ? (
+          <p className="muted">Estes {formatInt(entries.length)} itens vêm do registro salvo neste aparelho (só nome, tamanho e hash). Escolha os arquivos de novo para voltar a analisá-los.</p>
         ) : pendingAll.length === 0 ? (
-          <p>Todos os arquivos já têm SHA-256 calculado.</p>
+          <p>Todos os arquivos abertos já têm SHA-256 calculado{entries.length > readable.length ? `; ${formatInt(entries.length - readable.length)} itens são só registro.` : '.'}</p>
         ) : (
           <p className="muted">
             Completa lê {plural(pendingAll.length, 'arquivo', 'arquivos')} ({formatBytes(bytesAll)}). A busca rápida lê só os{' '}

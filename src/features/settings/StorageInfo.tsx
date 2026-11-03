@@ -10,6 +10,7 @@ const STORE_LABEL: Record<StoreName, string> = {
   history: 'Registros de histórico',
   reports: 'Relatórios',
   integrity: 'Referências de integridade',
+  library: 'Arquivos registrados',
 };
 
 export function useStorageEstimate() {

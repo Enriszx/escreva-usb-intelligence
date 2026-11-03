@@ -7,6 +7,8 @@ import type { Category } from '../../lib/analysis/types';
  */
 export const CAT_VAR: Record<Category, string> = {
   documentos: 'var(--cat-1)',
+  planilhas: 'var(--cat-6)',
+  apresentacoes: 'var(--cat-7)',
   imagens: 'var(--cat-2)',
   videos: 'var(--cat-3)',
   audios: 'var(--cat-4)',

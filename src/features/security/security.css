@@ -35,10 +35,6 @@
 .vault-spec > div { display: grid; grid-template-columns: 90px 1fr; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
 .vault-spec dt { font-size: var(--t-micro); text-transform: uppercase; letter-spacing: 0.08em; padding-top: 3px; }
 .vault-spec dd { margin: 0; font-size: 0.92rem; }
-.pw-wrap { position: relative; display: block; }
-.pw-wrap .input { padding-right: 52px; }
-.pw-eye { position: absolute; right: 2px; top: 2px; bottom: 2px; width: 46px; background: none; border: 0; color: var(--fg-2); display: grid; place-items: center; }
-.pw-eye svg { width: 18px; height: 18px; }
 .strength { display: flex; align-items: center; gap: 12px; }
 .strength-bar { display: grid; grid-template-columns: repeat(4, 40px); gap: 4px; }
 .strength-bar i { height: 6px; background: var(--bg-3); }

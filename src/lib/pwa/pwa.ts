@@ -90,6 +90,13 @@ export function registerPWA() {
   });
 }
 
+/** Pede ao navegador que procure uma versão nova agora. Devolve o que aconteceu. */
+export async function checkForUpdate(): Promise<'indisponivel' | 'nova' | 'atualizado'> {
+  if (!registration) return 'indisponivel';
+  await registration.update();
+  return registration.waiting || registration.installing ? 'nova' : 'atualizado';
+}
+
 export function applyUpdate() {
   registration?.waiting?.postMessage({ type: 'SKIP_WAITING' });
 }

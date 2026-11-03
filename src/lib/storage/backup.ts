@@ -1,10 +1,14 @@
 import { STORES, dumpAll, put, type StoreName } from './db';
 import { validateCharacter } from '../../features/character/model';
+import { API_KEY_ROW } from './repos';
 
 export const BACKUP_KIND = 'backup';
 
 export async function makeBackup() {
-  return { app: 'usb-intelligence', tipo: BACKUP_KIND, versao: 1, criadoEm: new Date().toISOString(), dados: await dumpAll() };
+  const dados = await dumpAll();
+  // Segredos nunca vão para o arquivo de backup.
+  dados.settings = dados.settings.filter((r) => (r as { key?: string }).key !== API_KEY_ROW);
+  return { app: 'usb-intelligence', tipo: BACKUP_KIND, versao: 1, criadoEm: new Date().toISOString(), dados };
 }
 
 export interface BackupCheck {
@@ -42,6 +46,7 @@ export function checkBackup(input: unknown): BackupCheck {
       if (!isObj(rec) || typeof rec[keyField] !== 'string' || !(rec[keyField] as string).length) errors.push(`${k}[${i}]: falta "${keyField}".`);
       else if (store === 'characters' && (typeof rec.name !== 'string' || !validateCharacter(rec.config).ok)) errors.push(`${k}[${i}]: personagem inválido.`);
       else if ((store === 'history' || store === 'reports' || store === 'integrity') && typeof rec.at !== 'number') errors.push(`${k}[${i}]: data ausente.`);
+      else if (store === 'library' && (typeof rec.name !== 'string' || typeof rec.size !== 'number' || typeof rec.importedAt !== 'number')) errors.push(`${k}[${i}]: registro de arquivo inválido.`);
     });
     data[store] = v as Record<string, unknown>[];
     counts[store] = v.length;

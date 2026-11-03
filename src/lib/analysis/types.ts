@@ -1,9 +1,11 @@
-export type Category = 'documentos' | 'imagens' | 'videos' | 'audios' | 'compactados' | 'outros';
+export type Category = 'documentos' | 'planilhas' | 'apresentacoes' | 'imagens' | 'videos' | 'audios' | 'compactados' | 'outros';
 
-export const CATEGORIES: Category[] = ['documentos', 'imagens', 'videos', 'audios', 'compactados', 'outros'];
+export const CATEGORIES: Category[] = ['documentos', 'planilhas', 'apresentacoes', 'imagens', 'videos', 'audios', 'compactados', 'outros'];
 
 export const CATEGORY_LABEL: Record<Category, string> = {
   documentos: 'Documentos',
+  planilhas: 'Planilhas',
+  apresentacoes: 'Apresentações',
   imagens: 'Imagens',
   videos: 'Vídeos',
   audios: 'Áudios',
@@ -25,8 +27,13 @@ export interface FileEntry {
   /** Preenchido após o cálculo; undefined = ainda não calculado. */
   sha256?: string;
   hashError?: string;
-  /** 'pasta' = veio de uma pasta conectada (pode ser renomeado/movido/apagado). */
-  source?: 'selecao' | 'pasta';
+  /** Quando entrou na biblioteca (ms). */
+  importedAt: number;
+  /**
+   * 'selecao' = escolhido agora pelo seletor; 'pasta' = veio de uma pasta conectada (pode ser
+   * renomeado/movido/apagado); 'registro' = só os metadados, guardados de uma sessão anterior.
+   */
+  source?: 'selecao' | 'pasta' | 'registro';
 }
 
 export interface CategoryStat {

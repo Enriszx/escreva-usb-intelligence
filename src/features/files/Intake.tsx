@@ -3,7 +3,7 @@ import { FilePlus2, FolderPlus } from 'lucide-react';
 import { useFiles, type IncomingFile } from './store';
 import { useToast } from '../../app/feedback';
 import { filesFromDrop, supportsFolderInput } from '../../lib/files/intake';
-import { plural } from '../../lib/format';
+import { describeAdd } from './announce';
 
 /** Entrada de arquivos: seletor do sistema, pasta e arrastar-e-soltar. */
 export function Intake({ compact }: { compact: boolean }) {
@@ -20,16 +20,8 @@ export function Intake({ compact }: { compact: boolean }) {
       toast({ tone: 'aviso', title: 'Nenhum arquivo recebido', body: `O navegador não entregou arquivos ${origem}.` });
       return;
     }
-    const { added, repeated, lookalikes } = addFiles(list);
-    toast({
-      tone: !added ? 'info' : lookalikes ? 'aviso' : 'ok',
-      title: added ? `${plural(added, 'arquivo adicionado', 'arquivos adicionados')}` : 'Nada novo',
-      body: lookalikes
-        ? `${plural(lookalikes, 'item tem', 'itens têm')} nome, tamanho e data iguais a outro da lista. Se for o mesmo arquivo escolhido duas vezes, tire-o no Acervo para não contar como duplicado.`
-        : repeated
-          ? `${plural(repeated, 'arquivo já estava', 'arquivos já estavam')} na lista e não foi adicionado de novo.`
-          : 'Nada foi lido ainda: só nome, tipo, tamanho e data.',
-    });
+    const d = describeAdd(addFiles(list));
+    toast({ tone: d.tone, title: d.title, body: d.body });
   };
 
   return (

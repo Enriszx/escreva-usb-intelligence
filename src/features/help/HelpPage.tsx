@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AlertTriangle, Check, RefreshCw, X } from 'lucide-react';
 import { runDiagnostics, type Check as CheckT } from './diagnostics';
-import { cacheStatus, promptInstall, type CacheStatus } from '../../lib/pwa/pwa';
+import { applyUpdate, cacheStatus, checkForUpdate, promptInstall, type CacheStatus } from '../../lib/pwa/pwa';
 import { useDocumentTitle, useOnline, usePWA } from '../../app/hooks';
 import { useConfirm, useToast } from '../../app/feedback';
 import { formatInt } from '../../lib/format';
@@ -56,6 +56,19 @@ export default function HelpPage() {
             <h2 id="d-title" className="h2">Diagnóstico</h2>
             <div className="btn-row">
               <button className="btn btn-ghost btn-sm" onClick={run}><RefreshCw aria-hidden /> Verificar de novo</button>
+              {pwa.updateWaiting ? (
+                <button className="btn btn-primary btn-sm" onClick={applyUpdate}>Atualizar agora</button>
+              ) : (
+                <button
+                  className="btn btn-ghost btn-sm"
+                  onClick={async () => {
+                    const r = await checkForUpdate().catch(() => 'indisponivel' as const);
+                    toast(r === 'nova' ? { tone: 'ok', title: 'Nova versão encontrada', body: 'Toque em “Atualizar agora” quando aparecer.' } : r === 'atualizado' ? { tone: 'ok', title: 'Você já está na versão mais recente' } : { tone: 'info', title: 'Atualização indisponível', body: 'O app não está instalado neste endereço (ou o modo offline está desligado).' });
+                  }}
+                >
+                  Buscar atualização
+                </button>
+              )}
               {pwa.installable && (
                 <button className="btn btn-primary btn-sm" onClick={async () => { const r = await promptInstall(); if (r === 'accepted') toast({ tone: 'ok', title: 'App instalado' }); }}>Instalar app</button>
               )}

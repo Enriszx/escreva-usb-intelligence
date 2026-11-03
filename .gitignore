@@ -5,3 +5,5 @@ release
 coverage
 .DS_Store
 dist-artifact
+*.local
+.env

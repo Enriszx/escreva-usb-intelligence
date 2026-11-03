@@ -1,8 +1,10 @@
 import { useMemo, useState } from 'react';
-import { ArrowDownAZ, ArrowUpAZ, FolderInput, ListX, Pencil, Search, Trash2, X } from 'lucide-react';
+import { ArrowDownAZ, ArrowUpAZ, FolderInput, LayoutGrid, List, ListX, Pencil, Search, Trash2, X } from 'lucide-react';
 import { useFiles } from './store';
 import { CATEGORIES, CATEGORY_LABEL, type Category, type FileEntry } from '../../lib/analysis/types';
 import { formatBytes, formatDate, formatInt, plural } from '../../lib/format';
+import { useCallback, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { CAT_VAR } from '../../components/charts/colors';
 import { useConfirm, useToast } from '../../app/feedback';
 import { FileDetails } from './FileDetails';
@@ -10,18 +12,54 @@ import { useFolder } from './folder';
 import { MoveDialog, RenameFileDialog, foldersOf } from './fileDialogs';
 import { splitPath } from '../../lib/files/backend';
 
-type SortKey = 'nome' | 'tamanho' | 'extensao' | 'data';
+type SortKey = 'nome' | 'tamanho' | 'extensao' | 'data' | 'importado';
+type View = 'lista' | 'grade';
+type Group = 'nenhum' | 'formato' | 'tipo';
 const PAGE = 150;
+const PAGE_GRID = 60;
+const PREFS_KEY = 'usbi.acervo';
+
+function loadPrefs(): { view: View; group: Group; sort: SortKey } {
+  try {
+    const p = JSON.parse(localStorage.getItem(PREFS_KEY) ?? '{}');
+    return {
+      view: p.view === 'grade' ? 'grade' : 'lista',
+      group: p.group === 'formato' || p.group === 'tipo' ? p.group : 'nenhum',
+      sort: ['nome', 'tamanho', 'extensao', 'data', 'importado'].includes(p.sort) ? p.sort : 'nome',
+    };
+  } catch {
+    return { view: 'lista', group: 'nenhum', sort: 'nome' };
+  }
+}
+
+interface Section {
+  key: string;
+  title: string | null;
+  color: string;
+  note: string;
+  items: FileEntry[];
+}
 
 export function ArchiveTab({ category, setCategory, ext, setExt }: { category: Category | null; setCategory: (c: Category | null) => void; ext: string | null; setExt: (e: string | null) => void }) {
   const { entries, remove, run } = useFiles();
   const confirm = useConfirm();
   const toast = useToast();
-  const [q, setQ] = useState('');
-  const [sort, setSort] = useState<SortKey>('nome');
+  const [params] = useSearchParams();
+  const [q, setQ] = useState(() => params.get('q') ?? '');
+  const qParam = params.get('q');
+  useEffect(() => { if (qParam !== null) setQ(qParam); }, [qParam]);
+  const prefs = useMemo(loadPrefs, []);
+  const [sort, setSort] = useState<SortKey>(prefs.sort);
+  const [view, setView] = useState<View>(prefs.view);
+  const [group, setGroup] = useState<Group>(prefs.group);
   const [asc, setAsc] = useState(true);
   const [sel, setSel] = useState<Set<string>>(new Set());
-  const [limit, setLimit] = useState(PAGE);
+  const [limits, setLimits] = useState<Record<string, number>>({});
+  const { thumbUrl } = useFiles();
+  useEffect(() => {
+    try { localStorage.setItem(PREFS_KEY, JSON.stringify({ view, group, sort })); } catch { /* preferência é só conveniência */ }
+  }, [view, group, sort]);
+  const resetLimits = useCallback(() => setLimits({}), []);
   const [detail, setDetail] = useState<FileEntry | null>(null);
   const folder = useFolder();
   const live = !!folder.backend;
@@ -49,9 +87,25 @@ export function ArchiveTab({ category, setCategory, ext, setExt }: { category: C
       tamanho: (a, b) => a.size - b.size,
       extensao: (a, b) => a.ext.localeCompare(b.ext) || a.name.localeCompare(b.name, 'pt-BR'),
       data: (a, b) => a.lastModified - b.lastModified,
+      importado: (a, b) => a.importedAt - b.importedAt || a.name.localeCompare(b.name, 'pt-BR'),
     };
     return list.sort((a, b) => cmp[sort](a, b) * dir);
   }, [entries, q, category, ext, sort, asc]);
+
+  const sections = useMemo<Section[]>(() => {
+    const sum = (l: FileEntry[]) => `${plural(l.length, 'arquivo', 'arquivos')} · ${formatBytes(l.reduce((a, f) => a + f.size, 0))}`;
+    if (group === 'nenhum') return [{ key: '_', title: null, color: '', note: '', items: visible }];
+    if (group === 'tipo') {
+      return CATEGORIES.map((c) => ({ c, items: visible.filter((f) => f.category === c) }))
+        .filter((x) => x.items.length)
+        .map((x) => ({ key: x.c, title: CATEGORY_LABEL[x.c], color: CAT_VAR[x.c], note: sum(x.items), items: x.items }));
+    }
+    const m = new Map<string, FileEntry[]>();
+    for (const f of visible) m.set(f.ext || 'sem extensão', [...(m.get(f.ext || 'sem extensão') ?? []), f]);
+    return [...m.entries()].sort((a, b) => b[1].length - a[1].length).map(([k, items]) => ({
+      key: k, title: k.toUpperCase(), color: CAT_VAR[items[0].category], note: `${CATEGORY_LABEL[items[0].category]} · ${sum(items)}`, items,
+    }));
+  }, [visible, group]);
 
   const visibleBytes = visible.reduce((s, f) => s + f.size, 0);
   const allSelected = visible.length > 0 && visible.every((f) => sel.has(f.id));
@@ -86,6 +140,12 @@ export function ArchiveTab({ category, setCategory, ext, setExt }: { category: C
     setSel(new Set());
   };
 
+  const toggle = (id: string) => setSel((st) => { const n = new Set(st); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+  const hashCell = (f: FileEntry) =>
+    f.hashError ? <span className="tag err">erro de leitura</span>
+      : f.sha256 ? <span title={f.sha256}>{f.sha256.slice(0, 10)}…{f.source === 'registro' && <span className="tag fhash-reg">registro</span>}</span>
+        : f.source === 'registro' ? <span className="tag">só registro</span> : <span className="muted">não calculado</span>;
+
   return (
     <div className="archive">
       {!live && <p className="hint archive-mode">Modo leitura: arquivos escolhidos pelo seletor só podem ser analisados. Para renomear, mover ou apagar, use “Conectar pasta”{folder.supported ? ' acima' : ' (disponível no Chrome/Edge do computador ou no app Android)'}.</p>}
@@ -93,7 +153,7 @@ export function ArchiveTab({ category, setCategory, ext, setExt }: { category: C
         <label className="search">
           <Search aria-hidden />
           <span className="sr-only">Pesquisar por nome ou caminho</span>
-          <input className="input" type="search" placeholder="Pesquisar por nome" value={q} onChange={(e) => { setQ(e.target.value); setLimit(PAGE); }} />
+          <input className="input" type="search" placeholder="Pesquisar por nome" value={q} onChange={(e) => { setQ(e.target.value); resetLimits(); }} />
         </label>
         <label className="field sort-field">
           <span className="sr-only">Ordenar por</span>
@@ -101,9 +161,21 @@ export function ArchiveTab({ category, setCategory, ext, setExt }: { category: C
             <option value="nome">Ordenar: nome</option>
             <option value="tamanho">Ordenar: tamanho</option>
             <option value="extensao">Ordenar: extensão</option>
-            <option value="data">Ordenar: data</option>
+            <option value="data">Ordenar: modificação</option>
+            <option value="importado">Ordenar: importação</option>
           </select>
         </label>
+        <label className="field sort-field">
+          <span className="sr-only">Agrupar por</span>
+          <select className="select" value={group} onChange={(e) => { setGroup(e.target.value as Group); resetLimits(); }}>
+            <option value="nenhum">Sem agrupar</option>
+            <option value="formato">Agrupar por formato</option>
+            <option value="tipo">Agrupar por tipo</option>
+          </select>
+        </label>
+        <button className="btn btn-ghost btn-icon" onClick={() => { setView(view === 'lista' ? 'grade' : 'lista'); resetLimits(); }} aria-label={view === 'lista' ? 'Mudar para grade com miniaturas' : 'Mudar para lista'} aria-pressed={view === 'grade'}>
+          {view === 'lista' ? <LayoutGrid aria-hidden /> : <List aria-hidden />}
+        </button>
         <button className="btn btn-ghost btn-icon" onClick={() => setAsc(!asc)} aria-label={asc ? 'Ordem crescente — inverter' : 'Ordem decrescente — inverter'}>
           {asc ? <ArrowDownAZ aria-hidden /> : <ArrowUpAZ aria-hidden />}
         </button>
@@ -151,47 +223,85 @@ export function ArchiveTab({ category, setCategory, ext, setExt }: { category: C
       {visible.length === 0 ? (
         <p className="empty-line">Nenhum arquivo corresponde a esta busca ou filtro.</p>
       ) : (
-        <div className="ftable" role="table" aria-label="Arquivos selecionados">
-          <div className="ftable-head" role="row">
-            <span role="columnheader"><span className="sr-only">Seleção</span></span>
-            <span role="columnheader">Nome</span>
-            <span role="columnheader">Tipo</span>
-            <span role="columnheader" className="r">Tamanho</span>
-            <span role="columnheader">Modificado</span>
-            <span role="columnheader">SHA-256</span>
-          </div>
-          {visible.slice(0, limit).map((f) => (
-            <div key={f.id} className={`ftable-row ${sel.has(f.id) ? 'is-sel' : ''}`} role="row">
-              <span role="cell">
-                <input
-                  type="checkbox"
-                  aria-label={`Selecionar ${f.name}`}
-                  checked={sel.has(f.id)}
-                  onChange={() => setSel((s) => { const n = new Set(s); if (n.has(f.id)) n.delete(f.id); else n.add(f.id); return n; })}
-                />
-              </span>
-              <span role="cell" className="fname">
-                <button className="fname-btn" onClick={() => setDetail(f)}>
-                  <i style={{ background: CAT_VAR[f.category] }} aria-hidden />
-                  <span>{f.name}</span>
+        sections.map((sec, si) => {
+          const page = view === 'grade' ? PAGE_GRID : PAGE;
+          const limit = limits[sec.key] ?? page;
+          const shown = sec.items.slice(0, limit);
+          return (
+            <section key={sec.key} className="file-sec" aria-label={sec.title ?? 'Arquivos'}>
+              {sec.title && (
+                <div className="file-sec-head">
+                  <i style={{ background: sec.color }} aria-hidden />
+                  <h3 className="h3">{sec.title}</h3>
+                  <span className="mono muted">{sec.note}</span>
+                </div>
+              )}
+              {view === 'lista' ? (
+                <div className="ftable" role="table" aria-label={sec.title ? `Arquivos: ${sec.title}` : 'Arquivos selecionados'}>
+                  <div className={`ftable-head ${si > 0 ? 'sr-only' : ''}`} role="row">
+                    <span role="columnheader"><span className="sr-only">Seleção</span></span>
+                    <span role="columnheader">Nome</span>
+                    <span role="columnheader">Tipo</span>
+                    <span role="columnheader" className="r">Tamanho</span>
+                    <span role="columnheader">Modificado</span>
+                    <span role="columnheader">SHA-256</span>
+                  </div>
+                  {shown.map((f) => (
+                    <div key={f.id} className={`ftable-row ${sel.has(f.id) ? 'is-sel' : ''}`} role="row">
+                      <span role="cell">
+                        <input type="checkbox" aria-label={`Selecionar ${f.name}`} checked={sel.has(f.id)} onChange={() => toggle(f.id)} />
+                      </span>
+                      <span role="cell" className="fname">
+                        <button className="fname-btn" onClick={() => setDetail(f)}>
+                          <i style={{ background: CAT_VAR[f.category] }} aria-hidden />
+                          <span>{f.name}</span>
+                        </button>
+                        {f.path !== f.name && <span className="fpath mono muted">{f.path}</span>}
+                        {live && <button className="row-rename" aria-label={`Renomear ${f.name}`} disabled={busy} onClick={() => setRenaming(f)}><Pencil aria-hidden /></button>}
+                      </span>
+                      <span role="cell" className="mono ftype">{f.ext ? `.${f.ext}` : '—'} <span className="muted">{CATEGORY_LABEL[f.category]}</span></span>
+                      <span role="cell" className="num r">{formatBytes(f.size)}</span>
+                      <span role="cell" className="mono muted fdate">{f.lastModified ? formatDate(f.lastModified) : '—'}</span>
+                      <span role="cell" className="mono fhash">{hashCell(f)}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <ul className="fgrid">
+                  {shown.map((f) => {
+                    const url = f.category === 'imagens' && f.ext !== 'heic' && f.ext !== 'svg' ? thumbUrl(f.id) : null;
+                    return (
+                      <li key={f.id} className={`fcard ${sel.has(f.id) ? 'is-sel' : ''}`}>
+                        <label className="fcard-check">
+                          <input type="checkbox" aria-label={`Selecionar ${f.name}`} checked={sel.has(f.id)} onChange={() => toggle(f.id)} />
+                        </label>
+                        <button className="fcard-thumb" onClick={() => setDetail(f)} aria-label={`Detalhes de ${f.name}`}>
+                          {url ? (
+                            <img src={url} alt="" loading="lazy" decoding="async" />
+                          ) : (
+                            <span className="fcard-ext" style={{ color: CAT_VAR[f.category], borderColor: CAT_VAR[f.category] }}>{(f.ext || '?').toUpperCase().slice(0, 4)}</span>
+                          )}
+                        </button>
+                        <b className="fcard-name" title={f.name}>{f.name}</b>
+                        <span className="mono muted fcard-meta">{CATEGORY_LABEL[f.category]} · {formatBytes(f.size)}</span>
+                        {f.path !== f.name && <span className="mono muted fcard-meta fcard-path" title={f.path}>{f.path}</span>}
+                        <span className="fcard-foot">
+                          {hashCell(f)}
+                          {live && <button className="row-rename-inline" aria-label={`Renomear ${f.name}`} disabled={busy} onClick={() => setRenaming(f)}><Pencil aria-hidden /></button>}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+              {sec.items.length > limit && (
+                <button className="btn btn-ghost more-btn" onClick={() => setLimits((l) => ({ ...l, [sec.key]: limit + page }))}>
+                  Mostrar mais {Math.min(page, sec.items.length - limit)} de {formatInt(sec.items.length - limit)} restantes
                 </button>
-                {f.path !== f.name && <span className="fpath mono muted">{f.path}</span>}
-                {live && <button className="row-rename" aria-label={`Renomear ${f.name}`} disabled={busy} onClick={() => setRenaming(f)}><Pencil aria-hidden /></button>}
-              </span>
-              <span role="cell" className="mono ftype">{f.ext ? `.${f.ext}` : '—'} <span className="muted">{CATEGORY_LABEL[f.category]}</span></span>
-              <span role="cell" className="num r">{formatBytes(f.size)}</span>
-              <span role="cell" className="mono muted fdate">{f.lastModified ? formatDate(f.lastModified) : '—'}</span>
-              <span role="cell" className="mono fhash">
-                {f.hashError ? <span className="tag err">erro de leitura</span> : f.sha256 ? <span title={f.sha256}>{f.sha256.slice(0, 10)}…</span> : <span className="muted">não calculado</span>}
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
-      {visible.length > limit && (
-        <button className="btn btn-ghost more-btn" onClick={() => setLimit((l) => l + PAGE)}>
-          Mostrar mais {Math.min(PAGE, visible.length - limit)} de {formatInt(visible.length - limit)} restantes
-        </button>
+              )}
+            </section>
+          );
+        })
       )}
       {renaming && (
         <RenameFileDialog

@@ -1,4 +1,5 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { ChevronRight, Copy, Download, FileText, Folder, Save, Square } from 'lucide-react';
 import { useFiles } from './store';
 import { CRITERION_LABEL, planOrganization, planToInstructions, type OrganizeCriterion } from '../../lib/analysis/organize';
@@ -19,7 +20,10 @@ export function OrganizeTab() {
   const { settings } = useSettings();
   const confirm = useConfirm();
   const toast = useToast();
-  const [criterion, setCriterion] = useState<OrganizeCriterion>('categoria');
+  const [params] = useSearchParams();
+  const fromUrl = params.get('criterio') as OrganizeCriterion | null;
+  const [criterion, setCriterion] = useState<OrganizeCriterion>(fromUrl && fromUrl in CRITERION_LABEL ? fromUrl : 'categoria');
+  useEffect(() => { if (fromUrl && fromUrl in CRITERION_LABEL) setCriterion(fromUrl); }, [fromUrl]);
   const [open, setOpen] = useState<string | null>(null);
   const [copying, setCopying] = useState<{ done: number; total: number; bytes: number } | null>(null);
   const abort = useRef<AbortController | null>(null);

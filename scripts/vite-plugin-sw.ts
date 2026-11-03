@@ -26,8 +26,12 @@ export function offlineServiceWorker(): Plugin {
       const publicDir = resolve(__dirname, '../public');
       const files = new Set<string>(['./', 'index.html']);
       for (const f of listPublic(publicDir)) files.add(f);
-      for (const f of Object.keys(bundle)) {
+      for (const [f, item] of Object.entries(bundle)) {
         if (f.endsWith('.map') || f === 'sw.js') continue;
+        // O motor da IA (~6 MB cada parte) só baixa para quem ativar a IA; o fetch
+        // abaixo guarda em cache no primeiro uso, então depois funciona offline.
+        const size = item.type === 'chunk' ? item.code.length : item.source.length;
+        if (size > 3_000_000) continue;
         files.add(f);
       }
       const list = [...files].sort();

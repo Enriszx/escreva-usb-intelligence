@@ -2,6 +2,27 @@
 
 Ecossistema de arquivos para o navegador: seleção e análise de arquivos, detecção de duplicados por SHA-256, planejamento de organização, verificação de integridade, cofre AES-256-GCM, relatórios, histórico — e um laboratório 3D com um pendrive conceitual e um personagem (“o Vigia”) personalizável. Tudo roda no aparelho; nada é enviado para servidores.
 
+## Acesso por senha
+
+Com uma senha configurada, o app abre numa tela de senha. O liberado vale até fechar a aba, e 5 erros travam a entrada por 15 segundos. Espaços nas pontas e maiúsculas/minúsculas trocadas pelo teclado do celular são tolerados.
+
+**A senha não fica no código.** O build lê `VITE_PASS_HASH`, que é o SHA-256 de `usbi|SUA_SENHA` (64 caracteres hexadecimais):
+
+- no seu computador: crie um arquivo `.env.local` (fica fora do Git) com `VITE_PASS_HASH=...`;
+- no GitHub Pages e no APK do GitHub Actions: crie o segredo `USBI_PASS_HASH` em *Settings → Secrets and variables → Actions*.
+
+Sem `VITE_PASS_HASH`, o app abre direto. Para gerar o hash: `node -e "console.log(require('crypto').createHash('sha256').update('usbi|SUA_SENHA').digest('hex'))"`.
+
+**Isto é uma barreira de uso, não um cofre.** O código roda no navegador: quem souber programar consegue contornar. Para proteger arquivos de verdade, use o cofre AES-256-GCM da área Segurança.
+
+## Biblioteca e Visão geral
+
+- **Registro persistente:** nome, caminho, tamanho, datas e hash dos arquivos importados ficam no IndexedDB (nunca o conteúdo). Depois de recarregar, aparecem como “registro”; ao escolher os mesmos arquivos de novo, a leitura é reaberta sem duplicar. Pode ser desligado ou apagado em Configurações.
+- **Importação:** ignora arquivos de sistema e ocultos (`Thumbs.db`, `desktop.ini`, `.DS_Store`, `System Volume Information`, `$RECYCLE.BIN`…); aceita arrastar arquivos ou pastas para qualquer ponto da página; o aviso resume formatos, pastas e o que ficou de fora.
+- **Acervo:** lista ou grade com miniaturas reais das imagens; agrupar por formato ou por tipo; ordenar por nome, tamanho, extensão, modificação ou importação; oito categorias (inclui Planilhas e Apresentações).
+- **Visão geral:** KPIs com tendência, tipos (rosca), evolução de importações em 7/30/90 dias, mapa de espaço, importações por dia da semana, espaço por categoria e por extensão (KB/MB/GB), status da leitura, maiores arquivos, pastas com mais arquivos, recentes e últimas atividades. Tudo vem dos arquivos e das datas reais de importação; cada gráfico tem rótulos escritos e, onde faz falta, tabela de dados.
+- **Tema:** automático (cada página no seu desenho), claro ou escuro, pelo botão no cabeçalho ou em Configurações. Selo Online/Offline no cabeçalho.
+
 ## Gerenciamento real de arquivos (apagar, renomear, mover)
 
 Na Central de arquivos, **Conectar pasta** dá ao app permissão de leitura e escrita numa pasta (ou na raiz do pendrive). A partir daí:
@@ -20,6 +41,26 @@ Tudo vai para o Histórico. Implementações:
 - **Android:** app Capacitor com plugin próprio em Java usando o Storage Access Framework (`android/app/src/main/java/br/usbintelligence/app/UsbiFilesPlugin.java`, ponte em `src/lib/files/androidFolder.ts`). Funciona com pendrive OTG.
 
 As duas implementações seguem o mesmo contrato (`src/lib/files/backend.ts`) e a mesma lixeira, então a interface é uma só.
+
+## Vigia IA (assistente organizador): IA própria e grátis
+
+Botão **Pergunte ao Vigia** em todas as telas (atalho Ctrl+K). Ele entende pedidos em português e age pelas mesmas funções dos botões: resumo dos arquivos, duplicados, maiores arquivos, busca, plano de organização, mover para a lixeira, renomear, mudar tema, ajustar o personagem e abrir qualquer área.
+
+**Sem Claude, sem conta, sem chave, sem custo.** A IA é um modelo aberto (**Qwen2.5**, licença Apache 2.0) que roda **dentro do navegador** pela WebGPU, com a biblioteca de código aberto **WebLLM** (MLC). Ativação em *Configurações → Assistente* ou no próprio painel:
+
+| Modelo | Memória de vídeo* | Para quem |
+|---|---|---|
+| Leve · Qwen2.5 0,5B | ~0,9–1,0 GB | celulares e PCs simples |
+| Equilibrado · Qwen2.5 1,5B (padrão) | ~1,6–1,8 GB | a maioria dos aparelhos |
+| Mais esperto · Qwen2.5 3B | ~2,4–2,8 GB | aparelhos mais fortes |
+
+\* O menor valor vale para placas com `shader-f16`. Sem esse recurso (comum em celulares), o app escolhe sozinho a variante `q4f32` do mesmo modelo, que usa um pouco mais de memória.
+
+- O modelo é baixado **uma vez** (do Hugging Face) e fica guardado no navegador; depois funciona **offline**. "Apagar do aparelho" libera o espaço.
+- A conversa e os arquivos **nunca saem do aparelho**.
+- Precisa de WebGPU: Chrome ou Edge atuais (no Android, o Chrome). Sem WebGPU, ou antes de baixar, ele entende **comandos diretos** ("procure duplicados", "organize por tipo", "tema escuro"...).
+- Comandos diretos são executados na hora, de forma exata; perguntas abertas vão para a IA, que escolhe as ferramentas (resposta em JSON restrito por gramática).
+- Ações que mudam arquivos pedem confirmação e só vão para a lixeira. Uma IA pequena erra mais que as grandes da internet: confira o que ela disser.
 
 ## App Android (APK)
 

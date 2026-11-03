@@ -1,7 +1,7 @@
 /** Wrapper mínimo de IndexedDB. Sem dependência: só o que o app usa. */
 export const DB_NAME = 'usb-intelligence';
-export const DB_VERSION = 1;
-export const STORES = ['settings', 'characters', 'history', 'reports', 'integrity'] as const;
+export const DB_VERSION = 2;
+export const STORES = ['settings', 'characters', 'history', 'reports', 'integrity', 'library'] as const;
 export type StoreName = (typeof STORES)[number];
 
 export class StorageUnavailableError extends Error {
@@ -75,6 +75,33 @@ export async function get<T>(store: StoreName, key: string): Promise<T | undefin
 
 export async function put<T>(store: StoreName, value: T): Promise<void> {
   await wrap((await tx(store, 'readwrite')).put(value));
+}
+
+/** Grava vários registros numa única transação (milhares de arquivos de uma vez). */
+export async function putMany<T>(store: StoreName, values: T[]): Promise<void> {
+  if (!values.length) return;
+  const db = await openDB();
+  await new Promise<void>((resolve, reject) => {
+    const t = db.transaction(store, 'readwrite');
+    const os = t.objectStore(store);
+    for (const v of values) os.put(v);
+    t.oncomplete = () => resolve();
+    t.onerror = () => reject(translate(t.error));
+    t.onabort = () => reject(translate(t.error));
+  });
+}
+
+export async function delMany(store: StoreName, keys: string[]): Promise<void> {
+  if (!keys.length) return;
+  const db = await openDB();
+  await new Promise<void>((resolve, reject) => {
+    const t = db.transaction(store, 'readwrite');
+    const os = t.objectStore(store);
+    for (const k of keys) os.delete(k);
+    t.oncomplete = () => resolve();
+    t.onerror = () => reject(translate(t.error));
+    t.onabort = () => reject(translate(t.error));
+  });
 }
 
 export async function del(store: StoreName, key: string): Promise<void> {

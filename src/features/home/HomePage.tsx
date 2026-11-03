@@ -18,7 +18,7 @@ const HeroScene = lazy(() => import('./HeroScene'));
 
 /* Amostra FICTÍCIA para a demonstração. Nunca se mistura com os dados do usuário. */
 const DEMO: Record<Category, number> = {
-  documentos: 412_000_000, imagens: 3_100_000_000, videos: 6_800_000_000, audios: 960_000_000, compactados: 1_250_000_000, outros: 180_000_000,
+  documentos: 412_000_000, planilhas: 85_000_000, apresentacoes: 240_000_000, imagens: 3_100_000_000, videos: 6_800_000_000, audios: 960_000_000, compactados: 1_250_000_000, outros: 180_000_000,
 };
 
 export default function HomePage() {

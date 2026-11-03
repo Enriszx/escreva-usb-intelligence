@@ -19,16 +19,20 @@ async function test(name, fn) {
     await fn();
     results.push(['PASSOU', name]);
   } catch (e) {
+    if (e.message === '__pulou__') return;
     results.push(['FALHOU', `${name} — ${e.message.split('\n')[0]}`]);
     if (process.env.E2E_SHOTS) await page.screenshot({ path: `${process.env.E2E_SHOTS}/falha-${name.slice(0, 2).replace(/\W/g, '')}.png`, fullPage: true }).catch(() => {});
   }
 }
 const assert = (c, msg) => { if (!c) throw new Error(msg); };
 
+// A senha tem seu próprio teste; nos demais, a sessão já entra liberada.
+const UNLOCK = () => { try { sessionStorage.setItem('usbi.acesso', '1'); } catch { /* sem sessionStorage */ } };
 const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const context = await browser.newContext({ viewport: { width: 1366, height: 860 }, acceptDownloads: true });
 // Força o caminho de download (o seletor "Salvar como" abriria uma janela nativa).
 await context.addInitScript(() => { delete window.showSaveFilePicker; });
+await context.addInitScript(UNLOCK);
 const page = await context.newPage();
 page.on('console', (m) => m.type() === 'error' && errors.push(`${m.text()} @ ${page.url()} ${m.location().url}:${m.location().lineNumber}`));
 page.on('pageerror', (e) => errors.push(`${e.message} @ ${page.url()} :: ${(e.stack || '').split('\n').slice(1, 4).join(' | ')}`));
@@ -118,7 +122,7 @@ const totalBytes = files.reduce((s, f) => s + f.buffer.length, 0);
 await test('7/8. Seleção de arquivos e cálculo de tamanho', async () => {
   await go('/arquivos');
   await page.locator('.intake input[type=file]:not([webkitdirectory])').first().setInputFiles(files);
-  await toast('5 arquivos adicionados');
+  await toast('5 arquivos organizados');
   const status = await page.locator('.files-status').innerText();
   assert(status.includes('5 arquivos'), `contagem: ${status}`);
   const kb = (totalBytes / 1024).toFixed(1).replace('.', ',');
@@ -144,13 +148,17 @@ await test('10. Duplicados diferenciam nome igual de conteúdo igual', async () 
 });
 
 await test('11. Gráficos usam os resultados calculados', async () => {
-  await page.getByRole('tab', { name: /Painel/ }).click();
+  await page.getByRole('tab', { name: /Visão geral/ }).click();
   const center = await page.locator('.donut-center').innerText();
   const kb = (totalBytes / 1024).toFixed(1).replace('.', ',');
   assert(center.includes(kb), `centro do gráfico: ${center}`);
   assert(/3 arquivos/i.test(await page.locator('.legend-item', { hasText: 'Documentos' }).innerText()), 'legenda');
   await page.locator('.legend-item', { hasText: 'Imagens' }).click();
-  assert((await page.locator('.bar-row').count()) === 1, 'filtro cruzado');
+  assert((await page.locator('section[aria-labelledby=g-ext] .bar-row').count()) === 1, 'filtro cruzado');
+  // gráficos novos usam os mesmos dados calculados
+  assert((await page.locator('.treemap .tile').count()) === 3, 'treemap: um bloco por tipo com volume');
+  assert(/Concluído\s*5/.test((await page.locator('.stack-legend').innerText()).replace(/\n/g, ' ')), 'status: 5 concluídos');
+  assert((await page.locator('.kpi-card').first().innerText()).includes('5'), 'KPI total');
 });
 
 await test('12. Relatórios exportam JSON e CSV corretos', async () => {
@@ -165,6 +173,63 @@ await test('12. Relatórios exportam JSON e CSV corretos', async () => {
   assert(json.totals.arquivos === 5 && json.totals.gruposDuplicados === 1, 'JSON do relatório');
   await go('/historico');
   await page.locator('.h-item', { hasText: 'Análise completa' }).first().waitFor({ timeout: 5000 });
+});
+
+// A senha não fica no repositório: o teste usa E2E_SENHA (e um build feito com VITE_PASS_HASH).
+const SENHA = process.env.E2E_SENHA;
+await test('18. Senha: recusa errada, aceita a certa (com espaço e outra caixa), limita tentativas', async () => {
+  if (!SENHA) {
+    results.push(['PULOU', '18. Senha — defina E2E_SENHA (e VITE_PASS_HASH no build) para testar']);
+    throw new Error('__pulou__');
+  }
+  const c = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  const g = await c.newPage();
+  await g.goto(`${BASE}#/`);
+  await g.locator('#senha').waitFor();
+  assert(/intelligence/i.test(await g.locator('main h1').innerText()), 'tela de senha');
+  assert(!(await g.locator('.hero').count()), 'app não carrega antes da senha');
+  await g.locator('#senha').fill('errada');
+  await g.getByRole('button', { name: 'Entrar' }).click();
+  await g.getByRole('alert').filter({ hasText: 'Senha incorreta' }).waitFor();
+  await g.locator('#senha').fill(`${SENHA}x`);
+  await g.getByRole('button', { name: 'Entrar' }).click();
+  await g.getByRole('alert').filter({ hasText: 'Senha incorreta' }).waitFor();
+  // teclado de celular: espaço no fim e caixa trocada continuam valendo
+  await g.locator('#senha').fill(`${SENHA.toLowerCase()} `);
+  await g.getByRole('button', { name: 'Entrar' }).click();
+  await g.locator('.hero').waitFor();
+  await g.reload();
+  await g.locator('.hero').waitFor(); // continua liberado na mesma aba
+  const g2 = await (await browser.newContext()).newPage();
+  await g2.goto(`${BASE}#/`);
+  for (let i = 0; i < 5; i++) {
+    await g2.locator('#senha').fill(`x${i}`);
+    await g2.getByRole('button', { name: 'Entrar' }).click();
+    await g2.waitForTimeout(150);
+  }
+  await g2.getByText(/Muitas tentativas/).first().waitFor();
+  assert(await g2.locator('#senha').isDisabled(), 'campo travado após 5 erros');
+  assert(!(await g2.locator('.hero').count()), 'continua bloqueado');
+  await c.close();
+});
+
+await test('19. Tema: alterna automático → claro → escuro e persiste', async () => {
+  await go('/relatorios');
+  const theme = () => page.evaluate(() => document.documentElement.dataset.theme ?? 'automatico');
+  assert((await theme()) === 'automatico', 'começa automático');
+  await page.getByRole('button', { name: /^Tema automático/ }).click();
+  assert((await theme()) === 'light', 'claro');
+  await page.getByRole('button', { name: /^Tema claro/ }).click();
+  assert((await theme()) === 'dark', 'escuro');
+  const lum = (css) => css.match(/\d+/g).slice(0, 3).map(Number).reduce((a, b) => a + b, 0);
+  await go('/relatorios'); // página desenhada em gelo, agora escura
+  const dark = lum(await page.evaluate(() => getComputedStyle(document.querySelector('.app')).backgroundColor));
+  assert(dark < 200, `relatórios deveria ficar escuro (soma RGB ${dark})`);
+  await page.reload();
+  await page.waitForTimeout(800);
+  assert((await theme()) === 'dark', 'tema persistiu após recarregar');
+  await page.getByRole('button', { name: /^Tema escuro/ }).click();
+  assert((await theme()) === 'automatico', 'volta ao automático');
 });
 
 await test('13. Estados de erro: hash divergente e senha errada no cofre', async () => {
@@ -192,6 +257,169 @@ await test('13. Estados de erro: hash divergente e senha errada no cofre', async
   const [dec] = await Promise.all([page.waitForEvent('download', { timeout: 30000 }), page.getByRole('button', { name: /Abrir e salvar/ }).click()]);
   assert(dec.suggestedFilename() === 'segredo.txt', 'nome original');
   assert((await (await import('node:fs')).promises.readFile(await dec.path(), 'utf8')) === 'segredo', 'conteúdo recuperado');
+});
+
+await test('20. Biblioteca: grade, agrupar por tipo, Planilhas/Apresentações e arquivos de sistema', async () => {
+  const c = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  await c.addInitScript(UNLOCK);
+  const p = await c.newPage();
+  await p.goto(`${BASE}#/arquivos`);
+  await p.locator('.intake input[type=file]:not([webkitdirectory])').first().setInputFiles([
+    { name: 'orcamento.xlsx', mimeType: 'application/octet-stream', buffer: Buffer.from('planilha') },
+    { name: 'aula.pptx', mimeType: 'application/octet-stream', buffer: Buffer.from('slides!') },
+    { name: 'contrato.pdf', mimeType: 'application/pdf', buffer: Buffer.from('pdf') },
+    { name: 'foto.png', mimeType: 'image/png', buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64') },
+    { name: 'Thumbs.db', mimeType: 'application/octet-stream', buffer: Buffer.from('lixo') },
+    { name: '.DS_Store', mimeType: 'application/octet-stream', buffer: Buffer.from('lixo2') },
+  ]);
+  const t = p.locator('.toast').first();
+  await t.waitFor();
+  const txt = await t.innerText();
+  assert(/4 arquivos organizados/.test(txt), `aviso de importação: ${txt}`);
+  assert(/2 arquivos de sistema ou ocultos ignorados/.test(txt), `aviso de ignorados: ${txt}`);
+  assert((await p.locator('.ftable-row').count()) === 4, 'só 4 linhas (sistema ficou de fora)');
+  await p.getByRole('button', { name: /Planilhas/ }).click();
+  assert((await p.locator('.ftable-row').count()) === 1, 'filtro Planilhas');
+  await p.getByRole('button', { name: /Todas/ }).click();
+  await p.getByRole('button', { name: /Mudar para grade/ }).click();
+  assert((await p.locator('.fcard').count()) === 4, 'grade com 4 cartões');
+  assert((await p.locator('.fcard-thumb img').count()) === 1, 'miniatura real da imagem');
+  assert((await p.locator('.fcard-thumb img').evaluate((i) => i.naturalWidth)) === 1, 'miniatura carregou de verdade');
+  await p.getByLabel('Agrupar por').selectOption('tipo');
+  const heads = await p.locator('.file-sec-head h3').allInnerTexts();
+  assert(['DOCUMENTOS', 'PLANILHAS', 'APRESENTAÇÕES', 'IMAGENS'].every((h) => heads.includes(h)), `grupos: ${heads.join(',')}`);
+  await p.getByLabel('Agrupar por').selectOption('formato');
+  assert((await p.locator('.file-sec').count()) === 4, 'um grupo por formato');
+  await p.reload();
+  await p.locator('.fcard, .ftable').first().waitFor();
+  assert((await p.locator('.fgrid').count()) > 0 && (await p.locator('.ftable').count()) === 0, 'preferência de grade lembrada');
+  await c.close();
+});
+
+await test('21. Registro: lembra os arquivos ao recarregar e reabre a leitura ao escolher de novo', async () => {
+  const fs = await import('node:fs');
+  const os = await import('node:os');
+  const path = await import('node:path');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'usbi-'));
+  const a = path.join(dir, 'a.txt');
+  const b = path.join(dir, 'b.pdf');
+  fs.writeFileSync(a, 'conteudo A');
+  fs.writeFileSync(b, 'conteudo B!');
+  const c = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  await c.addInitScript(UNLOCK);
+  const p = await c.newPage();
+  await p.goto(`${BASE}#/arquivos`);
+  await p.locator('.intake input[type=file]:not([webkitdirectory])').first().setInputFiles([a, b]);
+  await p.getByRole('button', { name: /Análise completa/ }).click();
+  await p.locator('.toast', { hasText: 'Análise concluída' }).first().waitFor({ timeout: 10000 });
+  await p.reload();
+  await p.locator('.files-status', { hasText: '2 arquivos' }).waitFor({ timeout: 10000 });
+  assert((await p.locator('.fhash-reg').count()) === 2, 'itens marcados como registro, com hash guardado');
+  assert(/registro/.test(await p.locator('.analysis-bar').innerText()), 'barra explica que é só registro');
+  // escolher de novo os mesmos arquivos: reabre a leitura sem duplicar
+  await p.locator('.intake input[type=file]:not([webkitdirectory])').first().setInputFiles([a, b]);
+  await p.locator('.toast', { hasText: /voltaram a ser analisável/ }).first().waitFor();
+  assert((await p.locator('.ftable-row').count()) === 2, 'sem duplicar o registro');
+  assert((await p.locator('.fhash-reg').count()) === 0, 'não são mais só registro');
+  // apagar o registro nas configurações: depois de recarregar, a lista volta vazia
+  await p.goto(`${BASE}#/configuracoes`);
+  await p.locator('.clear-list li', { hasText: 'Registro de arquivos' }).getByRole('button', { name: /Apagar/ }).click();
+  await p.locator('.modal').getByRole('button', { name: 'Apagar', exact: true }).click();
+  await p.locator('.toast', { hasText: 'Registro de arquivos: apagado' }).first().waitFor();
+  await p.reload();
+  await p.goto(`${BASE}#/arquivos`);
+  await p.getByText('Nenhum arquivo selecionado.').waitFor();
+  await c.close();
+});
+
+await test('22. Soltar arquivos em qualquer lugar da página importa e abre a Central', async () => {
+  const c = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  await c.addInitScript(UNLOCK);
+  const p = await c.newPage();
+  await p.goto(`${BASE}#/`);
+  await p.locator('.hero').waitFor();
+  await p.evaluate(() => {
+    const dt = new DataTransfer();
+    dt.items.add(new File(['olá'], 'solto.txt', { type: 'text/plain' }));
+    dt.items.add(new File(['x'], 'Thumbs.db'));
+    document.body.dispatchEvent(new DragEvent('dragenter', { dataTransfer: dt, bubbles: true, cancelable: true }));
+    document.body.dispatchEvent(new DragEvent('drop', { dataTransfer: dt, bubbles: true, cancelable: true }));
+  });
+  await p.waitForFunction(() => location.hash === '#/arquivos');
+  await p.locator('.fname-btn', { hasText: 'solto.txt' }).waitFor();
+  assert((await p.locator('.ftable-row').count()) === 1, 'só o arquivo real entrou');
+  await c.close();
+});
+
+await test('23. Assistente sem IA: resumo, personagem e tema por comando', async () => {
+  const c = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  await c.addInitScript(UNLOCK);
+  const p = await c.newPage();
+  const perr = [];
+  p.on('pageerror', (e) => perr.push(e.message));
+  await p.goto(`${BASE}#/arquivos`);
+  await p.locator('.intake input[type=file]:not([webkitdirectory])').first().setInputFiles([
+    { name: 'a.pdf', mimeType: 'application/pdf', buffer: Buffer.from('igual') },
+    { name: 'b.pdf', mimeType: 'application/pdf', buffer: Buffer.from('igual') },
+    { name: 'c.png', mimeType: 'image/png', buffer: Buffer.from('outro conteudo') },
+  ]);
+  await p.getByRole('button', { name: /Abrir o assistente/ }).click();
+  await p.locator('.ai-engine', { hasText: 'Sem IA' }).waitFor();
+  const ask = async (text) => {
+    const before = await p.locator('.ai-msg.is-assistant').count();
+    await p.locator('#ai-input').fill(text);
+    await p.locator('#ai-input').press('Enter');
+    const last = p.locator('.ai-msg.is-assistant').nth(before);
+    await last.locator('.ai-text').waitFor();
+    return last.innerText();
+  };
+  assert(/3 arquivo/.test(await ask('quantos arquivos eu tenho?')), 'resumo');
+  assert(/Análise completa concluída: 3/.test(await ask('analisar')), 'análise pelo assistente');
+  assert(/1 grupo/.test(await ask('mostrar duplicados')), 'duplicados depois da análise');
+  assert((await p.evaluate(() => location.hash)).includes('aba=duplicados'), 'abriu a aba Duplicados');
+  await ask('estilo Núcleo Azul');
+  await p.waitForFunction(() => location.hash.startsWith('#/personagem'));
+  await p.waitForFunction(() => document.querySelector('[aria-label="Cor principal em hexadecimal"]')?.value === '#1464f4', null, { timeout: 8000 });
+  await ask('tema escuro');
+  assert((await p.evaluate(() => document.documentElement.dataset.theme)) === 'dark', 'tema escuro pelo assistente');
+  assert(/Não entendi/.test(await ask('xyzzy')), 'pedido desconhecido explica os comandos');
+  assert(!perr.length, perr.join(' | '));
+  await c.close();
+});
+
+await test('24. IA grátis do aparelho: sem Claude, escolha de modelo e ativação honesta', async () => {
+  const c = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  await c.addInitScript(UNLOCK);
+  const externos = [];
+  c.on('request', (r) => { if (/anthropic\.com|claude\.ai/.test(r.url())) externos.push(r.url()); });
+  const p = await c.newPage();
+  const perr = [];
+  p.on('pageerror', (e) => perr.push(e.message));
+  await p.goto(`${BASE}#/configuracoes#assistente`);
+  const sec = p.locator('#assistente');
+  await sec.waitFor();
+  assert((await p.locator('#ai-model option').count()) === 3, 'três modelos para escolher');
+  assert(/Qwen2\.5 1,5B/.test(await p.locator('#ai-model option:checked').innerText()), 'recomendado selecionado');
+  assert(!(await p.locator('#ai-key').count()), 'não pede chave de API');
+  // Sem WebGPU no Chromium de teste: explica; com WebGPU: oferece o download.
+  await sec.locator('.error-text, button:has-text("Baixar e ativar")').first().waitFor();
+  const texto = await sec.innerText();
+  assert(/WebGPU|Baixar e ativar/.test(texto), 'estado da WebGPU explicado');
+  assert(!/Claude|Anthropic|sk-ant/.test(texto), 'nada de Claude nas configurações');
+  await p.locator('#ai-model').selectOption({ index: 0 });
+  await p.locator('.toast', { hasText: 'Modelo escolhido' }).first().waitFor({ timeout: 8000 });
+  await p.reload();
+  await p.waitForFunction(() => document.querySelector('#ai-model')?.value?.startsWith('Qwen2.5-0.5B'), null, { timeout: 8000 })
+    .catch(() => { throw new Error('modelo escolhido persiste'); });
+  await p.getByRole('button', { name: /Abrir o assistente/ }).click();
+  await p.locator('.ai-engine', { hasText: 'Sem IA' }).waitFor();
+  assert(/Nada sai deste aparelho/i.test(await p.locator('.ai-panel').innerText()), 'privacidade');
+  await p.locator('#ai-input').fill('quantos arquivos eu tenho?');
+  await p.locator('#ai-input').press('Enter');
+  await p.locator('.ai-msg.is-assistant .ai-text').waitFor();
+  assert(!externos.length, `nenhuma chamada externa de IA (${externos.join(', ')})`);
+  assert(!perr.length, perr.join(' | '));
+  await c.close();
 });
 
 await test('14a. Manifesto PWA válido e instalável', async () => {
@@ -227,6 +455,7 @@ await test('14. Funciona offline depois da preparação', async () => {
 
 await test('17. Pasta conectada: renomear, mover, lixeira, organizar, apagar e desfazer (arquivos reais)', async () => {
   const fx = await browser.newContext({ viewport: { width: 1366, height: 860 } });
+  await fx.addInitScript(UNLOCK);
   // O seletor de pasta nativo não abre em modo automático: entrega uma pasta real do OPFS.
   await fx.addInitScript(() => {
     window.showDirectoryPicker = async () => {
@@ -333,6 +562,7 @@ await test('17. Pasta conectada: renomear, mover, lixeira, organizar, apagar e d
 
 await test('15. Telas pequenas (360 px): sem rolagem horizontal', async () => {
   const m = await browser.newContext({ viewport: { width: 360, height: 740 }, isMobile: true, hasTouch: true });
+  await m.addInitScript(UNLOCK);
   const p = await m.newPage();
   for (const r of ['/', '/arquivos', '/laboratorio', '/personagem', '/seguranca', '/relatorios', '/historico', '/configuracoes', '/ajuda']) {
     await p.goto(`${BASE}#${r}`);
@@ -362,7 +592,8 @@ await test('16. Sem botões falsos (href="#", sem nome) e sem erros no console',
 
 await browser.close();
 server.kill();
-for (const [s, n] of results) console.log(`${s === 'PASSOU' ? '✔' : '✘'} ${s}  ${n}`);
+for (const [s, n] of results) console.log(`${s === 'PASSOU' ? '✔' : s === 'PULOU' ? '–' : '✘'} ${s}  ${n}`);
 const failed = results.filter((r) => r[0] === 'FALHOU').length;
-console.log(`\n${results.length - failed}/${results.length} grupos de teste passaram.`);
+const skipped = results.filter((r) => r[0] === 'PULOU').length;
+console.log(`\n${results.length - failed - skipped}/${results.length - skipped} grupos de teste passaram${skipped ? ` (${skipped} pulado)` : ''}.`);
 process.exit(failed ? 1 : 0);

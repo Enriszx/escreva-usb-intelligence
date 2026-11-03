@@ -8,6 +8,8 @@ import { Header, MobileTabs } from '../components/layout/Header';
 import { Footer } from '../components/layout/Footer';
 import { StatusBar } from '../components/layout/StatusBar';
 import { ExportFallback } from '../components/layout/ExportFallback';
+import { GlobalDrop } from '../features/files/GlobalDrop';
+import { Assistant } from '../features/assistant/Assistant';
 import { routeFor } from './routes';
 import HomePage from '../features/home/HomePage';
 
@@ -64,6 +66,8 @@ function Shell() {
       <Footer />
       <MobileTabs />
       <ExportFallback />
+      <GlobalDrop />
+      <Assistant />
     </div>
   );
 }

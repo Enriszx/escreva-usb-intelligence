@@ -51,6 +51,13 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     document.documentElement.dataset.motion = settings.motion === 'sistema' ? (sysReduced ? 'reduzido' : 'sistema') : settings.motion;
   }, [settings.motion, sysReduced]);
 
+  useEffect(() => {
+    const root = document.documentElement;
+    if (settings.theme === 'claro') root.dataset.theme = 'light';
+    else if (settings.theme === 'escuro') root.dataset.theme = 'dark';
+    else delete root.dataset.theme;
+  }, [settings.theme]);
+
   const update = useCallback(async (patch: Partial<Settings>) => {
     let next: Settings = DEFAULT_SETTINGS;
     setSettings((s) => (next = { ...s, ...patch }));

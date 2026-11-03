@@ -78,7 +78,7 @@ export function FolderProvider({ children }: { children: ReactNode }) {
       files.replaceAll(list.map((f) => ({
         entry: {
           name: f.name, path: f.path, ext: extensionOf(f.name), mime: f.mime, size: f.size,
-          lastModified: f.lastModified, category: categorize(f.name, f.mime), source: 'pasta' as const,
+          lastModified: f.lastModified, importedAt: Date.now(), category: categorize(f.name, f.mime), source: 'pasta' as const,
         },
         file: f.file,
       })));
@@ -150,7 +150,7 @@ export function FolderProvider({ children }: { children: ReactNode }) {
     setBackend(null);
     setTrash([]);
     setUndoStack([]);
-    files.clear();
+    await files.reset();
     await del('settings', REMEMBER_KEY).catch(() => {});
     setRemembered(null);
   }, [files]);

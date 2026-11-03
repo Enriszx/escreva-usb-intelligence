@@ -3,9 +3,9 @@ import { cloneConfig, DEFAULT_CONFIG, PRESETS, randomConfig, sameConfig, type Ch
 import { del, get, getAll, put, uid } from '../../lib/storage/db';
 
 const HISTORY_MAX = 60;
-const DRAFT_KEY = 'characterDraft';
+export const DRAFT_KEY = 'characterDraft';
 
-interface Draft {
+export interface Draft {
   config: CharacterConfig;
   name: string;
   currentId: string | null;
@@ -51,6 +51,21 @@ export function useCharacterEditor() {
       }
     })();
   }, [refresh]);
+
+  // O assistente pode propor uma configuração: entra como mudança comum (dá para desfazer).
+  useEffect(() => {
+    const on = (e: Event) => {
+      const d = (e as CustomEvent<{ config: CharacterConfig; presetId?: string | null }>).detail;
+      if (!d?.config) return;
+      const prev = configRef.current;
+      if (sameConfig(prev, d.config)) return;
+      setPast((p) => [...p.slice(-HISTORY_MAX + 1), prev]);
+      setConfig(cloneConfig(d.config));
+      setPresetId(d.presetId ?? null);
+    };
+    window.addEventListener('usbi:personagem', on);
+    return () => window.removeEventListener('usbi:personagem', on);
+  }, []);
 
   // Rascunho: guarda o estado de edição a cada mudança para sobreviver a um fechamento acidental.
   useEffect(() => {

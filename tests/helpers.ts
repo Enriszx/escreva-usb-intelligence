@@ -9,7 +9,7 @@ export function entry(name: string, content: string | Uint8Array, extra: Partial
     blob,
     entry: {
       id: `f${n++}`, name, path: extra.path ?? name, ext: extensionOf(name), mime: '', size: bytes.length,
-      lastModified: extra.lastModified ?? Date.UTC(2024, 4, 10), category: categorize(name), ...extra,
+      lastModified: extra.lastModified ?? Date.UTC(2024, 4, 10), importedAt: extra.importedAt ?? Date.UTC(2024, 5, 1), category: categorize(name), ...extra,
     },
   };
 }
