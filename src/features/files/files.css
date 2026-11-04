@@ -59,7 +59,7 @@
 .chip:disabled { opacity: 0.35; cursor: default; }
 .selection-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; min-height: 52px; padding: 6px 0; border-bottom: 1px solid var(--line); }
 .check { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; cursor: pointer; font-weight: 600; font-size: 0.9rem; }
-input[type='checkbox'] { width: 20px; height: 20px; accent-color: var(--accent); cursor: pointer; margin: 0; }
+input[type='checkbox']:not(.switch input) { width: 20px; height: 20px; accent-color: var(--accent); cursor: pointer; margin: 0; }
 
 .ftable { display: grid; }
 .ftable-head, .ftable-row { display: grid; grid-template-columns: 44px minmax(0, 2.4fr) minmax(0, 1fr) 100px 120px 130px; gap: 12px; align-items: center; }

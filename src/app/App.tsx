@@ -17,6 +17,8 @@ import HomePage from '../features/home/HomePage';
 
 const FilesPage = lazy(() => import('../features/files/FilesPage'));
 const AutoPage = lazy(() => import('../features/auto/AutoPage'));
+const CasesPage = lazy(() => import('../features/cases/CasesPage'));
+const PresentationPage = lazy(() => import('../features/present/PresentationPage'));
 const LabPage = lazy(() => import('../features/lab/LabPage'));
 const CharacterPage = lazy(() => import('../features/character/CharacterPage'));
 const SecurityPage = lazy(() => import('../features/security/SecurityPage'));
@@ -38,6 +40,8 @@ function PageLoading() {
 function Shell() {
   const { pathname } = useLocation();
   const tone = routeFor(pathname)?.tone ?? 'grafite';
+  // Modo apresentação: só o slide na tela, sem cabeçalho, rodapé nem botões flutuantes.
+  const presenting = pathname === '/apresentacao';
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
     // Move o foco para o conteúdo novo: leitores de tela anunciam a troca de página.
@@ -49,13 +53,15 @@ function Shell() {
         Pular para o conteúdo
       </a>
       <BrasilBackdrop />
-      <Header />
-      <StatusBar />
+      {!presenting && <Header />}
+      {!presenting && <StatusBar />}
       <main id="conteudo" tabIndex={-1}>
         <Suspense fallback={<PageLoading />}>
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/automatico" element={<AutoPage />} />
+            <Route path="/casos" element={<CasesPage />} />
+            <Route path="/apresentacao" element={<PresentationPage />} />
             <Route path="/arquivos" element={<FilesPage />} />
             <Route path="/laboratorio" element={<LabPage />} />
             <Route path="/personagem" element={<CharacterPage />} />
@@ -68,11 +74,11 @@ function Shell() {
           </Routes>
         </Suspense>
       </main>
-      <Footer />
-      <MobileTabs />
+      {!presenting && <Footer />}
+      {!presenting && <MobileTabs />}
       <ExportFallback />
       <GlobalDrop />
-      <Assistant />
+      {!presenting && <Assistant />}
     </div>
   );
 }

@@ -54,7 +54,8 @@ await test('1. Página inicial abre com título, ações e fluxo interativo', as
 });
 
 await test('2. Navegação: todas as rotas do índice abrem', async () => {
-  const titles = ['Início', 'Modo automático', 'Central de arquivos', 'Laboratório 3D', 'Meu personagem', 'Segurança', 'Relatórios', 'Histórico', 'Configurações', 'Ajuda e diagnóstico'];
+  // O Modo apresentação cobre a tela inteira: fica por último.
+  const titles = ['Início', 'Modo automático', 'Central de arquivos', 'Casos reais', 'Laboratório 3D', 'Meu personagem', 'Segurança', 'Relatórios', 'Histórico', 'Configurações', 'Ajuda e diagnóstico', 'Modo apresentação'];
   for (const t of titles) {
     await page.getByRole('button', { name: 'Menu' }).click();
     assert((await page.locator('#indice .index-group').count()) === 4, 'menu em 4 grupos');
@@ -525,6 +526,52 @@ await test('26. Modo automático: um toque na 1ª vez; depois detecta, executa, 
   assert(/1 na lixeira do app/.test(st[3]) && /movidos/.test(st[4]), `2ª execução: ${st.join(' | ')}`);
   const t = await tree();
   assert(t.includes('Imagens/foto.jpg') && t.includes('Documentos/nota.txt') && t.some((x) => x.startsWith('.usbi-lixeira/')), `pendrive organizado: ${t.join(', ')}`);
+  assert(!perr.length, perr.join(' | '));
+  await c.close();
+});
+
+await test('27. Casos reais, Verificador de backup e Modo apresentação', async () => {
+  const c = await browser.newContext({ viewport: { width: 1366, height: 900 } });
+  await c.addInitScript(UNLOCK);
+  const p = await c.newPage();
+  const perr = [];
+  p.on('pageerror', (e) => perr.push(e.message));
+  await p.goto(`${BASE}#/casos`);
+  await p.locator('.case').first().waitFor();
+  const total = await p.locator('.case').count();
+  assert(total === 12, `12 casos (${total})`);
+  assert((await p.locator('.case-src[href^="https://"]').count()) === 12, 'todo caso tem fonte');
+  await p.getByRole('radio', { name: /Vazamento e mídia perdida/ }).click();
+  assert((await p.locator('.case').count()) === 2, 'filtro por tipo');
+  // Verificador: a cópia tem um arquivo alterado (mesmo tamanho) e um faltando.
+  const fs = await import('node:fs');
+  const os = await import('node:os');
+  const path = await import('node:path');
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'usbi-bc-'));
+  const mk = (dir, files) => { const d = path.join(tmp, dir); fs.mkdirSync(d); for (const [n, t] of files) fs.writeFileSync(path.join(d, n), t); return d; };
+  const orig = mk('Original', [['a.txt', 'igual'], ['b.txt', 'AAAA'], ['c.txt', 'só na origem']]);
+  const copia = mk('Copia', [['a.txt', 'igual'], ['b.txt', 'BBBB'], ['d.txt', 'extra']]);
+  await p.getByLabel('Escolher pasta original').setInputFiles(orig);
+  await p.getByLabel('Escolher cópia (backup)').setInputFiles(copia);
+  await p.getByRole('button', { name: 'Comparar origem e cópia' }).click();
+  await p.locator('.bc-result').waitFor();
+  const out = (await p.locator('.bc-result').innerText()).replace(/\s+/g, ' ');
+  assert(/não é confiável/.test(out) && /IGUAIS 1/i.test(out) && /DIFERENTES 1/i.test(out) && /FALTANDO NA CÓPIA 1/i.test(out) && /SÓ NA CÓPIA 1/i.test(out), `veredito: ${out}`);
+  assert(/conteúdo diferente \(SHA-256\)/.test(out), 'detecta conteúdo diferente com mesmo tamanho');
+  // Checklist 3-2-1 lembra o progresso.
+  await p.locator('.r321-item').first().click();
+  await p.reload();
+  assert(/1\/5/.test(await p.locator('.r321-score').innerText()), 'checklist salvo');
+  // Apresentação: teclado e QR code.
+  await p.goto(`${BASE}#/apresentacao`);
+  await p.locator('.present').waitFor();
+  assert(/Slide 1 de 8/.test(await p.locator('.present-stage').getAttribute('aria-label')), 'começa no slide 1');
+  await p.keyboard.press('ArrowRight');
+  assert(/gigantes/.test(await p.locator('.present-stage').innerText()), 'seta avança');
+  await p.keyboard.press('End');
+  assert(await p.locator('.present .qr rect').count() > 100, 'QR code desenhado');
+  await p.keyboard.press('Escape');
+  await p.waitForFunction(() => location.hash === '#/');
   assert(!perr.length, perr.join(' | '));
   await c.close();
 });

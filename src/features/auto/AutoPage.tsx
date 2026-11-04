@@ -177,10 +177,10 @@ export default function AutoPage() {
           {r ? (
             <>
               <dl className="stat-grid">
-                <div className="stat"><dt>Arquivos</dt><dd className="num">{r.files.toLocaleString('pt-BR')}</dd><span className="muted">{formatBytes(r.bytes)}</span></div>
-                <div className="stat"><dt>Verificados</dt><dd className="num">{pct(r.hashed, r.files)}</dd><span className="muted">{r.hashed.toLocaleString('pt-BR')} com SHA-256</span></div>
-                <div className="stat"><dt>Cópias extras</dt><dd className="num">{r.copies.toLocaleString('pt-BR')}</dd><span className="muted">{formatBytes(r.recoverable)} recuperáveis</span></div>
-                <div className="stat"><dt>{r.organized ? 'Organizados' : 'A organizar'}</dt><dd className="num">{(r.organized || r.planned).toLocaleString('pt-BR')}</dd><span className="muted">{r.organized ? `em ${plural(r.plannedFolders, 'pasta', 'pastas')}` : `plano: ${plural(r.plannedFolders, 'pasta', 'pastas')}`}</span></div>
+                <div className="stat"><dt>Arquivos</dt><dd className="num">{r.files.toLocaleString('pt-BR')}</dd><dd className="stat-sub muted">{formatBytes(r.bytes)}</dd></div>
+                <div className="stat"><dt>Verificados</dt><dd className="num">{pct(r.hashed, r.files)}</dd><dd className="stat-sub muted">{r.hashed.toLocaleString('pt-BR')} com SHA-256</dd></div>
+                <div className="stat"><dt>Cópias extras</dt><dd className="num">{r.copies.toLocaleString('pt-BR')}</dd><dd className="stat-sub muted">{formatBytes(r.recoverable)} recuperáveis</dd></div>
+                <div className="stat"><dt>{r.organized ? 'Organizados' : 'A organizar'}</dt><dd className="num">{(r.organized || r.planned).toLocaleString('pt-BR')}</dd><dd className="stat-sub muted">{r.organized ? `em ${plural(r.plannedFolders, 'pasta', 'pastas')}` : `plano: ${plural(r.plannedFolders, 'pasta', 'pastas')}`}</dd></div>
               </dl>
               <div className="chart-head">
                 <h3 className="chart-title">{view === 'bytes' ? 'Espaço por tipo de arquivo' : 'Quantidade por tipo de arquivo'}</h3>

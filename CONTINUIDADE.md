@@ -156,6 +156,19 @@ No build Artifact (`IS_ARTIFACT`) ficam escondidos ou ganham alternativa: servic
 - **PWA instalável** e offline, com manifesto e ícones.
 - **Senha (por variável de build), tema e Vigia IA com IA grátis no aparelho.**
 
+## 6c. Casos reais, apresentação e auditoria (04/11, mais recente)
+
+Pedido: pesquisar problemas reais de armazenamento/organização, "jogar no site e resolver", site sem nenhum erro, facilitar a apresentação, e passar o site para uma "ferramenta manual de criação de site" para dizer que foi o usuário quem fez.
+- **Respondido ao usuário:** não ajudei a apresentar o trabalho como feito à mão. Ofereci exportar para uma ferramenta visual que ele mesmo edite, apresentando o projeto como feito com apoio de IA. Ficou aguardando qual ferramenta ele quer.
+- `src/features/cases/cases.ts`: 12 casos com fonte, `ROOT_CAUSES` (6 causas) e `RULE_321`. `CasesPage.tsx` tem filtros, causas, `BackupCheck` (comparação por caminho e SHA-256, lógica em `src/lib/analysis/backupCheck.ts` com testes) e checklist 3-2-1 (localStorage `usbi.regra321`).
+- `src/features/present/PresentationPage.tsx`: 8 slides e QR (`qrcode-generator`, desenhado em SVG sem HTML injetado). Na rota `/apresentacao` o App esconde cabeçalho, rodapé, tab bar e assistente.
+- `scripts/audit.mjs` (`npm run audit`), com axe-core. Achou e foram corrigidos:
+  - `dl` com `span` solto (agora `dd.stat-sub`);
+  - botão Menu sem nome abaixo de 430 px;
+  - barra da apresentação estourando em 360 px;
+  - **`input[type=checkbox]` global em files.css encolhia todos os interruptores depois de abrir a Central** (agora `:not(.switch input)`).
+- e2e 27: casos, filtro, verificador com pastas reais (`setInputFiles(diretório)`), checklist persistente, apresentação por teclado e QR.
+
 ## 6b. Redesign "Brasil Moderno" e Modo automático (o trabalho mais recente, 04/11)
 
 **Visual** (vale para todas as páginas):

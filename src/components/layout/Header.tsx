@@ -72,7 +72,7 @@ export function Header() {
           >
             <ThemeIcon aria-hidden />
           </button>
-          <button className="index-btn" aria-expanded={open} aria-controls="indice" onClick={() => setOpen(true)}>
+          <button className="index-btn" aria-label="Menu" aria-expanded={open} aria-controls="indice" onClick={() => setOpen(true)}>
             <span className="index-btn-bars" aria-hidden><i /><i /></span>
             <span>Menu</span>
           </button>

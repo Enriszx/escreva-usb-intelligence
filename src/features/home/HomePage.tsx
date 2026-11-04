@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import {
-  ArrowDown, ArrowRight, ArrowUpRight, CheckCircle2, Copy, FileBarChart2, FolderTree, Fingerprint, Lock, RotateCcw, ScanSearch, Sparkles, Undo2, Usb, WifiOff, Zap,
+  ArrowDown, ArrowRight, ArrowUpRight, CheckCircle2, Copy, FileBarChart2, FolderTree, Fingerprint, Lock, Presentation, RotateCcw, ScanSearch, Sparkles, Undo2, Usb, WifiOff, Zap,
 } from 'lucide-react';
 import { DeviceIllustration } from '../../components/three/Fallbacks';
 import { GROUPS, ROUTES } from '../../app/routes';
@@ -111,6 +111,9 @@ export default function HomePage() {
               <li><WifiOff aria-hidden /> Funciona offline</li>
               <li><Sparkles aria-hidden /> IA grátis integrada</li>
             </motion.ul>
+            <motion.div {...fade(5)}>
+              <Link to="/apresentacao" className="btn btn-quiet"><Presentation aria-hidden /> Modo apresentação</Link>
+            </motion.div>
           </div>
 
           <motion.div className="hero-visual" {...fade(2)}>
@@ -190,10 +193,10 @@ export default function HomePage() {
           </div>
           <div className="card demo-card">
             <dl className="stat-grid">
-              <div className="stat"><dt>Arquivos</dt><dd className="num">{DEMO_TOTAL.count.toLocaleString('pt-BR')}</dd><span className="muted">{formatBytes(DEMO_TOTAL.bytes)}</span></div>
-              <div className="stat"><dt>Verificados</dt><dd className="num">100%</dd><span className="muted">SHA-256</span></div>
-              <div className="stat"><dt>Cópias extras</dt><dd className="num">183</dd><span className="muted">{formatBytes(2_340_000_000)} recuperáveis</span></div>
-              <div className="stat"><dt>Pastas</dt><dd className="num">8</dd><span className="muted">por tipo</span></div>
+              <div className="stat"><dt>Arquivos</dt><dd className="num">{DEMO_TOTAL.count.toLocaleString('pt-BR')}</dd><dd className="stat-sub muted">{formatBytes(DEMO_TOTAL.bytes)}</dd></div>
+              <div className="stat"><dt>Verificados</dt><dd className="num">100%</dd><dd className="stat-sub muted">SHA-256</dd></div>
+              <div className="stat"><dt>Cópias extras</dt><dd className="num">183</dd><dd className="stat-sub muted">{formatBytes(2_340_000_000)} recuperáveis</dd></div>
+              <div className="stat"><dt>Pastas</dt><dd className="num">8</dd><dd className="stat-sub muted">por tipo</dd></div>
             </dl>
             <div className="chart-head">
               <h3 className="chart-title">{view === 'bytes' ? 'Espaço por tipo de arquivo' : 'Quantidade por tipo de arquivo'}</h3>

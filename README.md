@@ -19,6 +19,35 @@ Onde funciona sozinho: **Chrome/Edge no computador** (escolha "Permitir em todas
 
 Detalhe técnico: o handle da pasta é lido do IndexedDB uma única vez e fica em memória. Reconstruir do banco um handle cuja pasta sumiu derrubou o Chromium nos testes; na memória, ele só dá `NotFoundError` e volta a funcionar quando o pendrive retorna.
 
+## Casos reais e Verificador de backup
+
+Área **Casos reais** (`/casos`): 12 incidentes pesquisados, com fonte:
+- Pixar (Toy Story 2), GitLab, MySpace, Universidade de Kyoto/HPE;
+- OVHcloud, UniSuper/Google Cloud, Code Spaces, Google Drive para computador;
+- WD My Book Live, prefeitura de Amagasaki;
+- STJ e o megavazamento de 223 milhões de CPFs (Brasil).
+
+Cada caso mostra o que aconteceu, a lição, a área do app que responde e, quando é o caso, o **limite honesto** (o que nenhum app resolve sozinho). As 6 causas que se repetem aparecem resumidas no topo.
+
+Ferramentas da área:
+- **Verificador de backup:** compara a pasta original com a cópia, pelo caminho e pelo SHA-256. Mostra iguais, diferentes, faltando e extras, e diz se a cópia é confiável.
+- **Checklist 3-2-1:** salvo neste navegador.
+
+## Modo apresentação
+
+`/apresentacao`: 8 slides em tela cheia (capa, problema, causas, solução, segurança, IA, demonstração ao vivo e encerramento com QR code do site público).
+- **Teclado:** ← → / Espaço, Home/End, **F** (tela cheia), **N** (notas do apresentador), Esc (sair).
+- **Celular:** deslize para os lados.
+
+## Auditoria sem erros
+
+`npm run build && npm run audit` abre as 12 páginas nos temas claro e escuro, em 1440 px e 360 px (48 combinações). Ela procura:
+- erros de JavaScript e no console;
+- requisições que falharam;
+- problemas de acessibilidade graves ou críticos (axe-core, WCAG 2.1 AA);
+- rolagem horizontal e conteúdo cortado;
+- links para rotas inexistentes, botões sem nome e imagens sem `alt`.
+
 ## Acesso por senha
 
 Com uma senha configurada, o app abre numa tela de senha. O liberado vale até fechar a aba, e 5 erros travam a entrada por 15 segundos. Espaços nas pontas e maiúsculas/minúsculas trocadas pelo teclado do celular são tolerados.
