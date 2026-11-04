@@ -53,7 +53,7 @@ export default function SettingsPage() {
     <div className="page settings-page">
       <div className="wrap">
         <header className="page-head">
-          <span className="page-n outline-num" aria-hidden>08</span>
+          <span className="page-n outline-num" aria-hidden>09</span>
           <div>
             <span className="label">Configurações</span>
             <h1 className="h1">Do seu<br />jeito.</h1>

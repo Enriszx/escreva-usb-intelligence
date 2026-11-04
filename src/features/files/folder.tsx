@@ -30,9 +30,15 @@ interface FolderCtx {
   busy: { label: string; done: number; total: number } | null;
   trash: TrashItem[];
   undoLabel: string | null;
-  connect: () => Promise<void>;
+  connect: () => Promise<boolean>;
   reconnect: () => Promise<void>;
   disconnect: () => Promise<void>;
+  /** Reabre a pasta lembrada. Sem `interactive`, só se o navegador já der permissão (sem perguntar). */
+  attach: (interactive: boolean) => Promise<AttachResult>;
+  /** A pasta conectada ainda está acessível? (pendrive encaixado) */
+  probe: () => Promise<boolean>;
+  /** Solta a pasta (pendrive removido) sem esquecer qual era. */
+  detach: () => Promise<void>;
   rescan: () => Promise<void>;
   rename: (id: string, newName: string) => Promise<boolean>;
   move: (ids: string[], destDir: string) => Promise<BatchResult>;
@@ -46,8 +52,24 @@ interface FolderCtx {
   refreshTrash: () => Promise<void>;
 }
 
+export type AttachResult = 'conectado' | 'sem-config' | 'precisa-toque' | 'ausente';
+
 const Ctx = createContext<FolderCtx | null>(null);
+
+/** Tenta ler a primeira entrada da pasta: falha se o pendrive não estiver encaixado. */
+async function reachable(h: DirHandle): Promise<boolean> {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    for await (const _ of (h as unknown as { values(): AsyncIterable<unknown> }).values()) break;
+    return true;
+  } catch {
+    return false;
+  }
+}
 const REMEMBER_KEY = 'pastaConectada';
+/** Só o nome, separado: abrir o app não precisa reconstruir o handle da pasta. */
+const NAME_KEY = 'pastaConectadaNome';
+type Remembered = { name: string; handle: DirHandle | string };
 
 export function FolderProvider({ children }: { children: ReactNode }) {
   const files = useFiles();
@@ -60,6 +82,19 @@ export function FolderProvider({ children }: { children: ReactNode }) {
   const [undoStack, setUndoStack] = useState<UndoOp[]>([]);
   const entriesRef = useRef(files.entries);
   entriesRef.current = files.entries;
+  const backendRef = useRef<FolderBackend | null>(null);
+  backendRef.current = backend;
+  // O handle lembrado é lido do banco UMA vez e fica em memória. Motivo: o Chromium
+  // pode travar ao reconstruir do IndexedDB um handle cuja pasta sumiu (pendrive
+  // removido). Na memória, o mesmo handle só dá NotFoundError e volta a funcionar
+  // quando o pendrive é encaixado de novo.
+  const memo = useRef<Remembered | null>(null);
+  const getRemembered = useCallback(async (): Promise<Remembered | null> => {
+    if (memo.current) return memo.current;
+    const r = await get<{ key: string; value: Remembered }>('settings', REMEMBER_KEY).catch(() => undefined);
+    memo.current = r?.value?.handle ? r.value : null;
+    return memo.current;
+  }, []);
   const supported = isNativeAndroid() || supportsFolderAccess();
 
   const log = useCallback(async (title: string, r: BatchResult, bytes: number, extra: string[] = []) => {
@@ -103,55 +138,110 @@ export function FolderProvider({ children }: { children: ReactNode }) {
   }, [backend, files]);
 
   useEffect(() => {
-    get<{ key: string; value: { name: string } }>('settings', REMEMBER_KEY)
-      .then((r) => setRemembered(r?.value?.name ?? null))
+    get<{ key: string; value: string }>('settings', NAME_KEY)
+      .then(async (r) => {
+        if (r?.value) return setRemembered(r.value);
+        // Versões antigas guardavam o nome junto do handle: migra uma vez.
+        const old = await getRemembered();
+        if (old) {
+          setRemembered(old.name);
+          await put('settings', { key: NAME_KEY, value: old.name }).catch(() => {});
+        }
+      })
       .catch(() => {});
   }, []);
 
-  const activate = useCallback(async (b: FolderBackend, handle?: DirHandle | string) => {
+  const activate = useCallback(async (b: FolderBackend, handle?: DirHandle | string, quiet = false) => {
     if (!(await b.ensurePermission())) {
       toast({ tone: 'erro', title: 'Permissão negada', body: 'Sem permissão de escrita, o app não consegue renomear nem apagar nesta pasta.' });
-      return;
+      return false;
     }
     setBackend(b);
     const n = await load(b);
-    if (handle) await put('settings', { key: REMEMBER_KEY, value: { name: b.rootName, handle } }).catch(() => {});
+    if (handle) {
+      memo.current = { name: b.rootName, handle };
+      await put('settings', { key: REMEMBER_KEY, value: memo.current }).catch(() => {});
+      await put('settings', { key: NAME_KEY, value: b.rootName }).catch(() => {});
+    }
     setRemembered(b.rootName);
-    toast({ tone: 'ok', title: `Pasta “${b.rootName}” conectada`, body: `${plural(n, 'arquivo encontrado', 'arquivos encontrados')}. Agora dá para renomear, mover e apagar.` });
+    if (!quiet) toast({ tone: 'ok', title: `Pasta “${b.rootName}” conectada`, body: `${plural(n, 'arquivo encontrado', 'arquivos encontrados')}. Agora dá para renomear, mover e apagar.` });
+    return true;
   }, [load, toast]);
 
   const connect = useCallback(async () => {
     try {
       if (isNativeAndroid()) {
         const { backend: b, uri } = await pickAndroidFolder();
-        await activate(b, uri);
-      } else {
-        const h = await pickFolder();
-        await activate(new WebFolderBackend(h), h);
+        return await activate(b, uri);
       }
+      const h = await pickFolder();
+      return await activate(new WebFolderBackend(h), h);
     } catch (e) {
-      if ((e as DOMException).name === 'AbortError' || /cancel/i.test((e as Error).message)) return;
+      if ((e as DOMException).name === 'AbortError' || /cancel/i.test((e as Error).message)) return false;
       toast({ tone: 'erro', title: 'Não foi possível conectar a pasta', body: (e as Error).message });
+      return false;
     }
   }, [activate, toast]);
 
+  const attach = useCallback(async (interactive: boolean): Promise<AttachResult> => {
+    const r = await getRemembered();
+    const h = r?.handle;
+    if (!h) return 'sem-config';
+    if (typeof h === 'string') {
+      const b = await restoreAndroidFolder(h, r!.name).catch(() => null);
+      if (!b) return 'ausente';
+      return (await activate(b, undefined, !interactive)) ? 'conectado' : 'precisa-toque';
+    }
+    const p = { mode: 'readwrite' as const };
+    let perm: PermissionState = h.queryPermission ? await h.queryPermission(p).catch(() => 'prompt' as PermissionState) : 'granted';
+    if (perm !== 'granted') {
+      if (!interactive) return 'precisa-toque';
+      perm = (await h.requestPermission?.(p).catch(() => 'denied' as PermissionState)) ?? 'denied';
+      if (perm !== 'granted') return 'precisa-toque';
+    }
+    if (!(await reachable(h))) return 'ausente';
+    return (await activate(new WebFolderBackend(h), undefined, !interactive)) ? 'conectado' : 'precisa-toque';
+  }, [activate]);
+
   const reconnect = useCallback(async () => {
     try {
-      const r = await get<{ key: string; value: { name: string; handle: DirHandle | string } }>('settings', REMEMBER_KEY);
-      if (!r?.value?.handle) return connect();
-      const b = typeof r.value.handle === 'string' ? await restoreAndroidFolder(r.value.handle, r.value.name) : new WebFolderBackend(r.value.handle);
+      const r = await getRemembered();
+      if (!r?.handle) {
+        await connect();
+        return;
+      }
+      const b = typeof r.handle === 'string' ? await restoreAndroidFolder(r.handle, r.name) : new WebFolderBackend(r.handle);
       await activate(b);
     } catch (e) {
       toast({ tone: 'erro', title: 'Não deu para reconectar', body: `${(e as Error).message} Escolha a pasta de novo.` });
     }
   }, [activate, connect, toast]);
 
+  const probe = useCallback(async () => {
+    const b = backendRef.current;
+    if (!b) return false;
+    try {
+      return b instanceof WebFolderBackend ? await reachable(b.handle as DirHandle) : await b.ensurePermission();
+    } catch {
+      return false;
+    }
+  }, []);
+
+  const detach = useCallback(async () => {
+    setBackend(null);
+    setTrash([]);
+    setUndoStack([]);
+    await files.reset();
+  }, [files]);
+
   const disconnect = useCallback(async () => {
     setBackend(null);
     setTrash([]);
     setUndoStack([]);
     await files.reset();
+    memo.current = null;
     await del('settings', REMEMBER_KEY).catch(() => {});
+    await del('settings', NAME_KEY).catch(() => {});
     setRemembered(null);
   }, [files]);
 
@@ -370,8 +460,8 @@ export function FolderProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<FolderCtx>(() => ({
     backend, supported, remembered, busy, trash, undoLabel: undoStack.at(-1)?.label ?? null,
-    connect, reconnect, disconnect, rescan, rename, move, trashItems, destroy, mkdir, restore, purge, applyPlan, undo, refreshTrash,
-  }), [backend, supported, remembered, busy, trash, undoStack, connect, reconnect, disconnect, rescan, rename, move, trashItems, destroy, mkdir, restore, purge, applyPlan, undo, refreshTrash]);
+    connect, reconnect, disconnect, attach, probe, detach, rescan, rename, move, trashItems, destroy, mkdir, restore, purge, applyPlan, undo, refreshTrash,
+  }), [backend, supported, remembered, busy, trash, undoStack, connect, reconnect, disconnect, attach, probe, detach, rescan, rename, move, trashItems, destroy, mkdir, restore, purge, applyPlan, undo, refreshTrash]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

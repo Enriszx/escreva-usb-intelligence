@@ -13,7 +13,6 @@ import { Donut } from '../../components/charts/Donut';
 import { BarList } from '../../components/charts/BarList';
 import { Sparkline } from '../../components/charts/Spark';
 import { DailyLine } from '../../components/charts/DailyLine';
-import { Treemap } from '../../components/charts/Treemap';
 import { WeekBars } from '../../components/charts/WeekBars';
 import { StackedBar } from '../../components/charts/StackedBar';
 import { CountUp } from '../../components/charts/CountUp';
@@ -190,20 +189,6 @@ export function DashboardTab({
           </div>
           <p className="mono muted dash-src">Fonte: data e hora de cada importação neste aparelho</p>
           <DailyLine days={days} title={`Importações nos últimos ${period} dias`} />
-        </section>
-
-        <section className="dash-panel" aria-labelledby="g-tree">
-          <h3 id="g-tree" className="h3">Mapa de espaço por tipo</h3>
-          <p className="mono muted dash-src">Área proporcional ao volume · toque para filtrar</p>
-          <Treemap
-            title="Mapa de espaço por tipo"
-            data={s.byCategory.filter((c) => c.bytes > 0).sort((a, b) => b.bytes - a.bytes).map((c) => ({
-              key: c.category, label: CATEGORY_LABEL[c.category], value: c.bytes, color: CAT_VAR[c.category], valueText: fmtBytes(c.bytes), detail: plural(c.count, 'arquivo', 'arquivos'),
-            }))}
-            selected={category}
-            onSelect={(k) => setCategory(k as Category | null)}
-          />
-          {s.bytes === 0 && <p className="muted">Sem volume para mostrar ainda.</p>}
         </section>
 
         <section className="dash-panel" aria-labelledby="g-week">

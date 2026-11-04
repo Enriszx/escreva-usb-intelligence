@@ -8,12 +8,15 @@ import { Header, MobileTabs } from '../components/layout/Header';
 import { Footer } from '../components/layout/Footer';
 import { StatusBar } from '../components/layout/StatusBar';
 import { ExportFallback } from '../components/layout/ExportFallback';
+import { BrasilBackdrop } from '../components/layout/BrasilBackdrop';
+import { AutoProvider } from '../features/auto/auto';
 import { GlobalDrop } from '../features/files/GlobalDrop';
 import { Assistant } from '../features/assistant/Assistant';
 import { routeFor } from './routes';
 import HomePage from '../features/home/HomePage';
 
 const FilesPage = lazy(() => import('../features/files/FilesPage'));
+const AutoPage = lazy(() => import('../features/auto/AutoPage'));
 const LabPage = lazy(() => import('../features/lab/LabPage'));
 const CharacterPage = lazy(() => import('../features/character/CharacterPage'));
 const SecurityPage = lazy(() => import('../features/security/SecurityPage'));
@@ -41,16 +44,18 @@ function Shell() {
     if (pathname !== '/') document.getElementById('conteudo')?.focus({ preventScroll: true });
   }, [pathname]);
   return (
-    <div className="app" data-tone={tone}>
+    <div className={`app ${pathname === '/' ? 'is-home' : ''}`} data-tone={tone}>
       <a className="skip" href="#conteudo" onClick={(e) => { e.preventDefault(); document.getElementById('conteudo')?.focus(); }}>
         Pular para o conteúdo
       </a>
+      <BrasilBackdrop />
       <Header />
       <StatusBar />
       <main id="conteudo" tabIndex={-1}>
         <Suspense fallback={<PageLoading />}>
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/automatico" element={<AutoPage />} />
             <Route path="/arquivos" element={<FilesPage />} />
             <Route path="/laboratorio" element={<LabPage />} />
             <Route path="/personagem" element={<CharacterPage />} />
@@ -79,10 +84,12 @@ export default function App() {
         <ConfirmProvider>
           <FilesProvider>
             <FolderProvider>
-            {/* HashRouter: funciona em qualquer servidor estático e no pendrive, sem regras de reescrita. */}
-            <HashRouter>
-              <Shell />
-            </HashRouter>
+              <AutoProvider>
+                {/* HashRouter: funciona em qualquer servidor estático e no pendrive, sem regras de reescrita. */}
+                <HashRouter>
+                  <Shell />
+                </HashRouter>
+              </AutoProvider>
             </FolderProvider>
           </FilesProvider>
         </ConfirmProvider>

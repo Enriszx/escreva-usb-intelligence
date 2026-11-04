@@ -43,7 +43,7 @@ export default function HelpPage() {
     <div className="page help-page">
       <div className="wrap">
         <header className="page-head">
-          <span className="page-n outline-num" aria-hidden>09</span>
+          <span className="page-n outline-num" aria-hidden>10</span>
           <div>
             <span className="label">Ajuda e diagnóstico</span>
             <h1 className="h1">Como funciona,<br />de verdade.</h1>

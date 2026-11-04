@@ -49,7 +49,7 @@ export default function ReportsPage() {
     <div className="page reports-page">
       <div className="wrap">
         <header className="page-head">
-          <span className="page-n outline-num" aria-hidden>06</span>
+          <span className="page-n outline-num" aria-hidden>04</span>
           <div>
             <span className="label">Relatórios</span>
             <h1 className="h1">O que os<br />números dizem.</h1>

@@ -1,6 +1,23 @@
 # USB Intelligence
 
-Ecossistema de arquivos para o navegador: seleção e análise de arquivos, detecção de duplicados por SHA-256, planejamento de organização, verificação de integridade, cofre AES-256-GCM, relatórios, histórico — e um laboratório 3D com um pendrive conceitual e um personagem (“o Vigia”) personalizável. Tudo roda no aparelho; nada é enviado para servidores.
+**Encaixe o pendrive. O resto é automático.** Plataforma brasileira de inteligência de arquivos para o navegador: seleção e análise de arquivos, detecção de duplicados por SHA-256, planejamento de organização, verificação de integridade, cofre AES-256-GCM, relatórios, histórico — e um laboratório 3D com um pendrive conceitual e um personagem (“o Vigia”) personalizável. Tudo roda no aparelho; nada é enviado para servidores.
+
+## Modo automático (encaixar e pronto)
+
+Área **Automático** (`/automatico`). Na primeira vez, um toque em **Conectar pendrive** e a escolha da pasta raiz do pendrive. Depois disso, o app confere a cada 3 segundos se o pendrive está encaixado e, quando ele aparece, executa sozinho:
+
+1. **Detectar** o pendrive (espera 1,5 s o sistema terminar de montar e relê a lista);
+2. **Ler** e classificar os arquivos;
+3. **Verificar** o conteúdo com SHA-256 (completo, ou só os candidatos a cópia);
+4. **Encontrar duplicados** por conteúdo; opcional: mandar as cópias extras para a lixeira do app (fica o mais antigo de cada grupo; restaurável);
+5. **Organizar em pastas** pelo critério escolhido; opcional e desligado por padrão (move de verdade; "Desfazer" na sessão);
+6. **Gerar o relatório**, salvo em Relatórios e no Histórico.
+
+Quando o pendrive é removido, o app solta a pasta e mostra "Aguardando". Ao encaixar de novo, repete tudo, sem toques. O estado aparece também no cabeçalho.
+
+Onde funciona sozinho: **Chrome/Edge no computador** (escolha "Permitir em todas as visitas" quando o navegador perguntar; senão, ele pede um toque a cada visita) e **app Android** (o acesso à pasta fica salvo). No **navegador do celular** não há acesso a pastas: a análise é feita escolhendo os arquivos na Central.
+
+Detalhe técnico: o handle da pasta é lido do IndexedDB uma única vez e fica em memória. Reconstruir do banco um handle cuja pasta sumiu derrubou o Chromium nos testes; na memória, ele só dá `NotFoundError` e volta a funcionar quando o pendrive retorna.
 
 ## Acesso por senha
 
@@ -132,12 +149,15 @@ scripts/          plugin do service worker, servidor local, empacotador, e2e, í
 tests/            testes de unidade
 ```
 
-## Sistema de design (resumo)
+## Sistema de design "Brasil Moderno" (resumo)
 
-- **Tons de seção** (`data-tone`): `grafite`, `mata`, `noite`, `gelo`. Cada página usa um par principal; as outras cores ficam para estado e detalhe.
-- **Tipografia:** Bricolage Grotesque variável — títulos a 800 de peso e 75% de largura, caixa alta, entrelinha 0,86; interface no mesmo família em largura normal. IBM Plex Mono para índices, rótulos e números.
-- **Assinaturas:** recorte de conector no canto superior direito (botões primários, painéis), curvas de nível procedurais (`src/lib/topo.ts`), numeração editorial vazada, marca derivada da boca de uma porta USB-A.
-- **Movimento:** curtas transições com `ease-out`; `prefers-reduced-motion` e a opção do app desligam animações contínuas e trocam o 3D para renderização sob demanda.
+- **Cores:** as da bandeira traduzidas para interface: verde-mata como base, amarelo-ouro (#FFDF00) na ação principal, azul-anil para informação, branco como respiro. Tokens em `src/styles/tokens.css`. Tema claro, escuro ou automático (segue o sistema).
+- **Fundo:** `BrasilBackdrop` — composição **estilizada** inspirada na bandeira (campo verde, losango dourado, globo anil com o Cruzeiro do Sul, faixa branca, órbita), com paralaxe leve ao mover o ponteiro e ao rolar. Não é a reprodução oficial do símbolo (a Lei 5.700/71 pede que a bandeira não seja alterada). Fora da página inicial, o fundo fica mais calmo.
+- **Tipografia:** Plus Jakarta Sans nos títulos e Inter no texto (ambas SIL OFL, empacotadas: funcionam offline). IBM Plex Mono só para hashes e código.
+- **Superfícies:** cartões de vidro (desfoque, borda fina, cantos de 18–26 px), botões arredondados, chips de estado.
+- **Gráficos objetivos:** barras horizontais com o valor escrito ao lado e a parte do total; KPIs em números grandes; sem 3D, sem treemap. Paleta categórica validada (daltonismo e contraste) nos dois temas.
+- **Navegação:** 10 áreas em 4 grupos — Operação (Automático, Central de arquivos, Relatórios), Proteção e controle (Segurança, Histórico), Experiência (Laboratório 3D, Meu personagem), Sistema (Início, Configurações, Ajuda).
+- **Movimento:** transições curtas; `prefers-reduced-motion` e a opção do app desligam paralaxe, estrelas e animações contínuas.
 
 ## Instalar como PWA (Android)
 

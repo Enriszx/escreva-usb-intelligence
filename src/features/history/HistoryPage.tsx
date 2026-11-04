@@ -56,7 +56,7 @@ export default function HistoryPage() {
     <div className="page history-page">
       <div className="wrap">
         <header className="page-head">
-          <span className="page-n outline-num" aria-hidden>07</span>
+          <span className="page-n outline-num" aria-hidden>06</span>
           <div>
             <span className="label">Histórico</span>
             <h1 className="h1">Tudo o que<br />aconteceu.</h1>

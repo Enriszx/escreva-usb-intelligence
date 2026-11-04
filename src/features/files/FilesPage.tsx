@@ -61,7 +61,7 @@ export default function FilesPage() {
     <div className="page files-page">
       <div className="wrap">
         <header className="page-head">
-          <span className="page-n outline-num" aria-hidden>02</span>
+          <span className="page-n outline-num" aria-hidden>03</span>
           <div>
             <span className="label">Central de arquivos</span>
             <h1 className="h1">O acervo<br />na mesa.</h1>

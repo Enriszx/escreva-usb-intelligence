@@ -1,272 +1,303 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, useScroll, useTransform } from 'motion/react';
-import { ArrowDown, ArrowRight, ArrowUpRight, RotateCcw } from 'lucide-react';
-import { Topo } from '../../components/ui/Topo';
+import { motion } from 'motion/react';
+import {
+  ArrowDown, ArrowRight, ArrowUpRight, CheckCircle2, Copy, FileBarChart2, FolderTree, Fingerprint, Lock, RotateCcw, ScanSearch, Sparkles, Undo2, Usb, WifiOff, Zap,
+} from 'lucide-react';
 import { DeviceIllustration } from '../../components/three/Fallbacks';
-import { ROUTES } from '../../app/routes';
+import { GROUPS, ROUTES } from '../../app/routes';
 import { useSettings } from '../../app/settings';
 import { useDocumentTitle } from '../../app/hooks';
-import { useToast } from '../../app/feedback';
-import { Donut } from '../../components/charts/Donut';
+import { BarList } from '../../components/charts/BarList';
 import { CAT_VAR } from '../../components/charts/colors';
 import { HashPlayground } from './HashPlayground';
-import { formatBytes } from '../../lib/format';
+import { useFiles } from '../files/store';
+import { useAuto } from '../auto/auto';
+import { formatBytes, pct, plural } from '../../lib/format';
 import { CATEGORY_LABEL, type Category } from '../../lib/analysis/types';
 
 const HeroScene = lazy(() => import('./HeroScene'));
 
 /* Amostra FICTÍCIA para a demonstração. Nunca se mistura com os dados do usuário. */
-const DEMO: Record<Category, number> = {
-  documentos: 412_000_000, planilhas: 85_000_000, apresentacoes: 240_000_000, imagens: 3_100_000_000, videos: 6_800_000_000, audios: 960_000_000, compactados: 1_250_000_000, outros: 180_000_000,
+const DEMO: Record<Category, { bytes: number; count: number }> = {
+  videos: { bytes: 6_800_000_000, count: 64 },
+  imagens: { bytes: 3_100_000_000, count: 1_420 },
+  compactados: { bytes: 1_250_000_000, count: 38 },
+  audios: { bytes: 960_000_000, count: 212 },
+  documentos: { bytes: 412_000_000, count: 860 },
+  apresentacoes: { bytes: 240_000_000, count: 47 },
+  outros: { bytes: 180_000_000, count: 95 },
+  planilhas: { bytes: 85_000_000, count: 131 },
 };
+const DEMO_TOTAL = Object.values(DEMO).reduce((a, b) => ({ bytes: a.bytes + b.bytes, count: a.count + b.count }), { bytes: 0, count: 0 });
+
+const FLOW = [
+  { Icon: Usb, title: 'Detecta', text: 'Você encaixa o pendrive. O app percebe sozinho, sem procurar menus.' },
+  { Icon: ScanSearch, title: 'Lê e classifica', text: 'Cada arquivo vira um tipo: documentos, imagens, vídeos, planilhas e mais.' },
+  { Icon: Fingerprint, title: 'Verifica', text: 'Calcula a impressão digital SHA-256 de cada arquivo, no próprio aparelho.' },
+  { Icon: Copy, title: 'Acha cópias', text: 'Compara conteúdo, não nome. Mostra quanto espaço dá para recuperar.' },
+  { Icon: FolderTree, title: 'Organiza', text: 'Monta pastas por tipo, data ou tamanho — e move, se você permitir.' },
+  { Icon: FileBarChart2, title: 'Relata', text: 'Gera o relatório com números reais, pronto para exportar em CSV ou JSON.' },
+];
 
 export default function HomePage() {
   useDocumentTitle('');
-  const { settings, update, reducedMotion, loaded } = useSettings();
-  const toast = useToast();
-  const playIntro = loaded && settings.intro && !reducedMotion;
+  const { reducedMotion, loaded, settings } = useSettings();
+  const files = useFiles();
+  const auto = useAuto();
   const explode = useRef(0);
   const spin = useRef(0);
-  const hero = useRef<HTMLElement>(null);
-  const [demoCat, setDemoCat] = useState<string | null>(null);
+  const [active, setActive] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const [view, setView] = useState<'bytes' | 'count'>('bytes');
+  const intro = loaded && settings.intro && !reducedMotion;
 
-  // A rolagem pela abertura separa as camadas do objeto.
+  // A rolagem separa levemente as camadas do objeto 3D.
   useEffect(() => {
-    const on = () => {
-      const h = hero.current?.offsetHeight ?? 1;
-      explode.current = Math.min(1, Math.max(0, window.scrollY / (h * 0.7)));
-    };
+    const on = () => { explode.current = Math.min(1, Math.max(0, window.scrollY / (window.innerHeight * 0.9))); };
     on();
     window.addEventListener('scroll', on, { passive: true });
     return () => window.removeEventListener('scroll', on);
   }, []);
 
-  const { scrollYProgress } = useScroll({ target: hero, offset: ['start start', 'end start'] });
-  const titleY = useTransform(scrollYProgress, [0, 1], [0, reducedMotion ? 0 : -120]);
+  // O fluxo avança sozinho (como o próprio app), até a pessoa tocar numa etapa.
+  useEffect(() => {
+    if (paused || reducedMotion) return;
+    const id = setInterval(() => setActive((a) => (a + 1) % FLOW.length), 2600);
+    return () => clearInterval(id);
+  }, [paused, reducedMotion]);
 
-  const line = (i: number) =>
-    playIntro
-      ? { initial: { y: '105%' }, animate: { y: '0%' }, transition: { delay: 0.08 + i * 0.12, duration: 0.8, ease: [0.16, 1, 0.3, 1] as const } }
-      : { initial: false as const };
+  const fade = (i: number) => (intro ? { initial: { opacity: 0, y: 18 }, animate: { opacity: 1, y: 0 }, transition: { delay: 0.06 + i * 0.08, duration: 0.6, ease: [0.16, 1, 0.3, 1] as const } } : { initial: false as const });
+  const lib = files.entries;
+  const r = auto.result;
+
+  const demoRows = (Object.keys(DEMO) as Category[])
+    .map((c) => ({ c, ...DEMO[c] }))
+    .sort((a, b) => (view === 'bytes' ? b.bytes - a.bytes : b.count - a.count));
 
   return (
     <>
       {/* ===================== ABERTURA ===================== */}
-      <section ref={hero} className="hero" data-tone="grafite" aria-labelledby="hero-title">
-        <Topo seed={3} levels={12} className="hero-topo" />
-        <div className="hero-meta wrap">
-          <span className="label plain">Nº 01 — Ecossistema de arquivos</span>
-          <span className="mono muted hero-coords" aria-hidden>15°47′S 47°52′W</span>
-        </div>
-
-        <div className="hero-3d">
-          <Suspense fallback={<div className="stage stage-fallback"><DeviceIllustration note={false} /></div>}>
-            <HeroScene explode={explode} spin={spin} />
-          </Suspense>
-        </div>
-
-        <motion.div className="hero-copy wrap" style={{ y: titleY }}>
-          <h1 id="hero-title" className="mega hero-title">
-            <span className="line-mask"><motion.span className="line" {...line(0)}>Seus dados.</motion.span></span>
-            <span className="line-mask indent"><motion.span className="line" {...line(1)}>Seu <em>universo.</em></motion.span></span>
-          </h1>
-        </motion.div>
-
-        <div className="hero-foot wrap">
-          <motion.div
-            className="hero-lead"
-            initial={playIntro ? { opacity: 0, y: 16 } : false}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.45, duration: 0.6 }}
-          >
-            <p className="lead">Organize, explore e proteja seus arquivos com inteligência e controle.</p>
-            <div className="btn-row">
-              <Link to="/arquivos" className="btn btn-primary">
-                Entrar no sistema <ArrowRight className="arrow" aria-hidden />
-              </Link>
+      <section className="hero" data-tone="grafite" aria-labelledby="hero-title">
+        <div className="wrap hero-grid">
+          <div className="hero-copy">
+            <motion.span className="eyebrow" {...fade(0)}>
+              <FlagDot /> Plataforma brasileira de inteligência de arquivos
+            </motion.span>
+            <motion.h1 id="hero-title" className="mega" {...fade(1)}>
+              Encaixe o pendrive. <span className="grad-text">O resto é automático.</span>
+            </motion.h1>
+            <motion.p className="lead" {...fade(2)}>
+              O USB Intelligence lê, verifica, encontra cópias, organiza e gera relatórios sozinho — com processamento 100% no seu aparelho,
+              criptografia AES-256 e uma IA que entende português.
+            </motion.p>
+            <motion.div className="btn-row" {...fade(3)}>
+              <Link to="/automatico" className="btn btn-primary btn-lg"><Zap aria-hidden /> Começar agora</Link>
               <a
-                href="#experiencia"
-                className="btn btn-ghost"
+                href="#como-funciona"
+                className="btn btn-ghost btn-lg"
                 onClick={(e) => {
                   e.preventDefault();
-                  document.getElementById('experiencia')?.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth' });
-                  (document.getElementById('experiencia-title') as HTMLElement | null)?.focus({ preventScroll: true });
+                  document.getElementById('como-funciona')?.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth' });
+                  (document.getElementById('como-funciona-t') as HTMLElement | null)?.focus({ preventScroll: true });
                 }}
               >
-                Explorar a experiência <ArrowDown className="arrow" aria-hidden />
+                Ver como funciona <ArrowDown className="arrow" aria-hidden />
               </a>
+            </motion.div>
+            <motion.ul className="trust" {...fade(4)}>
+              <li><Lock aria-hidden /> 100% no aparelho</li>
+              <li><Fingerprint aria-hidden /> SHA-256 · AES-256</li>
+              <li><WifiOff aria-hidden /> Funciona offline</li>
+              <li><Sparkles aria-hidden /> IA grátis integrada</li>
+            </motion.ul>
+          </div>
+
+          <motion.div className="hero-visual" {...fade(2)}>
+            <div className="hero-stage card">
+              <Suspense fallback={<div className="stage stage-fallback"><DeviceIllustration note={false} /></div>}>
+                <HeroScene explode={explode} spin={spin} />
+              </Suspense>
+              <div className="float-chip fc-1">
+                <span className={`dot ${auto.phase === 'pronto' ? 'on' : auto.phase === 'executando' ? 'busy' : ''}`} aria-hidden />
+                <span>
+                  <small>Modo automático</small>
+                  <strong>{auto.phase === 'pronto' ? `${auto.drive ?? 'Pendrive'} conectado` : auto.phase === 'executando' ? 'Analisando…' : auto.phase === 'aguardando' ? 'Aguardando pendrive' : auto.phase === 'indisponivel' ? 'Use o app Android' : 'Pronto para configurar'}</strong>
+                </span>
+              </div>
+              <div className="float-chip fc-2">
+                <CheckCircle2 aria-hidden />
+                <span>
+                  <small>{r ? 'Última execução' : lib.length ? 'Sua biblioteca' : 'Seus arquivos'}</small>
+                  <strong className="num">
+                    {r ? `${plural(r.files, 'arquivo', 'arquivos')} · ${plural(r.copies, 'cópia', 'cópias')}` : lib.length ? `${plural(lib.length, 'arquivo', 'arquivos')} · ${formatBytes(lib.reduce((s, f) => s + f.size, 0))}` : 'Nunca saem daqui'}
+                  </strong>
+                </span>
+              </div>
+              <button className="hero-recenter btn btn-ghost btn-sm" onClick={() => (spin.current = 0)}>
+                <RotateCcw aria-hidden /> Recentralizar
+              </button>
+              <span className="hero-hint mono">Arraste para girar</span>
             </div>
           </motion.div>
-          <div className="hero-controls">
-            <span className="mono muted">Arraste o objeto para os lados</span>
-            <button className="btn btn-ghost btn-sm" onClick={() => (spin.current = 0)}>
-              <RotateCcw aria-hidden /> Recentralizar
-            </button>
-            <label className="switch hero-intro-switch">
-              <span className="mono">Animação de abertura</span>
-              <input
-                type="checkbox"
-                checked={settings.intro}
-                onChange={(e) =>
-                  update({ intro: e.target.checked })
-                    .then(() => toast({ tone: 'ok', title: e.target.checked ? 'Abertura ativada' : 'Abertura desativada', body: 'Preferência salva neste dispositivo.' }))
-                    .catch(() => {})
-                }
-              />
-            </label>
-          </div>
         </div>
-        <ul className="hero-ticker mono" aria-hidden>
-          <li>Ler</li><li>Classificar</li><li>Comparar</li><li>Proteger</li>
-        </ul>
       </section>
 
-      {/* ===================== DEMONSTRAÇÃO ===================== */}
-      <section id="experiencia" className="demo" data-tone="mata" aria-labelledby="experiencia-title">
-        <Topo seed={21} levels={8} className="demo-topo" />
+      {/* ===================== COMO FUNCIONA ===================== */}
+      <section id="como-funciona" className="sec" aria-labelledby="como-funciona-t">
         <div className="wrap">
-          <div className="demo-head">
-            <span className="demo-flag">Demonstração · dados de exemplo, não são seus arquivos</span>
-            <h2 id="experiencia-title" className="h1" tabIndex={-1}>
-              Como o <span className="hl">USB&nbsp;Intelligence</span> pensa.
-            </h2>
-            <p className="lead">Quatro movimentos. Os dois primeiros usam uma amostra inventada; o terceiro calcula hashes de verdade com o que você digitar.</p>
+          <div className="sec-head">
+            <span className="label">Como funciona</span>
+            <h2 id="como-funciona-t" className="h2" tabIndex={-1}>Do encaixe ao relatório, sozinho.</h2>
+            <p className="lead">Seis etapas que o app executa sozinho depois de uma única autorização. Toque em uma para ver o detalhe.</p>
           </div>
-
-          <ol className="steps">
-            <li className="step">
-              <div className="step-n outline-num" aria-hidden>01</div>
-              <div className="step-body">
-                <h3 className="h3">Ler só o que você entrega.</h3>
-                <p className="muted">
-                  Navegadores não enxergam o celular inteiro — e não deveriam. Você escolhe arquivos (ou uma pasta, quando o navegador permite) e o
-                  app trabalha apenas com eles. Nada é enviado para fora.
-                </p>
-                <Link to="/arquivos" className="btn btn-quiet">Abrir a central de arquivos <ArrowUpRight aria-hidden /></Link>
-              </div>
-            </li>
-
-            <li className="step step-chart">
-              <div className="step-n outline-num" aria-hidden>02</div>
-              <div className="step-body">
-                <h3 className="h3">Classificar pelo que cada arquivo é.</h3>
-                <p className="muted">Extensão e tipo viram seis famílias. Toque numa fatia para destacá-la. Os números abaixo são de uma amostra fictícia de {formatBytes(Object.values(DEMO).reduce((a, b) => a + b, 0))}.</p>
-              </div>
-              <div className="step-viz">
-                <Donut
-                  title="Amostra fictícia por categoria"
-                  data={(Object.keys(DEMO) as Category[]).map((c) => ({ key: c, label: CATEGORY_LABEL[c], value: DEMO[c], color: CAT_VAR[c] }))}
-                  format={formatBytes}
-                  centerLabel="amostra fictícia"
-                  selected={demoCat}
-                  onSelect={setDemoCat}
-                  size={220}
-                />
-              </div>
-            </li>
-
-            <li className="step step-wide">
-              <div className="step-n outline-num" aria-hidden>03</div>
-              <div className="step-body">
-                <h3 className="h3">Comparar conteúdo, não nome.</h3>
-                <p className="muted">
-                  Cada conteúdo gera uma impressão digital SHA-256. Edite os textos: este cálculo é real e acontece no seu aparelho. É assim que o
-                  detector separa “nome repetido” de “cópia de verdade”.
-                </p>
-              </div>
-              <HashPlayground />
-            </li>
-
-            <li className="step">
-              <div className="step-n outline-num" aria-hidden>04</div>
-              <div className="step-body">
-                <h3 className="h3">Proteger com senha que só você sabe.</h3>
-                <p className="muted">
-                  O cofre usa AES-256-GCM com chave derivada da sua senha. A senha não é guardada em lugar nenhum: se ela se perder, o arquivo cifrado
-                  também se perde. Isso é uma característica, não um defeito.
-                </p>
-                <Link to="/seguranca" className="btn btn-quiet">Ver segurança e integridade <ArrowUpRight aria-hidden /></Link>
-              </div>
-            </li>
-          </ol>
-        </div>
-      </section>
-
-      {/* ===================== ÍNDICE EDITORIAL ===================== */}
-      <section className="toc" data-tone="grafite" aria-labelledby="toc-title">
-        <div className="wrap">
-          <div className="toc-head">
-            <h2 id="toc-title" className="h2">Oito ferramentas,<br />um só lugar.</h2>
-            <p className="muted">Cada linha abre uma área que funciona agora. O que depende de permissão do sistema está dito lá dentro.</p>
-          </div>
-          <ul className="toc-list">
-            {ROUTES.slice(1).map((r) => (
-              <li key={r.path}>
-                <Link to={r.path} className="toc-row" data-tone-hint={r.tone}>
-                  <span className="mono toc-n">{r.n}</span>
-                  <span className="toc-title">{r.title}</span>
-                  <span className="toc-blurb muted">{r.blurb}</span>
-                  <ArrowUpRight className="toc-arrow" aria-hidden />
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
-
-      {/* ===================== PENDRIVE ===================== */}
-      <section className="otg" data-tone="noite" aria-labelledby="otg-title">
-        <div className="wrap otg-grid">
-          <div>
-            <span className="label">Equipamento inicial</span>
-            <h2 id="otg-title" className="h2">Celular, OTG,<br />pendrive de 16&nbsp;GB.</h2>
-            <p className="lead muted">
-              No Android, conecte o pendrive pelo adaptador OTG e escolha os arquivos dele no seletor do sistema. O app não abre o pendrive sozinho —
-              quem autoriza é você, arquivo por arquivo.
+          <div className="flow" onMouseLeave={() => setPaused(false)}>
+            <div className="flow-rail" aria-hidden><i style={{ width: `${(active / (FLOW.length - 1)) * 100}%` }} /></div>
+            <ol className="flow-steps">
+              {FLOW.map((s, i) => (
+                <li key={s.title}>
+                  <button
+                    type="button"
+                    className={`flow-step ${i === active ? 'is-on' : ''} ${i < active ? 'is-done' : ''}`}
+                    aria-pressed={i === active}
+                    onClick={() => { setActive(i); setPaused(true); }}
+                    onMouseEnter={() => { setActive(i); setPaused(true); }}
+                  >
+                    <span className="flow-ico"><s.Icon aria-hidden /></span>
+                    <span className="flow-n mono">{String(i + 1).padStart(2, '0')}</span>
+                    <span className="flow-title">{s.title}</span>
+                  </button>
+                </li>
+              ))}
+            </ol>
+            <p className="flow-detail card" aria-live="polite">
+              <strong>{FLOW[active].title}.</strong> {FLOW[active].text}
             </p>
-            <Link to="/ajuda" className="btn btn-ghost">Guia de uso no Android <ArrowRight className="arrow" aria-hidden /></Link>
           </div>
-          <OtgDiagram />
+        </div>
+      </section>
+
+      {/* ===================== RESULTADO (DEMONSTRAÇÃO) ===================== */}
+      <section id="experiencia" className="sec" aria-labelledby="experiencia-title">
+        <div className="wrap result-grid">
+          <div className="sec-head">
+            <span className="demo-flag">Demonstração · dados de exemplo, não são seus arquivos</span>
+            <h2 id="experiencia-title" className="h2" tabIndex={-1}>Números que respondem, não que enfeitam.</h2>
+            <p className="lead">
+              Cada gráfico mostra o valor escrito ao lado da barra e a parte do total. Sem legenda para decifrar, sem efeito 3D, sem pizza confusa.
+            </p>
+            <Link to="/automatico" className="btn btn-ghost">Ver com o meu pendrive <ArrowRight className="arrow" aria-hidden /></Link>
+          </div>
+          <div className="card demo-card">
+            <dl className="stat-grid">
+              <div className="stat"><dt>Arquivos</dt><dd className="num">{DEMO_TOTAL.count.toLocaleString('pt-BR')}</dd><span className="muted">{formatBytes(DEMO_TOTAL.bytes)}</span></div>
+              <div className="stat"><dt>Verificados</dt><dd className="num">100%</dd><span className="muted">SHA-256</span></div>
+              <div className="stat"><dt>Cópias extras</dt><dd className="num">183</dd><span className="muted">{formatBytes(2_340_000_000)} recuperáveis</span></div>
+              <div className="stat"><dt>Pastas</dt><dd className="num">8</dd><span className="muted">por tipo</span></div>
+            </dl>
+            <div className="chart-head">
+              <h3 className="chart-title">{view === 'bytes' ? 'Espaço por tipo de arquivo' : 'Quantidade por tipo de arquivo'}</h3>
+              <div className="seg" role="radiogroup" aria-label="Medida do gráfico">
+                <label><input type="radio" name="demo-view" checked={view === 'bytes'} onChange={() => setView('bytes')} /><span>Espaço</span></label>
+                <label><input type="radio" name="demo-view" checked={view === 'count'} onChange={() => setView('count')} /><span>Quantidade</span></label>
+              </div>
+            </div>
+            <BarList
+              title={`${view === 'bytes' ? 'Espaço' : 'Quantidade'} por tipo (exemplo)`}
+              data={demoRows.map((d) => ({
+                key: d.c,
+                label: CATEGORY_LABEL[d.c],
+                value: view === 'bytes' ? d.bytes : d.count,
+                color: CAT_VAR[d.c],
+                detail: view === 'bytes' ? `${pct(d.bytes, DEMO_TOTAL.bytes)} do espaço` : `${pct(d.count, DEMO_TOTAL.count)} dos arquivos`,
+              }))}
+              format={view === 'bytes' ? formatBytes : (v) => v.toLocaleString('pt-BR')}
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* ===================== ÁREAS ===================== */}
+      <section className="sec" aria-labelledby="areas-t">
+        <div className="wrap">
+          <div className="sec-head">
+            <span className="label">Plataforma</span>
+            <h2 id="areas-t" className="h2">Tudo organizado em quatro frentes.</h2>
+            <p className="lead">{ROUTES.length - 1} áreas que funcionam de verdade. O que depende de permissão do sistema está dito lá dentro.</p>
+          </div>
+          <div className="areas">
+            {GROUPS.map((g) => (
+              <div key={g} className="area-group">
+                <h3 className="label">{g}</h3>
+                {ROUTES.filter((r) => r.group === g && r.path !== '/').map((r) => (
+                  <Link key={r.path} to={r.path} className="area-card card">
+                    <span className="area-ico" aria-hidden><r.icon /></span>
+                    <span className="area-title">{r.title}</span>
+                    <span className="area-desc">{r.blurb}</span>
+                    <ArrowUpRight className="area-arrow" aria-hidden />
+                  </Link>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ===================== PROVA (HASH AO VIVO) ===================== */}
+      <section className="sec" aria-labelledby="prova-t">
+        <div className="wrap">
+          <div className="card proof">
+            <div className="sec-head">
+              <span className="label">Comprove agora</span>
+              <h2 id="prova-t" className="h2">Cópia é conteúdo igual — não nome igual.</h2>
+              <p className="lead">Edite os textos abaixo. O cálculo SHA-256 é real e acontece no seu aparelho: é assim que o detector de duplicados decide.</p>
+            </div>
+            <HashPlayground />
+          </div>
         </div>
       </section>
 
       {/* ===================== COMPROMISSOS ===================== */}
-      <section className="pledge" data-tone="gelo" aria-label="Compromissos">
+      <section className="sec" aria-labelledby="comp-t">
         <div className="wrap">
-          <p className="pledge-text">
-            Nada é <mark>apagado</mark> sem você confirmar. Nada <mark>sai do aparelho</mark> sem você pedir. Nenhum número nesta interface é
-            <mark> inventado</mark> — exceto onde está escrito “demonstração”.
-          </p>
+          <div className="sec-head">
+            <span className="label">Segurança e confiança</span>
+            <h2 id="comp-t" className="h2">Feito para dados que importam.</h2>
+          </div>
+          <ul className="pillars">
+            <li className="card"><Lock aria-hidden /><h3 className="h3">Privado por padrão</h3><p className="muted">Nenhum arquivo sai do aparelho. A IA online é opcional e nunca recebe o conteúdo dos arquivos.</p></li>
+            <li className="card"><Fingerprint aria-hidden /><h3 className="h3">Integridade verificável</h3><p className="muted">SHA-256 para cada arquivo e cofre AES-256-GCM com chave derivada da sua senha.</p></li>
+            <li className="card"><Undo2 aria-hidden /><h3 className="h3">Tudo reversível</h3><p className="muted">Nada é apagado sem confirmação. Cópias vão para uma lixeira restaurável e cada ação fica no histórico.</p></li>
+          </ul>
+        </div>
+      </section>
+
+      {/* ===================== CHAMADA FINAL ===================== */}
+      <section className="sec" aria-labelledby="cta-t">
+        <div className="wrap">
+          <div className="cta card">
+            <div>
+              <h2 id="cta-t" className="h2">Pronto para deixar o pendrive em ordem?</h2>
+              <p className="lead">Configure uma vez. Nas próximas, é só encaixar.</p>
+            </div>
+            <div className="btn-row">
+              <Link to="/automatico" className="btn btn-primary btn-lg"><Zap aria-hidden /> Ativar o modo automático</Link>
+              <Link to="/arquivos" className="btn btn-ghost btn-lg">Escolher arquivos manualmente</Link>
+            </div>
+          </div>
         </div>
       </section>
     </>
   );
 }
 
-function OtgDiagram() {
+/** Mini selo com as cores da bandeira (estilizado). */
+function FlagDot() {
   return (
-    <svg className="otg-diagram" viewBox="0 0 520 300" role="img" aria-label="Diagrama: celular Android ligado a um adaptador OTG, ligado a um pendrive de 16 GB">
-      <g fill="none" stroke="currentColor" strokeWidth="1.5">
-        <rect x="20" y="30" width="130" height="240" />
-        <rect x="32" y="52" width="106" height="186" stroke="var(--line-strong)" />
-        <line x1="70" y1="40" x2="100" y2="40" />
-        <rect x="70" y="270" width="30" height="10" />
-        <path d="M85 280 C85 300 200 290 220 230" strokeDasharray="4 4" stroke="var(--signal)" />
-        <rect x="205" y="200" width="60" height="30" />
-        <rect x="265" y="208" width="26" height="14" />
-        <rect x="300" y="190" width="40" height="50" stroke="var(--c-sol)" />
-        <rect x="340" y="185" width="150" height="60" />
-        <line x1="350" y1="200" x2="470" y2="200" stroke="var(--line-strong)" />
-        <line x1="350" y1="215" x2="470" y2="215" stroke="var(--line-strong)" />
-      </g>
-      <g className="otg-labels" fill="currentColor">
-        <text x="20" y="20">ANDROID</text>
-        <text x="205" y="190">OTG</text>
-        <text x="340" y="175">PENDRIVE 16 GB</text>
-        <text x="40" y="150" fill="var(--signal)">USB Intelligence</text>
-        <text x="40" y="168" fill="var(--fg-2)">instalado</text>
-      </g>
+    <svg className="flagdot" viewBox="0 0 18 12" aria-hidden>
+      <rect width="18" height="12" rx="3" fill="#009c3b" />
+      <path d="M9 1.6 L16.2 6 L9 10.4 L1.8 6 Z" fill="#ffdf00" />
+      <circle cx="9" cy="6" r="2.6" fill="#002776" />
     </svg>
   );
 }

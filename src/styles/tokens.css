@@ -1,56 +1,64 @@
 /* ==========================================================================
-   USB Intelligence — tokens do sistema de design
-   Paleta "Cerrado Digital": verdes de mata e de sinal, amarelo de sol a pino,
-   azul de rede e de noite. Cada seção escolhe UM par principal (tom) e usa os
-   demais apenas para estado e detalhe.
+   USB Intelligence — sistema de design "Brasil Moderno"
+   Cores da bandeira traduzidas para interface: verde-mata como base, amarelo-ouro
+   como ação principal, azul-anil para informação e o branco como respiro.
+   Superfícies de vidro sobre um fundo inspirado na bandeira (losango, globo e estrelas).
    ========================================================================== */
 :root {
-  /* Cores de marca */
-  --c-mata: #063d2e;        /* verde profundo */
-  --c-sinal: #00e676;       /* verde elétrico */
-  --c-sol: #ffd600;         /* amarelo solar */
-  --c-rede: #1464f4;        /* azul tecnológico */
-  --c-noite: #07152d;       /* azul noturno */
-  --c-gelo: #f4f7f2;        /* branco gelo */
-  --c-grafite: #101311;     /* grafite */
+  /* Bandeira (referência) */
+  --br-verde: #009c3b;
+  --br-amarelo: #ffdf00;
+  --br-azul: #002776;
+  --br-branco: #ffffff;
 
-  /* Derivadas (calculadas à mão para contraste AA sobre seus fundos) */
-  --c-grafite-2: #171b18;
-  --c-grafite-3: #222723;
-  --c-mata-2: #0a4a38;
-  --c-noite-2: #0d2142;
-  --c-gelo-2: #e6ebe3;
-  --c-cinza: #8d968f;       /* texto secundário em fundos escuros: 6.3:1 no grafite */
-  --c-cinza-escuro: #4c544e;/* texto secundário em gelo: 7.6:1 */
-  --c-erro: #ff6b57;
-  --c-erro-escuro: #b3261e;
-  --c-rede-claro: #6c9dff;  /* azul legível sobre noite/grafite */
+  /* Cores de marca (nomes antigos mantidos: o app inteiro usa estes tokens) */
+  --c-mata: #00552a;        /* verde profundo */
+  --c-sinal: #2fd57f;       /* verde vivo (texto/ícone sobre escuro) */
+  --c-sol: #ffdf00;         /* amarelo-ouro da bandeira */
+  --c-rede: #1d4ed8;        /* azul de ação sobre claro */
+  --c-noite: #001a4d;       /* azul-anil profundo */
+  --c-gelo: #f3f8f4;        /* branco levemente esverdeado */
+  --c-grafite: #04120c;     /* base escura: verde quase preto */
+
+  --c-grafite-2: #0a1d15;
+  --c-grafite-3: #13291f;
+  --c-mata-2: #006b35;
+  --c-noite-2: #0a2a66;
+  --c-gelo-2: #e7efe9;
+  --c-cinza: #9fb3a7;       /* texto secundário sobre escuro: 8:1 */
+  --c-cinza-escuro: #46594e;/* texto secundário sobre claro: 7.2:1 */
+  --c-erro: #ff7a66;
+  --c-erro-escuro: #b42318;
+  --c-rede-claro: #7aa7ff;  /* azul legível sobre escuro */
 
   /* Tipografia */
-  --f-display: 'Bricolage Grotesque Variable', 'Arial Narrow', system-ui, sans-serif;
+  --f-display: 'Plus Jakarta Sans Variable', 'Inter Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --f-text: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --f-mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Mono', monospace;
 
-  /* Escala tipográfica (razão ~1.333, com saltos editoriais no topo) */
-  --t-micro: 0.6875rem;   /* 11 — índices, legendas mono */
-  --t-small: 0.8125rem;   /* 13 */
+  --t-micro: 0.75rem;     /* 12 */
+  --t-small: 0.875rem;    /* 14 */
   --t-body: 1rem;         /* 16 */
-  --t-lead: 1.25rem;      /* 20 */
-  --t-h3: clamp(1.375rem, 1.1rem + 0.9vw, 1.75rem);
-  --t-h2: clamp(2rem, 1.3rem + 2.6vw, 3.5rem);
-  --t-h1: clamp(2.75rem, 1.2rem + 6.4vw, 7.5rem);
-  --t-mega: clamp(3.9rem, 0.6rem + 12.5vw, 13.5rem);
+  --t-lead: clamp(1.0625rem, 1rem + 0.35vw, 1.25rem);
+  --t-h3: clamp(1.2rem, 1.05rem + 0.6vw, 1.5rem);
+  --t-h2: clamp(1.9rem, 1.3rem + 2.2vw, 3rem);
+  --t-h1: clamp(2.3rem, 1.4rem + 3.6vw, 4.25rem);
+  --t-mega: clamp(2.6rem, 1.3rem + 5.2vw, 5.6rem);
 
   /* Espaços (base 4) */
   --s-1: 4px;  --s-2: 8px;  --s-3: 12px; --s-4: 16px; --s-5: 24px;
   --s-6: 32px; --s-7: 48px; --s-8: 64px; --s-9: 96px; --s-10: 144px;
 
-  --gutter: clamp(16px, 4vw, 56px);
-  --max: 1440px;
+  --gutter: clamp(16px, 4vw, 48px);
+  --max: 1280px;
 
-  /* Bordas: quase retas. O sistema é de recortes, não de cápsulas. */
+  /* Bordas arredondadas, modernas */
   --r-0: 0;
-  --r-1: 2px;
-  --r-2: 4px;
+  --r-1: 8px;
+  --r-2: 12px;
+  --r-3: 18px;
+  --r-4: 26px;
+  --r-pill: 999px;
   --hair: 1px;
 
   /* Movimento */
@@ -60,73 +68,82 @@
   --d-base: 260ms;
   --d-slow: 600ms;
 
-  /* Tinta de estado (texto/borda) para fundos escuros; o gelo/claro redefine abaixo */
-  --ink-ok: var(--c-sinal);
-  --ink-warn: var(--c-sol);
-  --ink-err: var(--c-erro);
-  --ink-info: var(--c-rede-claro);
-
   --z-nav: 40;
   --z-overlay: 60;
   --z-toast: 80;
 
-  --nav-h: 64px;
+  --nav-h: 68px;
   --tab-h: 64px;
 }
 
-/* Tons de seção: cada página escolhe um com data-tone */
-[data-tone='grafite'] {
-  --bg: var(--c-grafite); --bg-2: var(--c-grafite-2); --bg-3: var(--c-grafite-3);
-  --fg: var(--c-gelo); --fg-2: var(--c-cinza);
-  --accent: var(--c-sol); --accent-fg: var(--c-grafite);
-  --signal: var(--c-sinal); --line: rgba(244, 247, 242, 0.14); --line-strong: rgba(244, 247, 242, 0.32);
-  --topo: rgba(0, 230, 118, 0.10);
-}
-[data-tone='mata'] {
-  --bg: var(--c-mata); --bg-2: var(--c-mata-2); --bg-3: #0e5944;
-  --fg: var(--c-gelo); --fg-2: #a9c4b8;
-  --accent: var(--c-sinal); --accent-fg: var(--c-grafite);
-  --signal: var(--c-sol); --line: rgba(244, 247, 242, 0.16); --line-strong: rgba(244, 247, 242, 0.36);
-  --topo: rgba(255, 214, 0, 0.10);
-}
-[data-tone='noite'] {
-  --bg: var(--c-noite); --bg-2: var(--c-noite-2); --bg-3: #132950;
-  --fg: var(--c-gelo); --fg-2: #9cabc4;
-  --accent: var(--c-sol); --accent-fg: var(--c-grafite);
-  --signal: var(--c-rede-claro); --line: rgba(244, 247, 242, 0.14); --line-strong: rgba(244, 247, 242, 0.34);
-  --topo: rgba(20, 100, 244, 0.22);
-}
-[data-tone='gelo'],
-html[data-theme='light'] [data-tone] {
-  --bg: var(--c-gelo); --bg-2: var(--c-gelo-2); --bg-3: #d9e0d6;
-  --fg: var(--c-grafite); --fg-2: var(--c-cinza-escuro);
-  --accent: var(--c-mata); --accent-fg: var(--c-gelo);
-  --signal: var(--c-rede); --line: rgba(16, 19, 17, 0.14); --line-strong: rgba(16, 19, 17, 0.4);
-  --topo: rgba(6, 61, 46, 0.10);
-  --ink-ok: #00703a; --ink-warn: #7a5c00; --ink-err: var(--c-erro-escuro); --ink-info: var(--c-rede);
-}
-
-/* Séries de gráfico e estados — passos escuros validados contra o grafite */
-[data-tone='grafite'], [data-tone='mata'], [data-tone='noite'] {
-  --cat-1: #3987e5; --cat-2: #d95926; --cat-3: #199e70; --cat-4: #c98500; --cat-5: #d55181; --cat-6: #008300; --cat-7: #9085e9; --cat-0: #7f8a83;
-  --st-ok: #00e676; --st-warn: #ffd600; --st-err: #ff6b57;
-}
-[data-tone='gelo'],
-html[data-theme='light'] [data-tone] {
-  --cat-1: #2a78d6; --cat-2: #eb6834; --cat-3: #1baf7a; --cat-4: #eda100; --cat-5: #e87ba4; --cat-6: #008300; --cat-7: #6250d6; --cat-0: #8d968f;
-  --st-ok: #00a152; --st-warn: #c99400; --st-err: #b3261e;
-}
-
-/* Tema escuro forçado: páginas desenhadas em gelo (Relatórios, Histórico) passam a grafite */
-html[data-theme='dark'] [data-tone='gelo'] {
-  --bg: var(--c-grafite); --bg-2: var(--c-grafite-2); --bg-3: var(--c-grafite-3);
-  --fg: var(--c-gelo); --fg-2: var(--c-cinza);
-  --accent: var(--c-sol); --accent-fg: var(--c-grafite);
-  --signal: var(--c-sinal); --line: rgba(244, 247, 242, 0.14); --line-strong: rgba(244, 247, 242, 0.32);
-  --topo: rgba(0, 230, 118, 0.10);
-  --cat-1: #3987e5; --cat-2: #d95926; --cat-3: #199e70; --cat-4: #c98500; --cat-5: #d55181; --cat-6: #008300; --cat-7: #9085e9; --cat-0: #7f8a83;
-  --st-ok: #00e676; --st-warn: #ffd600; --st-err: #ff6b57;
+/* ---------- Tema escuro (padrão): verde-mata profundo ---------- */
+[data-tone] {
+  --bg: var(--c-grafite);
+  --bg-2: rgba(12, 34, 25, 0.72);      /* cartão (vidro) */
+  --bg-3: rgba(255, 255, 255, 0.07);   /* poço, trilho, campo */
+  --surface-solid: #0b1f16;
+  --fg: #f2f7f3;
+  --fg-2: var(--c-cinza);
+  --accent: var(--c-sol); --accent-fg: #0b1a00;
+  --signal: var(--c-sinal);
+  --line: rgba(255, 255, 255, 0.09); --line-strong: rgba(255, 255, 255, 0.22);
+  --topo: rgba(47, 213, 127, 0.08);
+  --glow-y: rgba(255, 223, 0, 0.28);
+  --glow-g: rgba(0, 156, 59, 0.35);
+  --glow-b: rgba(29, 78, 216, 0.35);
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px -12px rgba(0, 0, 0, 0.55);
+  --shadow-2: 0 2px 6px rgba(0, 0, 0, 0.3), 0 24px 60px -24px rgba(0, 0, 0, 0.7);
   --ink-ok: var(--c-sinal); --ink-warn: var(--c-sol); --ink-err: var(--c-erro); --ink-info: var(--c-rede-claro);
+  --cat-1: #3987e5; --cat-2: #d95926; --cat-3: #199e70; --cat-4: #c98500; --cat-5: #d55181; --cat-6: #008300; --cat-7: #9085e9; --cat-0: #7f8a83;
+  --st-ok: #2fd57f; --st-warn: #ffdf00; --st-err: #ff7a66;
+}
+
+/* ---------- Tema claro: branco e verde ---------- */
+html[data-theme='light'] [data-tone] {
+  --bg: #f4f8f5;
+  --bg-2: rgba(255, 255, 255, 0.84);
+  --bg-3: rgba(4, 18, 12, 0.06);
+  --surface-solid: #ffffff;
+  --fg: #0a1c13;
+  --fg-2: var(--c-cinza-escuro);
+  --accent: #007a37; --accent-fg: #ffffff;
+  --signal: #0b49c4;
+  --line: rgba(4, 18, 12, 0.1); --line-strong: rgba(4, 18, 12, 0.24);
+  --topo: rgba(0, 122, 55, 0.08);
+  --glow-y: rgba(255, 223, 0, 0.35);
+  --glow-g: rgba(0, 156, 59, 0.18);
+  --glow-b: rgba(29, 78, 216, 0.16);
+  --shadow-1: 0 1px 2px rgba(10, 28, 19, 0.06), 0 8px 24px -14px rgba(10, 28, 19, 0.22);
+  --shadow-2: 0 2px 6px rgba(10, 28, 19, 0.06), 0 28px 60px -28px rgba(10, 28, 19, 0.35);
+  --ink-ok: #00703a; --ink-warn: #7a5c00; --ink-err: var(--c-erro-escuro); --ink-info: #0b49c4;
+  --cat-1: #2a78d6; --cat-2: #eb6834; --cat-3: #1baf7a; --cat-4: #eda100; --cat-5: #e87ba4; --cat-6: #008300; --cat-7: #6250d6; --cat-0: #8d968f;
+  --st-ok: #00a152; --st-warn: #c99400; --st-err: #b42318;
 }
 html[data-theme='light'] { color-scheme: light; }
-html[data-theme='light'] body, html[data-theme='light'] .app { background: var(--c-gelo); }
+html[data-theme='light'] body { background: #f4f8f5; color: #0a1c13; }
+
+/* Automático: segue o sistema operacional */
+@media (prefers-color-scheme: light) {
+  html:not([data-theme]) { color-scheme: light; }
+  html:not([data-theme]) body { background: #f4f8f5; color: #0a1c13; }
+  html:not([data-theme]) [data-tone] {
+    --bg: #f4f8f5;
+    --bg-2: rgba(255, 255, 255, 0.84);
+    --bg-3: rgba(4, 18, 12, 0.06);
+    --surface-solid: #ffffff;
+    --fg: #0a1c13;
+    --fg-2: var(--c-cinza-escuro);
+    --accent: #007a37; --accent-fg: #ffffff;
+    --signal: #0b49c4;
+    --line: rgba(4, 18, 12, 0.1); --line-strong: rgba(4, 18, 12, 0.24);
+    --topo: rgba(0, 122, 55, 0.08);
+    --glow-y: rgba(255, 223, 0, 0.35);
+    --glow-g: rgba(0, 156, 59, 0.18);
+    --glow-b: rgba(29, 78, 216, 0.16);
+    --shadow-1: 0 1px 2px rgba(10, 28, 19, 0.06), 0 8px 24px -14px rgba(10, 28, 19, 0.22);
+    --shadow-2: 0 2px 6px rgba(10, 28, 19, 0.06), 0 28px 60px -28px rgba(10, 28, 19, 0.35);
+    --ink-ok: #00703a; --ink-warn: #7a5c00; --ink-err: var(--c-erro-escuro); --ink-info: #0b49c4;
+    --cat-1: #2a78d6; --cat-2: #eb6834; --cat-3: #1baf7a; --cat-4: #eda100; --cat-5: #e87ba4; --cat-6: #008300; --cat-7: #6250d6; --cat-0: #8d968f;
+    --st-ok: #00a152; --st-warn: #c99400; --st-err: #b42318;
+  }
+}

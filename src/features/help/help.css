@@ -7,7 +7,7 @@
 .diag-item.is-ok .diag-icon { background: var(--c-sinal); color: var(--c-grafite); }
 .diag-item.is-aviso .diag-icon { background: var(--c-sol); color: var(--c-grafite); }
 .diag-item.is-falha .diag-icon { background: var(--c-erro); color: var(--c-grafite); }
-.diag-label { font-weight: 700; font-stretch: 88%; }
+.diag-label { font-weight: 700; }
 .diag-detail { font-size: 0.9rem; word-break: break-word; }
 .off-title { margin-top: 24px; }
 .diag > .btn-quiet { justify-self: start; padding-left: 0; }
@@ -17,7 +17,7 @@
 .guide { border-bottom: 1px solid var(--line); }
 .guide summary {
   list-style: none; cursor: pointer; display: flex; align-items: baseline; gap: 16px; padding: 22px 0;
-  font-weight: 800; font-stretch: 78%; text-transform: uppercase; font-size: clamp(1.3rem, 1rem + 1.2vw, 2rem); letter-spacing: -0.01em;
+  font-family: var(--f-display); font-weight: 800; font-size: clamp(1.3rem, 1rem + 1.2vw, 2rem); letter-spacing: -0.01em;
 }
 .guide summary::-webkit-details-marker { display: none; }
 .guide summary::after { content: '+'; margin-left: auto; font-family: var(--f-mono); font-weight: 400; color: var(--accent); }

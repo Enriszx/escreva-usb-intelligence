@@ -9,7 +9,7 @@
 
 - **O que é:** web app 3D "USB Intelligence", com estética brasileira futurista. Usa React 18, TypeScript, Vite 5, three.js e React Three Fiber. Analisa arquivos de verdade (SHA-256, duplicados por conteúdo, plano de organização), gerencia pastas reais (renomear, mover, lixeira, apagar, desfazer) e tem cofre AES-GCM, personagem 3D editável, relatórios, histórico e PWA offline. Tem também app Android (Capacitor + plugin SAF próprio) e o assistente **Vigia IA**.
 - **Idioma:** tudo em **português do Brasil**: interface, commits, README e respostas ao usuário.
-- **Estado atual:** todos os testes passam: **74 unitários (Vitest)** e **24 grupos e2e (Playwright)**. Os builds `dist/` e `dist-artifact/` estão gerados, e os pacotes `.zip` em `release/` foram regenerados.
+- **Estado atual:** todos os testes passam: **74 unitários (Vitest)** e **25 grupos e2e (Playwright)**. Visual "Brasil Moderno" e Modo automático no ar (seção 6b). Os builds `dist/` e `dist-artifact/` estão gerados, e os pacotes `.zip` em `release/` foram regenerados.
 - **Publicado:** Artifact privado em https://claude.ai/artifact/2sEcU5zeBd4jDTUN19HXXS (prévia). Ele não usa mais nenhuma capacidade do Claude.
 - **GitHub:** https://github.com/Enriszx/escreva-usb-intelligence (repositório **público**). Tudo foi enviado, e o site público está em https://enriszx.github.io/escreva-usb-intelligence/. **A senha nunca vai para o repositório**: ela entra no build pela variável `VITE_PASS_HASH` (seção 4).
 - **Decisão do usuário (03/11):** "desconecte do Claude e coloque um código de IA PRÓPRIO e grátis que não gaste nada". Por isso não há mais SDK da Anthropic nem capacidade `sample`. Não reintroduzir sem pedido.
@@ -48,6 +48,8 @@
 6. "Adicione uma IA organizadora e que corresponde a tudo quanto eu pedir, no site" → **Vigia IA**, primeiro com o Claude.
 7. "Faça uma transferência completa desta sessão para uma nova sessão" → este documento.
 8. "Faça isso agr, desconecte do Claude e coloque um código de IA PRÓPRIO e grátis que não gaste nada" → motor trocado para **WebLLM + Qwen2.5** rodando no navegador (seção 6). A senha saiu do código para poder enviar ao repositório público.
+9. "Quero que funcione como uma IA completa e lance um HTTPS…" → IA online grátis gpt-oss-20b (seção 6a) e site público no GitHub Pages.
+10. "Mude todo o visual… MODERNO e PROFISSIONAL… lembre o Brasil… bandeira como fundo… para mandar para uma empresa gigante… interativo, gráficos objetivos… organizar em mais partes… encaixar o pendrive e fazer tudo sozinho" → redesign "Brasil Moderno" + Modo automático (seção 6b).
 
 ## 3. Como rodar
 
@@ -154,7 +156,37 @@ No build Artifact (`IS_ARTIFACT`) ficam escondidos ou ganham alternativa: servic
 - **PWA instalável** e offline, com manifesto e ícones.
 - **Senha (por variável de build), tema e Vigia IA com IA grátis no aparelho.**
 
-## 6a. IA online grátis (o trabalho mais recente, 03/11 à noite)
+## 6b. Redesign "Brasil Moderno" e Modo automático (o trabalho mais recente, 04/11)
+
+**Visual** (vale para todas as páginas):
+- `src/styles/tokens.css`: paleta da bandeira, superfícies de vidro (`--bg-2` rgba + blur), sombras, raios. Os nomes antigos (`--c-sol`, `--c-mata`…) foram mantidos com valores novos. Todos os `data-tone` usam a mesma paleta escura. O claro vem de `html[data-theme='light']` ou do sistema (`prefers-color-scheme`) quando o tema é "automático".
+- `src/styles/base.css`: Inter (texto) + Plus Jakarta Sans (títulos), botões arredondados, `.card`/`.panel` de vidro, `.eyebrow`, `.grad-text`.
+- `src/styles/layout.css`: cabeçalho de vidro com faixa verde-amarelo-azul, menu agrupado (`.index-groups`), rodapé por grupos, tab bar flutuante no celular, fundo `.bb`.
+- `src/components/layout/BrasilBackdrop.tsx`: fundo estilizado inspirado na bandeira (losango, globo, Cruzeiro do Sul, faixa, órbita com satélite). Paralaxe via `--mx/--my/--sy`. Desligado com movimento reduzido. Fora da home (`.app:not(.is-home)`) fica mais apagado. É estilizado de propósito (Lei 5.700/71).
+- `src/components/ui/Logo.tsx`: selo verde com losango, globo e conector USB.
+- `src/app/routes.ts`: 10 rotas com `group` (Operação, Proteção e controle, Experiência, Sistema), `GROUPS` e `byPath`. A rota nova é `/automatico` (02); as demais foram renumeradas.
+- `src/features/home/HomePage.tsx` + `src/styles/pages.css`: hero "Encaixe o pendrive. O resto é automático." com o 3D num cartão e chips ao vivo; fluxo de 6 etapas interativo (avança sozinho e pausa ao tocar); demonstração com KPIs e barras (Espaço/Quantidade); áreas por grupo; hash ao vivo; pilares; CTA. A seção de exemplo tem o selo "Demonstração".
+- Gráficos objetivos: o treemap da Visão geral foi removido (duplicava as barras). Os KPIs novos usam `.stat-grid/.stat`, porque `.kpi` já existia em `files.css` e colidia. A paleta categórica foi revalidada com o script da skill dataviz nos dois temas; o claro pede rótulo visível, e o `BarList` mostra o valor.
+
+**Modo automático:**
+- `src/features/auto/auto.tsx` (`AutoProvider`, dentro do `FolderProvider`): o vigia a cada 3 s, com fases `indisponivel | sem-config | aguardando | precisa-toque | executando | pronto | erro`.
+  - Sem pasta: `folder.attach(false)`, que é silencioso e só funciona se o navegador já der permissão.
+  - Com pasta: `folder.probe()`. Se falhar, `folder.detach()` e "Pendrive removido".
+  - Ao detectar sozinho: espera `SETTLE_MS` = 1,5 s, `rescan()` e roda.
+  - O pipeline: ler → `files.analyze` (completa ou duplicados) → duplicados (`autoTrashDupes`: fica o mais antigo, `pickKeeper`; as cópias vão para `trashItems`) → plano (`autoOrganize`: `applyPlan`) → relatório (o `reportId` vem do `analyze`).
+  - O resultado fica em `settings` com a chave `autoUltimo`, e o Histórico registra "Execução automática em X".
+- `src/features/files/folder.tsx`:
+  - `connect()` agora devolve boolean;
+  - novos `attach(interactive)`, `probe()` e `detach()`;
+  - `activate(b, handle, quiet)`;
+  - o nome lembrado fica separado (`pastaConectadaNome`).
+  - **O handle é lido do IndexedDB uma vez e fica em memória (`memo`).** Reconstruir do IndexedDB um handle OPFS cuja pasta foi apagada **derruba o Chromium** (reproduzido). Na memória, o mesmo handle dá NotFoundError e volta a funcionar.
+- Configurações novas: `autoRun` (true), `autoDeep` (true), `autoOrganize` (false), `autoCriterion` ('categoria'), `autoTrashDupes` (false). As ações que mexem em arquivos pedem confirmação ao serem ligadas.
+- `src/features/auto/AutoPage.tsx` + `auto.css`: estado com ilustração animada do pendrive, etapas, resultado (KPIs + barras com alternância Espaço/Quantidade), ajustes e "Onde funciona".
+- `Header.tsx`: chip do estado do pendrive (link para /automatico), atalhos com ícones, botão "Menu" (antes "Índice"), menu agrupado. Tab bar: Início, Automático, Arquivos, Relatórios, Segurança.
+- e2e 26: pendrive simulado em OPFS. 1ª execução com um toque; "remover" (apagar a pasta) → "Aguardando"; ligar lixeira e organizar; "encaixar" (recriar) → roda sozinho, sem toques, e confere a árvore no disco.
+
+## 6a. IA online grátis (03/11 à noite)
 
 Pedido do usuário: "quero que funcione como uma IA completa e lance um HTTPS... pronto para abrir no Google".
 
@@ -270,6 +302,10 @@ Não passe `capabilities`: elas foram limpas com `{}`, e omitir mantém assim. E
   - `git push` do `dd75b2f` (motivo: hash da senha em repositório público);
   - `git commit --amend --reset-author`.
 - Toda alegação na interface precisa ser verdadeira: sem botão falso, sem número inventado. O e2e 16 verifica `href="#"` e botões sem nome.
+- **Nunca** releia do IndexedDB, em laço, o handle de uma pasta que pode ter sumido (derruba o Chromium). Use o `memo` do `folder.tsx`.
+- `img, svg { max-width: 100% }` (base.css) corta camadas maiores que a tela: o fundo usa `max-width: none`.
+- Classes globais novas não podem repetir nomes que já existem em CSS de página carregado sob demanda (caso `.kpi`).
+- `pkill -f <padrão>` dentro de um comando Bash mata o próprio shell, se o padrão aparecer no comando. Mate por PID.
 
 ## 9. Pendências (por prioridade)
 
@@ -297,6 +333,6 @@ Não passe `capabilities`: elas foram limpas com `{}`, e omitir mantém assim. E
 ## 11. Checklist ao assumir
 
 1. `npm ci && npm test` deve dar 74 aprovados.
-2. `npm run build && npm run e2e` deve dar 23/23, com o teste 18 (senha) pulado. Com senha: build com `VITE_PASS_HASH` (o `.env.local` só existe neste container; peça ao usuário para recriar se precisar) e `E2E_SENHA=<senha> npm run e2e` dá 24/24.
+2. `npm run build && npm run e2e` deve dar 24/24, com o teste 18 (senha) pulado. Com senha: build com `VITE_PASS_HASH` (o `.env.local` só existe neste container; peça ao usuário para recriar se precisar) e `E2E_SENHA=<senha> npm run e2e` dá 25/25.
 3. Ler a seção 9 e perguntar ao usuário só o que estiver bloqueado (envio ao GitHub e a senha).
 4. Depois de qualquer mudança visível: rodar os testes, olhar capturas em desktop e celular, republicar o Artifact (seção 7), `npm run package:usb`, commit e, se liberado, push.

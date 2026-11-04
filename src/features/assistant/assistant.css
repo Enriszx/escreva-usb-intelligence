@@ -2,9 +2,9 @@
 .ai-fab {
   position: fixed; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: calc(var(--z-nav) + 1);
   display: inline-flex; align-items: center; gap: 10px; min-height: 52px; padding: 0 18px 0 14px;
-  background: var(--c-sol); color: var(--c-grafite); border: 0; font-weight: 700; font-stretch: 88%;
+  background: var(--c-sol); color: var(--c-grafite); border: 0; font-weight: 700;
   box-shadow: 0 18px 40px -16px rgba(0, 0, 0, 0.7);
-  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%);
+  border-radius: var(--r-3);
   transition: transform var(--d-base) var(--ease-out);
 }
 .ai-fab:hover { transform: translateY(-2px); }
@@ -17,7 +17,7 @@
 }
 .ai-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 12px 12px 16px; border-bottom: 1px solid var(--line); background: var(--bg-2); }
 .ai-title { display: flex; align-items: center; gap: 10px; }
-.ai-title strong { display: block; font-weight: 800; font-stretch: 80%; text-transform: uppercase; font-size: 1.15rem; line-height: 1; }
+.ai-title strong { display: block; font-family: var(--f-display); font-weight: 800; font-size: 1.15rem; line-height: 1; }
 .ai-engine { font-family: var(--f-mono); font-size: var(--t-micro); letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg-2); }
 .ai-engine.is-claude, .ai-engine.is-api { color: var(--ink-ok); }
 .ai-engine.is-local { color: var(--ink-warn); }
@@ -54,7 +54,7 @@
 .ai-send.is-stop { background: var(--ink-err); color: var(--c-grafite); }
 .ai-send svg { width: 20px; height: 20px; }
 @media (max-width: 760px) {
-  .ai-fab { bottom: calc(var(--tab-h) + 12px + env(safe-area-inset-bottom, 0px)); right: 12px; min-height: 48px; padding: 0 12px; }
+  .ai-fab { bottom: calc(var(--tab-h) + 24px + env(safe-area-inset-bottom, 0px)); right: 14px; min-height: 48px; padding: 0 12px; }
   .ai-fab span { display: none; }
   .ai-panel { inset: 0; width: auto; height: auto; border: 0; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
 }

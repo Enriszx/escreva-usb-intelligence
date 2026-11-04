@@ -39,20 +39,26 @@ page.on('pageerror', (e) => errors.push(`${e.message} @ ${page.url()} :: ${(e.st
 const go = async (r) => { await page.goto(`${BASE}#${r}`); await page.waitForLoadState('networkidle'); };
 const toast = (t) => page.locator('.toast', { hasText: t }).first().waitFor({ timeout: 8000 });
 
-await test('1. Página inicial abre com título e ações', async () => {
+await test('1. Página inicial abre com título, ações e fluxo interativo', async () => {
   await go('/');
-  assert((await page.locator('h1').innerText()).includes('SEUS DADOS'), 'título ausente');
-  await page.getByRole('link', { name: /Entrar no sistema/ }).waitFor();
-  await page.getByRole('link', { name: /Explorar a experiência/ }).click();
+  assert(/encaixe o pendrive/i.test(await page.locator('h1').innerText()), 'título ausente');
+  await page.getByRole('link', { name: /Começar agora/ }).waitFor();
+  await page.getByRole('link', { name: /Ver como funciona/ }).click();
   await page.waitForTimeout(800);
-  assert(await page.locator('#experiencia').isVisible(), 'seção de demonstração');
+  assert(await page.locator('#como-funciona').isVisible(), 'seção como funciona');
+  await page.getByRole('button', { name: /Acha cópias/ }).click();
+  assert(/Compara conteúdo, não nome/.test(await page.locator('.flow-detail').innerText()), 'etapa interativa');
+  assert(await page.locator('.bb').count(), 'fundo inspirado na bandeira');
+  await page.locator('#experiencia .seg label', { hasText: 'Quantidade' }).click();
+  assert(/Quantidade por tipo/.test(await page.locator('#experiencia .chart-title').innerText()), 'gráfico alterna a medida');
 });
 
 await test('2. Navegação: todas as rotas do índice abrem', async () => {
-  const titles = ['Início', 'Central de arquivos', 'Laboratório 3D', 'Meu personagem', 'Segurança', 'Relatórios', 'Histórico', 'Configurações', 'Ajuda e diagnóstico'];
+  const titles = ['Início', 'Modo automático', 'Central de arquivos', 'Laboratório 3D', 'Meu personagem', 'Segurança', 'Relatórios', 'Histórico', 'Configurações', 'Ajuda e diagnóstico'];
   for (const t of titles) {
-    await page.getByRole('button', { name: 'Índice' }).click();
-    await page.locator('#indice').getByRole('link', { name: new RegExp(t) }).click();
+    await page.getByRole('button', { name: 'Menu' }).click();
+    assert((await page.locator('#indice .index-group').count()) === 4, 'menu em 4 grupos');
+    await page.locator('#indice').getByRole('link', { name: new RegExp(`^${t}`) }).click();
     await page.waitForTimeout(500);
     assert(!(await page.getByText('Erro 404').count()), `${t} caiu no 404`);
     assert(await page.locator('main h1').count(), `${t} sem h1`);
@@ -156,7 +162,7 @@ await test('11. Gráficos usam os resultados calculados', async () => {
   await page.locator('.legend-item', { hasText: 'Imagens' }).click();
   assert((await page.locator('section[aria-labelledby=g-ext] .bar-row').count()) === 1, 'filtro cruzado');
   // gráficos novos usam os mesmos dados calculados
-  assert((await page.locator('.treemap .tile').count()) === 3, 'treemap: um bloco por tipo com volume');
+  assert((await page.locator('#g-cats').locator('xpath=..').locator('.bar-row').count()) === 3, 'barras de espaço: uma por tipo com volume, com valor escrito');
   assert(/Concluído\s*5/.test((await page.locator('.stack-legend').innerText()).replace(/\n/g, ' ')), 'status: 5 concluídos');
   assert((await page.locator('.kpi-card').first().innerText()).includes('5'), 'KPI total');
 });
@@ -284,10 +290,11 @@ await test('20. Biblioteca: grade, agrupar por tipo, Planilhas/Apresentações e
   await p.getByRole('button', { name: /Mudar para grade/ }).click();
   assert((await p.locator('.fcard').count()) === 4, 'grade com 4 cartões');
   assert((await p.locator('.fcard-thumb img').count()) === 1, 'miniatura real da imagem');
+  await p.waitForFunction(() => { const i = document.querySelector('.fcard-thumb img'); return i && i.complete && i.naturalWidth > 0; }, null, { timeout: 5000 }).catch(() => {});
   assert((await p.locator('.fcard-thumb img').evaluate((i) => i.naturalWidth)) === 1, 'miniatura carregou de verdade');
   await p.getByLabel('Agrupar por').selectOption('tipo');
   const heads = await p.locator('.file-sec-head h3').allInnerTexts();
-  assert(['DOCUMENTOS', 'PLANILHAS', 'APRESENTAÇÕES', 'IMAGENS'].every((h) => heads.includes(h)), `grupos: ${heads.join(',')}`);
+  assert(['Documentos', 'Planilhas', 'Apresentações', 'Imagens'].every((h) => heads.some((x) => x.toLowerCase() === h.toLowerCase())), `grupos: ${heads.join(',')}`);
   await p.getByLabel('Agrupar por').selectOption('formato');
   assert((await p.locator('.file-sec').count()) === 4, 'um grupo por formato');
   await p.reload();
@@ -471,6 +478,53 @@ await test('25. IA online grátis: ativa com um toque, usa ferramenta, formata, 
   await p.locator('#ai-input').press('Enter');
   await p.locator('.ai-note', { hasText: /modo de comandos/ }).waitFor({ timeout: 15000 });
   assert((await p.evaluate(() => document.documentElement.dataset.theme)) === 'dark', 'plano B executou o comando');
+  assert(!perr.length, perr.join(' | '));
+  await c.close();
+});
+
+await test('26. Modo automático: um toque na 1ª vez; depois detecta, executa, solta e repete sozinho', async () => {
+  const c = await browser.newContext({ viewport: { width: 1366, height: 900 } });
+  await c.addInitScript(UNLOCK);
+  // Pendrive simulado: uma pasta real no OPFS. "Remover" = apagar a pasta; "encaixar" = recriá-la.
+  await c.addInitScript(() => { window.showDirectoryPicker = async () => (await navigator.storage.getDirectory()).getDirectoryHandle('AUTO', { create: true }); });
+  const p = await c.newPage();
+  const perr = [];
+  p.on('pageerror', (e) => perr.push(e.message));
+  const plug = () => p.evaluate(async () => {
+    const d = await (await navigator.storage.getDirectory()).getDirectoryHandle('AUTO', { create: true });
+    const put = async (name, text) => { const w = await (await d.getFileHandle(name, { create: true })).createWritable(); await w.write(text); await w.close(); };
+    await put('foto.jpg', 'IMAGEM-123'); await put('foto (1).jpg', 'IMAGEM-123'); await put('nota.txt', 'texto'); await put('planilha.xlsx', 'xlsx');
+  });
+  const unplug = () => p.evaluate(async () => (await navigator.storage.getDirectory()).removeEntry('AUTO', { recursive: true }));
+  const tree = () => p.evaluate(async () => { const out = []; const walk = async (d, pre) => { for await (const [n, h] of d.entries()) { if (h.kind === 'directory') await walk(h, pre + n + '/'); else out.push(pre + n); } }; await walk(await (await navigator.storage.getDirectory()).getDirectoryHandle('AUTO'), ''); return out.sort(); });
+  const toast = (t, ms = 20000) => p.locator('.toast', { hasText: t }).first().waitFor({ timeout: ms });
+  const steps = async () => (await p.locator('.sv').allInnerTexts()).map((x) => x.replace(/\s+/g, ' '));
+  await p.goto(`${BASE}#/automatico`);
+  await p.evaluate(async () => (await navigator.storage.getDirectory()).removeEntry('AUTO', { recursive: true }).catch(() => {}));
+  await plug();
+  assert(/Configurar pendrive/.test(await p.locator('.chip').innerText()), 'chip pede configuração');
+  await p.getByRole('button', { name: 'Conectar pendrive' }).click();
+  await toast('pronto');
+  let st = await steps();
+  assert(/4 arquivos/.test(st[1]) && /4 arquivos verificados/.test(st[2]) && /1 cópia extra/.test(st[3]), `1ª execução: ${st.join(' | ')}`);
+  assert(/Não executado/.test(st[4]) && /Salvo em Relatórios/.test(st[5]), 'sem mover nada por padrão; relatório salvo');
+  assert((await p.locator('.stat-grid .stat').count()) === 4 && (await p.locator('.auto-result .bar-row').count()) >= 3, 'KPIs e barras com dados reais');
+  assert((await tree()).length === 4, 'nada mudou no pendrive por padrão');
+  await unplug();
+  await toast('Pendrive removido', 15000);
+  assert(/Aguardando/.test(await p.locator('.chip').innerText()), 'chip aguardando');
+  for (const label of ['Cópias extras para a lixeira', 'Organizar em pastas']) {
+    await p.locator('label.switch', { hasText: label }).locator('input').click();
+    await p.getByRole('button', { name: 'Ligar' }).click();
+  }
+  await p.waitForTimeout(500);
+  await plug(); // nenhum toque daqui em diante
+  await p.waitForFunction(() => /lixeira do app/.test(document.querySelectorAll('.sv')[3]?.textContent ?? '') && /Salvo/.test(document.querySelectorAll('.sv')[5]?.textContent ?? ''), null, { timeout: 30000 })
+    .catch(() => {});
+  st = await steps();
+  assert(/1 na lixeira do app/.test(st[3]) && /movidos/.test(st[4]), `2ª execução: ${st.join(' | ')}`);
+  const t = await tree();
+  assert(t.includes('Imagens/foto.jpg') && t.includes('Documentos/nota.txt') && t.some((x) => x.startsWith('.usbi-lixeira/')), `pendrive organizado: ${t.join(', ')}`);
   assert(!perr.length, perr.join(' | '));
   await c.close();
 });

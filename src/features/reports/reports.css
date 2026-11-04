@@ -2,7 +2,7 @@
 .rp-overview { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--line-strong); border-bottom: 1px solid var(--line); }
 .rp-stat { display: grid; gap: 6px; align-content: start; padding: 20px 20px 20px 0; }
 .rp-stat + .rp-stat { padding-left: 20px; border-left: 1px solid var(--line); }
-.rp-stat strong { font-weight: 800; font-stretch: 75%; font-size: clamp(2.6rem, 1.6rem + 3vw, 4.6rem); line-height: 0.9; letter-spacing: -0.02em; font-family: var(--f-display); }
+.rp-stat strong { font-weight: 800; font-size: clamp(2.6rem, 1.6rem + 3vw, 4.6rem); line-height: 0.9; letter-spacing: -0.02em; font-family: var(--f-display); }
 .rp-stat .muted { font-size: var(--t-small); }
 .rp-timeline { padding: 32px 0; display: grid; gap: 8px; border-bottom: 1px solid var(--line); }
 .tl-legend { list-style: none; display: flex; flex-wrap: wrap; gap: 16px; font-size: var(--t-micro); text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-2); }
@@ -11,7 +11,7 @@
 .rp-list { list-style: none; border-top: 1px solid var(--line-strong); }
 .rp-row { display: grid; grid-template-columns: 170px auto minmax(0, 1fr) auto auto; gap: 16px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); }
 .rp-date { font-size: 0.75rem; text-transform: none; letter-spacing: 0; color: var(--fg-2); }
-.rp-title { font-weight: 700; font-stretch: 88%; font-size: 1.1rem; text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-height: 44px; display: flex; align-items: center; }
+.rp-title { font-weight: 700; font-size: 1.1rem; text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-height: 44px; display: flex; align-items: center; }
 .rp-title:hover { text-decoration: underline; text-underline-offset: 4px; }
 .rp-meta { font-size: 0.8rem; white-space: nowrap; }
 .rp-actions { display: flex; gap: 6px; }

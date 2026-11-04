@@ -1,28 +1,34 @@
 import { Link } from 'react-router-dom';
-import { ROUTES } from '../../app/routes';
-import { LogoMark } from '../ui/Logo';
+import { GROUPS, ROUTES } from '../../app/routes';
+import { Wordmark } from '../ui/Logo';
 
 export function Footer() {
   return (
     <footer className="site-footer" data-tone="grafite">
       <div className="wrap footer-grid">
         <div className="footer-mark">
-          <LogoMark size={44} />
-          <p className="h3">Seus dados ficam com você.</p>
+          <Wordmark />
           <p className="muted">
-            O USB Intelligence processa tudo neste aparelho. Não há servidor recebendo seus arquivos e nenhuma coleta silenciosa.
+            Plataforma brasileira de inteligência de arquivos. Tudo é processado neste aparelho: não há servidor recebendo seus arquivos e nenhuma coleta silenciosa.
           </p>
+          <span className="flag-strip" aria-hidden><i /><i /><i /><i /></span>
         </div>
-        <ul className="footer-links">
-          {ROUTES.map((r) => (
-            <li key={r.path}>
-              <Link to={r.path}><span className="mono">{r.n}</span> {r.title}</Link>
-            </li>
+        <nav className="footer-cols" aria-label="Mapa do site">
+          {GROUPS.map((g) => (
+            <div key={g}>
+              <h3>{g}</h3>
+              <ul className="footer-links">
+                {ROUTES.filter((r) => r.group === g).map((r) => (
+                  <li key={r.path}><Link to={r.path}>{r.title}</Link></li>
+                ))}
+              </ul>
+            </div>
           ))}
-        </ul>
-        <p className="mono muted footer-meta">
-          Versão {__APP_VERSION__} · Projeto aberto · Tipografia Bricolage Grotesque e IBM Plex Mono (SIL OFL)
-        </p>
+        </nav>
+        <div className="footer-meta">
+          <p className="mono muted">Versão {__APP_VERSION__} · Projeto aberto · Feito no Brasil</p>
+          <p className="mono muted">Inter e Plus Jakarta Sans (SIL OFL) · IA: WebLLM + Qwen2.5 e gpt-oss-20b</p>
+        </div>
       </div>
     </footer>
   );

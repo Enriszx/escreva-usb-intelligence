@@ -1,48 +1,66 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
-import { ArrowUpRight, Moon, Sun, SunMoon, X } from 'lucide-react';
+import { ArrowUpRight, Moon, Sun, SunMoon, Usb, X } from 'lucide-react';
 import { Wordmark } from '../ui/Logo';
-import { ROUTES, routeFor } from '../../app/routes';
+import { GROUPS, ROUTES, byPath } from '../../app/routes';
 import { useSettings } from '../../app/settings';
 import { useOnline } from '../../app/hooks';
 import { useToast } from '../../app/feedback';
+import { useAuto, type AutoPhase } from '../../features/auto/auto';
+
+const QUICK = ['/', '/automatico', '/arquivos', '/relatorios', '/seguranca'];
+
+function chipFor(phase: AutoPhase, drive: string | null): { text: string; cls: string } | null {
+  switch (phase) {
+    case 'indisponivel': return null;
+    case 'sem-config': return { text: 'Configurar pendrive', cls: '' };
+    case 'aguardando': return { text: drive ? `Aguardando “${drive}”` : 'Aguardando pendrive', cls: 'is-wait' };
+    case 'precisa-toque': return { text: 'Toque para continuar', cls: 'is-busy' };
+    case 'executando': return { text: `Analisando ${drive ?? ''}…`, cls: 'is-busy' };
+    case 'pronto': return { text: `${drive ?? 'Pendrive'} conectado`, cls: 'is-on' };
+    case 'erro': return { text: 'Automático parou', cls: 'is-busy' };
+  }
+}
 
 export function Header() {
   const { pathname } = useLocation();
   const [open, setOpen] = useState(false);
-  const current = routeFor(pathname);
   const online = useOnline();
   const { settings, update } = useSettings();
   const toast = useToast();
+  const auto = useAuto();
   useEffect(() => setOpen(false), [pathname]);
   const THEMES = ['automatico', 'claro', 'escuro'] as const;
   const THEME_LABEL = { automatico: 'automático', claro: 'claro', escuro: 'escuro' } as const;
   const next = THEMES[(THEMES.indexOf(settings.theme) + 1) % THEMES.length];
   const ThemeIcon = settings.theme === 'claro' ? Sun : settings.theme === 'escuro' ? Moon : SunMoon;
+  const chip = chipFor(auto.phase, auto.drive);
   return (
     <>
       <header className="site-header">
         <Link to="/" className="brand" aria-label="USB Intelligence — início">
           <Wordmark />
         </Link>
-        <div className="where mono" aria-hidden>
-          {current && (
-            <>
-              <span className="where-n">{current.n}</span>
-              <span className="where-sep" />
-              <span>{current.title}</span>
-            </>
-          )}
-        </div>
         <nav className="quick" aria-label="Atalhos">
-          {ROUTES.slice(1, 5).map((r) => (
-            <NavLink key={r.path} to={r.path} className="quick-link">
-              {r.short}
-            </NavLink>
-          ))}
+          {QUICK.map((p) => {
+            const r = byPath(p);
+            return (
+              <NavLink key={p} to={p} end className="quick-link">
+                <r.icon aria-hidden />
+                {r.short}
+              </NavLink>
+            );
+          })}
         </nav>
         <div className="head-actions">
+          {chip && (
+            <Link to="/automatico" className={`chip ${chip.cls}`} title="Estado do modo automático">
+              <span className="dot" aria-hidden />
+              <Usb aria-hidden />
+              <span>{chip.text}</span>
+            </Link>
+          )}
           <span className={`net ${online ? 'on' : 'off'}`} role="status">
             <span className="sr-only">Conexão: </span><span className="net-t">{online ? 'Online' : 'Offline'}</span>
           </span>
@@ -50,13 +68,13 @@ export function Header() {
             className="theme-btn"
             aria-label={`Tema ${THEME_LABEL[settings.theme]}. Alternar para ${THEME_LABEL[next]}`}
             title={`Tema: ${THEME_LABEL[settings.theme]} (toque para ${THEME_LABEL[next]})`}
-            onClick={() => update({ theme: next }).then(() => toast({ tone: 'info', title: `Tema ${THEME_LABEL[next]}`, body: next === 'automatico' ? 'Cada página usa o seu desenho original.' : 'Aplicado a todas as páginas.' })).catch(() => {})}
+            onClick={() => update({ theme: next }).then(() => toast({ tone: 'info', title: `Tema ${THEME_LABEL[next]}`, body: next === 'automatico' ? 'Segue o tema do seu sistema.' : 'Aplicado a todas as páginas.' })).catch(() => {})}
           >
             <ThemeIcon aria-hidden />
           </button>
           <button className="index-btn" aria-expanded={open} aria-controls="indice" onClick={() => setOpen(true)}>
             <span className="index-btn-bars" aria-hidden><i /><i /></span>
-            <span>Índice</span>
+            <span>Menu</span>
           </button>
         </div>
       </header>
@@ -67,7 +85,6 @@ export function Header() {
 
 function IndexMenu({ onClose }: { onClose: () => void }) {
   const { reducedMotion } = useSettings();
-  const [hover, setHover] = useState<string | null>(null);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
     document.addEventListener('keydown', onKey);
@@ -79,58 +96,54 @@ function IndexMenu({ onClose }: { onClose: () => void }) {
     };
   }, [onClose]);
   const d = reducedMotion ? 0 : 1;
-  const hovered = ROUTES.find((r) => r.path === hover);
   return (
     <motion.div
       id="indice"
       className="index-menu"
-      data-tone="mata"
+      data-tone="grafite"
       role="dialog"
       aria-modal="true"
-      aria-label="Índice do USB Intelligence"
-      initial={{ clipPath: 'inset(0 0 100% 0)' }}
-      animate={{ clipPath: 'inset(0 0 0% 0)' }}
-      exit={{ clipPath: 'inset(0 0 100% 0)' }}
-      transition={{ duration: 0.5 * d, ease: [0.65, 0, 0.35, 1] }}
+      aria-label="Menu do USB Intelligence"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.25 * d }}
     >
       <div className="index-top">
-        <span className="label">Índice — 9 áreas</span>
+        <span className="label">Menu · {ROUTES.length} áreas em {GROUPS.length} grupos</span>
         <button className="btn btn-ghost btn-sm" onClick={onClose}>
           Fechar <X aria-hidden />
         </button>
       </div>
-      <nav className="index-list" aria-label="Todas as áreas">
-        {ROUTES.map((r, i) => (
-          <motion.div
-            key={r.path}
-            initial={{ y: 40 * d, opacity: 0 }}
+      <nav className="index-groups" aria-label="Todas as áreas">
+        {GROUPS.map((g, gi) => (
+          <motion.section
+            key={g}
+            className="index-group"
+            aria-label={g}
+            initial={{ y: 24 * d, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: (0.12 + i * 0.035) * d, duration: 0.45 * d, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ delay: (0.05 + gi * 0.06) * d, duration: 0.4 * d, ease: [0.16, 1, 0.3, 1] }}
           >
-            <NavLink
-              to={r.path}
-              end
-              className="index-item"
-              onMouseEnter={() => setHover(r.path)}
-              onFocus={() => setHover(r.path)}
-              onClick={onClose}
-            >
-              <span className="index-n mono">{r.n}</span>
-              <span className="index-title">{r.title}</span>
-              <ArrowUpRight className="index-arrow" aria-hidden />
-            </NavLink>
-          </motion.div>
+            <h2 className="index-group-title label">{g}</h2>
+            {ROUTES.filter((r) => r.group === g).map((r) => (
+              <NavLink key={r.path} to={r.path} end className="index-item" onClick={onClose}>
+                <span className="index-ico" aria-hidden><r.icon /></span>
+                <span className="index-title">{r.title}</span>
+                <span className="index-desc">{r.blurb}</span>
+                <ArrowUpRight className="index-arrow" aria-hidden />
+              </NavLink>
+            ))}
+          </motion.section>
         ))}
       </nav>
-      <p className="index-blurb" aria-live="polite">
-        {hovered ? hovered.blurb : 'Tudo roda neste aparelho. Nenhum arquivo sai daqui.'}
-      </p>
+      <p className="index-blurb">Tudo roda neste aparelho. Nenhum arquivo sai daqui.</p>
     </motion.div>
   );
 }
 
 export function MobileTabs() {
-  const tabs = [ROUTES[0], ROUTES[1], ROUTES[3], ROUTES[4], ROUTES[5]];
+  const tabs = ['/', '/automatico', '/arquivos', '/relatorios', '/seguranca'].map(byPath);
   return (
     <nav className="tabs-mobile" aria-label="Navegação principal">
       {tabs.map((r) => (
