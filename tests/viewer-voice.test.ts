@@ -63,7 +63,7 @@ describe('novas ações do Vigia', () => {
     expect(sim.c.confirm).toHaveBeenCalled();
     const nao = ctx(false);
     expect(await tool('ler_arquivo').execute({ id: nao.a.id }, nao.c)).toMatchObject({ lido: false });
-    await expect(tool('ler_arquivo').execute({ id: nao.b.id }, nao.c)).rejects.toThrow(/não é um arquivo de texto/);
+    await expect(tool('ler_arquivo').execute({ id: nao.b.id }, nao.c)).rejects.toThrow(/não dá para ler como texto/);
   });
 
   it('executa o modo automático quando o pendrive está pronto', async () => {

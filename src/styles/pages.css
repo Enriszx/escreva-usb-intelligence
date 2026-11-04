@@ -142,6 +142,20 @@
 }
 .cta .lead { margin-top: 8px; }
 
+.install-cta { padding: 0 var(--page-gutter); margin-top: -8px; }
+.install-cta-inner {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px;
+  padding: 16px 24px; border-radius: var(--r-3);
+  background: var(--bg-2); border: 1px solid var(--border);
+}
+.install-cta-inner strong { font-size: var(--t-sm); }
+.install-cta-inner p { margin: 2px 0 0; font-size: var(--t-xs); color: var(--muted); }
+.install-cta-inner > div { flex: 1 1 220px; }
+.install-cta-inner > small { flex: 0 1 auto; font-size: var(--t-xs); }
+@media (max-width: 760px) {
+  .install-cta-inner { padding: 14px 16px; }
+}
+
 .notfound { display: grid; gap: 24px; justify-items: start; min-height: 60vh; align-content: center; }
 
 /* ==================== Gráficos ==================== */

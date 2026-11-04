@@ -10,7 +10,7 @@ import { saveCSV, stamp } from '../../lib/export';
 import { put } from '../../lib/storage/db';
 import { ACCESSORIES, BODIES, BUILDS, EYES, FINISHES, HAIRS, HEADS, MOUTHS, OUTFITS, POSES, PRESETS, cloneConfig, validateCharacter, type CharacterConfig } from '../character/model';
 import { DRAFT_KEY } from '../character/useCharacterEditor';
-import { KIND_LABEL, openFile, readTextStart, viewKind } from '../files/viewKind';
+import { KIND_LABEL, openFile, parseCsv, readTextStart, viewKind } from '../files/viewKind';
 import { searchWeb, fetchPage } from './web';
 
 /** Lembretes criados pela IA chegam por este evento (o painel mostra e fala). */
@@ -413,21 +413,26 @@ export const TOOLS: AssistantTool[] = [
   {
     name: 'ler_arquivo',
     label: 'Lendo o conteúdo do arquivo',
-    description: 'Lê o TEXTO de um arquivo de texto, código ou CSV (até 15 mil caracteres) para resumir, explicar, revisar ou responder perguntas sobre ele. Só funciona com permissão do usuário, que o app pede. Não lê PDF, Word ou imagens.',
+    description: 'Lê o conteúdo de um arquivo (texto, código, CSV, planilha ou qualquer formato baseado em texto — até 15 mil caracteres) para resumir, explicar, revisar ou responder perguntas sobre ele. Não lê imagens, vídeos nem áudios. Para planilhas CSV/TSV, devolve os dados estruturados (colunas e linhas).',
     inputSchema: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'], additionalProperties: false },
     async execute(input, ctx) {
       const [f] = pick(ctx.files.entries, [str(input.id)]);
       const k = viewKind(f.ext, f.mime);
-      if (k !== 'texto' && k !== 'tabela') throw new Error(`"${f.name}" não é um arquivo de texto (${KIND_LABEL[k]}). Ofereça abrir_arquivo para o usuário ver.`);
+      if (k === 'imagem' || k === 'video' || k === 'audio') throw new Error(`"${f.name}" é ${KIND_LABEL[k].toLowerCase()}, não dá para ler como texto. Use abrir_arquivo para mostrar.`);
       const blob = ctx.files.getFile(f.id) ?? (ctx.folder.backend?.kind === 'web' && f.source === 'pasta' ? await ctx.folder.backend.getBlob(f.path) : null);
       if (!blob) throw new Error('O conteúdo deste item não está disponível agora (é só o registro salvo). Peça para escolher o arquivo de novo.');
-      const ok = await ctx.confirm({
+      const ok = ctx.settings.aiAutoRead || await ctx.confirm({
         title: `Deixar a IA ler “${f.name}”?`,
         body: 'O texto do arquivo será lido pela IA para responder ao seu pedido. Com a IA online ligada, esse texto vai para o serviço gratuito (Pollinations). Com a IA do aparelho, nada sai daqui.',
         confirm: 'Permitir leitura',
       });
       if (!ok) return { lido: false, motivo: 'O usuário não autorizou a leitura.' };
       const { text, cut } = await readTextStart(blob, 15_000);
+      if (k === 'tabela') {
+        const rows = parseCsv(text, 200);
+        const headers = rows[0] ?? [];
+        return { lido: true, arquivo: f.name, cortado: cut, tipo: 'planilha', colunas: headers, linhas: rows.length - 1, dados: rows.slice(0, 50).map((r) => Object.fromEntries(headers.map((h, i) => [h || `col${i + 1}`, r[i] ?? '']))), texto_completo: text };
+      }
       return { lido: true, arquivo: f.name, cortado: cut, texto: text };
     },
   },
@@ -462,6 +467,26 @@ export const TOOLS: AssistantTool[] = [
       setTimeout(() => window.dispatchEvent(new CustomEvent(REMINDER_EVENT, { detail: { texto } })), min * 60_000);
       const at = new Date(Date.now() + min * 60_000);
       return { criado: true, quando: at.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }), texto, aviso: 'Só funciona com o site aberto.' };
+    },
+  },
+  {
+    name: 'instalar_app',
+    label: 'Instalando o app',
+    description: 'Oferece instalar o USB Intelligence como aplicativo no celular ou computador (PWA). Instalado, funciona offline, permite arrastar arquivos de fora e recebe lembretes mesmo com o navegador minimizado.',
+    inputSchema: { type: 'object', properties: {}, additionalProperties: false },
+    async execute(_input, ctx) {
+      const { promptInstall } = await import('../../lib/pwa/pwa');
+      const r = await promptInstall();
+      if (r === 'accepted') {
+        ctx.report('App instalado!');
+        return { instalado: true };
+      }
+      if (r === 'dismissed') return { instalado: false, motivo: 'O usuário recusou a instalação.' };
+      return {
+        instalado: false,
+        motivo: 'O navegador não ofereceu a instalação agora.',
+        dica: 'No celular: menu ⋮ → "Instalar app" ou "Adicionar à tela inicial". No computador (Chrome/Edge): menu ⋮ → Instalar. Vá em Ajuda para instruções completas.',
+      };
     },
   },
   {

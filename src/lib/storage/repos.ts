@@ -141,6 +141,8 @@ export interface Settings {
   uiBackdrop: 'forte' | 'suave' | 'desligado';
   /** O Vigia fala as respostas em voz alta. */
   aiVoice: boolean;
+  /** Deixa a IA ler o conteúdo dos arquivos sem pedir confirmação a cada vez. */
+  aiAutoRead: boolean;
   /** Modo automático: ao detectar o pendrive, executa as etapas sozinho. */
   autoRun: boolean;
   /** Verificação completa (SHA-256 de tudo) em vez de só candidatos a duplicado. */
@@ -164,6 +166,7 @@ export const DEFAULT_SETTINGS: Settings = {
   aiInstalled: null,
   aiOnline: false,
   aiVoice: false,
+  aiAutoRead: false,
   uiAccent: '',
   uiRadius: 'padrao',
   uiFont: 1,

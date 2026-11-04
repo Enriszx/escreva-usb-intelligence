@@ -64,6 +64,14 @@ export function AssistantSettings({ set }: { set: (p: Partial<Settings>, msg: st
         <input id="ai-online" type="checkbox" checked={settings.aiOnline} onChange={(e) => set({ aiOnline: e.target.checked }, e.target.checked ? 'IA online ligada' : 'IA online desligada')} />
       </label>
 
+      <label className="switch">
+        <span>
+          Deixar a IA ler arquivos automaticamente
+          <small className="hint">Quando ligado, o assistente pode ler o conteúdo de arquivos de texto, planilhas e códigos sem pedir autorização a cada vez. Com a IA online, o conteúdo vai para o serviço gratuito.</small>
+        </span>
+        <input type="checkbox" checked={settings.aiAutoRead} onChange={(e) => set({ aiAutoRead: e.target.checked }, e.target.checked ? 'Leitura automática ligada' : 'Leitura automática desligada')} />
+      </label>
+
       <div className="ai-modes">
         <div>
           <p className="label">Como ele funciona</p>

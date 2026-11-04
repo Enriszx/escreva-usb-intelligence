@@ -8,7 +8,9 @@ import { DeviceIllustration } from '../../components/three/Fallbacks';
 import { HomeAvatar } from './HomeAvatar';
 import { GROUPS, ROUTES } from '../../app/routes';
 import { useSettings } from '../../app/settings';
-import { useDocumentTitle } from '../../app/hooks';
+import { useDocumentTitle, usePWA } from '../../app/hooks';
+import { promptInstall } from '../../lib/pwa/pwa';
+import { useToast } from '../../app/feedback';
 import { BarList } from '../../components/charts/BarList';
 import { CAT_VAR } from '../../components/charts/colors';
 import { HashPlayground } from './HashPlayground';
@@ -46,6 +48,8 @@ export default function HomePage() {
   const { reducedMotion, loaded, settings } = useSettings();
   const files = useFiles();
   const auto = useAuto();
+  const pwa = usePWA();
+  const toast = useToast();
   const explode = useRef(0);
   const spin = useRef(0);
   const [active, setActive] = useState(0);
@@ -147,6 +151,23 @@ export default function HomePage() {
           </motion.div>
         </div>
       </section>
+
+      {/* ===================== INSTALAR ===================== */}
+      {!pwa.installed && (
+        <section className="install-cta" aria-label="Instalar o app">
+          <div className="wrap install-cta-inner">
+            <div>
+              <strong>Instalar no seu aparelho</strong>
+              <p>Use como app no celular ou computador. Funcione offline, arraste arquivos de fora e receba lembretes.</p>
+            </div>
+            {pwa.installable ? (
+              <button className="btn btn-primary btn-sm" onClick={async () => { const r = await promptInstall(); if (r === 'accepted') toast({ tone: 'ok', title: 'App instalado!' }); }}>Instalar app</button>
+            ) : (
+              <small className="muted">No celular: navegador → menu ⋮ → Instalar app. No computador: Chrome/Edge → ⋮ → Instalar.</small>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* ===================== COMO FUNCIONA ===================== */}
       <section id="como-funciona" className="sec" aria-labelledby="como-funciona-t">
