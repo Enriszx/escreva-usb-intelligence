@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- MUDE AQUI o título da aba e a descrição da página -->
+  <title>Ferramentas · USB Intelligence</title>
+  <meta name="description" content="Verificador de backup, checklist 3-2-1 e teste de hash SHA-256.">
+  <link rel="icon" href="imagens/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+  <!-- Fundo inspirado na bandeira (imagem em imagens/fundo.svg) -->
+  <img class="fundo-bandeira" src="imagens/fundo.svg" alt="" aria-hidden="true">
+
+  <!-- ===================== CABEÇALHO ===================== -->
+  <header class="topo">
+    <div class="envolve">
+      <a class="marca" href="index.html"><img src="imagens/logo.svg" alt=""> USB Intelligence</a>
+      <button class="botao-icone abre-menu" id="abre-menu" aria-label="Abrir menu" aria-expanded="false" aria-controls="menu">☰</button>
+      <ul class="menu" id="menu"><li><a href="index.html">Início</a></li><li><a href="casos.html">Casos reais</a></li><li><a href="ferramentas.html" aria-current="page">Ferramentas</a></li><li><a href="https://enriszx.github.io/escreva-usb-intelligence/">App completo ↗</a></li></ul>
+      <button class="botao-icone" id="botao-tema" aria-label="Mudar para tema claro">◐</button>
+    </div>
+  </header>
+
+  <main>
+
+    <section class="abertura">
+      <div class="envolve">
+        <span class="etiqueta">Ferramentas</span>
+        <h1>Confira antes de <span class="gradiente">confiar.</span></h1>
+        <p class="lead">Três ferramentas que funcionam aqui mesmo, no navegador. Nada é enviado para a internet.</p>
+      </div>
+    </section>
+    <section class="secao" style="padding-top:0">
+      <div class="envolve grade grade-2" style="align-items:start">
+        <!-- ===== Verificador de backup ===== -->
+        <div class="cartao">
+          <h2 style="font-size:1.5rem;margin-bottom:8px">Verificador de backup</h2>
+          <p class="secundario" style="margin-bottom:14px">Escolha a pasta original e a pasta da cópia. Cada arquivo é comparado pelo caminho e pelo conteúdo (SHA-256).</p>
+          <div class="grade grade-2">
+            <label class="escolha"><strong>Pasta original</strong><input id="pasta-origem" type="file" webkitdirectory multiple></label>
+            <label class="escolha"><strong>Cópia (backup)</strong><input id="pasta-copia" type="file" webkitdirectory multiple></label>
+          </div>
+          <p style="margin-top:14px"><button class="botao botao-principal" id="comparar" disabled>Comparar origem e cópia</button></p>
+          <div class="resultado" id="resultado-backup" aria-live="polite" hidden></div>
+        </div>
+        <!-- ===== Checklist 3-2-1 ===== -->
+        <div class="cartao">
+          <h2 style="font-size:1.5rem;margin-bottom:8px">Regra 3-2-1</h2>
+          <p class="secundario" style="margin-bottom:14px">A prática que teria evitado os casos OVH, UniSuper e Code Spaces.</p>
+          <ul class="lista-checagem"><li><label><input type="checkbox" value="tres"> <span>Tenho 3 cópias dos arquivos importantes (a original + 2).</span></label></li><li><label><input type="checkbox" value="dois"> <span>As cópias estão em 2 tipos de mídia diferentes (ex.: computador e pendrive).</span></label></li><li><label><input type="checkbox" value="um"> <span>1 cópia fica fora de casa ou do escritório (ou desconectada).</span></label></li><li><label><input type="checkbox" value="testei"> <span>Conferi a cópia no Verificador de backup nos últimos 30 dias.</span></label></li><li><label><input type="checkbox" value="cifrei"> <span>O que é pessoal ou sigiloso vai cifrado no Cofre.</span></label></li></ul>
+          <div class="progresso"><i id="barra-321"></i></div>
+          <p id="texto-321" aria-live="polite"></p>
+        </div>
+        <!-- ===== Hash ao vivo ===== -->
+        <div class="cartao" style="grid-column:1/-1">
+          <h2 style="font-size:1.5rem;margin-bottom:8px">Cópia é conteúdo igual, não nome igual</h2>
+          <p class="secundario" style="margin-bottom:14px">Edite os textos: o cálculo SHA-256 é real.</p>
+          <div class="grade grade-2">
+            <div><label for="texto-a"><strong>Conteúdo A</strong></label><textarea class="campo" id="texto-a" rows="3">Pagamento em 10 de março.</textarea><p class="hash" id="hash-a"></p></div>
+            <div><label for="texto-b"><strong>Conteúdo B</strong></label><textarea class="campo" id="texto-b" rows="3">Pagamento em 10 de março.</textarea><p class="hash" id="hash-b"></p></div>
+          </div>
+          <p id="veredito-hash" style="margin-top:12px;font-weight:700" aria-live="polite"></p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===================== RODAPÉ ===================== -->
+  <footer class="rodape">
+    <div class="envolve">
+      <!-- MUDE AQUI o texto do rodapé (nomes, turma, escola, data...) -->
+      <p>USB Intelligence · Plataforma brasileira de inteligência de arquivos · Projeto feito com apoio de IA.</p>
+      <p>Versão manual (HTML, CSS e JavaScript). App completo: <a href="https://enriszx.github.io/escreva-usb-intelligence/">enriszx.github.io/escreva-usb-intelligence/</a></p>
+    </div>
+  </footer>
+  <script src="script.js"></script>
+</body>
+</html>

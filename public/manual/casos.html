@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- MUDE AQUI o título da aba e a descrição da página -->
+  <title>Casos reais · USB Intelligence</title>
+  <meta name="description" content="12 casos reais de perda e vazamento de dados, com fontes e lições.">
+  <link rel="icon" href="imagens/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+  <!-- Fundo inspirado na bandeira (imagem em imagens/fundo.svg) -->
+  <img class="fundo-bandeira" src="imagens/fundo.svg" alt="" aria-hidden="true">
+
+  <!-- ===================== CABEÇALHO ===================== -->
+  <header class="topo">
+    <div class="envolve">
+      <a class="marca" href="index.html"><img src="imagens/logo.svg" alt=""> USB Intelligence</a>
+      <button class="botao-icone abre-menu" id="abre-menu" aria-label="Abrir menu" aria-expanded="false" aria-controls="menu">☰</button>
+      <ul class="menu" id="menu"><li><a href="index.html">Início</a></li><li><a href="casos.html" aria-current="page">Casos reais</a></li><li><a href="ferramentas.html">Ferramentas</a></li><li><a href="https://enriszx.github.io/escreva-usb-intelligence/">App completo ↗</a></li></ul>
+      <button class="botao-icone" id="botao-tema" aria-label="Mudar para tema claro">◐</button>
+    </div>
+  </header>
+
+  <main>
+
+    <section class="abertura">
+      <div class="envolve">
+        <span class="etiqueta">Proteção e controle</span>
+        <h1>Casos reais. <span class="gradiente">Lições aplicadas.</span></h1>
+        <p class="lead">12 incidentes de empresas grandes e pequenas, no Brasil e no mundo, com fonte. Para cada um: o que aconteceu, a lição, o que o USB Intelligence faz a respeito e o que nenhum app resolve sozinho.</p>
+      </div>
+    </section>
+    <section class="secao" style="padding-top:0">
+      <div class="envolve">
+        <div class="cartao" style="margin-bottom:28px">
+          <h2 style="font-size:1.4rem;margin-bottom:8px">As 6 causas que se repetem — e a resposta do app</h2>
+          <ul class="causas"><li><div><strong>Backup existia, mas ninguém conferia</strong><br><span class="secundario">Casos: Pixar, GitLab, MySpace, Universidade de Kyoto + HPE</span></div><div>Verificador de backup: compara origem e cópia pelo SHA-256 e mostra o que falta ou mudou.</div></li><li><div><strong>Exclusão imediata e sem volta</strong><br><span class="secundario">Casos: Pixar, GitLab, Universidade de Kyoto + HPE</span></div><div>Nada é apagado de vez sem confirmação: lixeira restaurável, Desfazer e Histórico.</div></li><li><div><strong>Cópia no mesmo lugar ou na mesma conta</strong><br><span class="secundario">Casos: OVHcloud, UniSuper + Google Cloud, Code Spaces</span></div><div>Checklist 3-2-1 e verificação da cópia externa no pendrive.</div></li><li><div><strong>Migração ou sincronização sem conferência</strong><br><span class="secundario">Casos: MySpace, Google Drive para computador</span></div><div>Hash antes e depois; o app trabalha local e nunca sincroniza sozinho.</div></li><li><div><strong>Dado sensível sem criptografia</strong><br><span class="secundario">Casos: Prefeitura de Amagasaki, Megavazamento de 223 milhões de CPFs</span></div><div>Cofre AES-256-GCM com senha que não é guardada em lugar nenhum.</div></li><li><div><strong>Equipamento exposto ou ataque</strong><br><span class="secundario">Casos: Western Digital My Book Live, Code Spaces, Superior Tribunal de Justiça</span></div><div>Processamento 100% offline e registro de hashes para provar alterações.</div></li></ul>
+        </div>
+        <div class="filtros" role="group" aria-label="Filtrar por tipo de problema"><button class="filtro ativo" data-tipo="todos" aria-pressed="true">Todos (12)</button><button class="filtro" data-tipo="acidente" aria-pressed="false">Apagado por engano (4)</button><button class="filtro" data-tipo="backup" aria-pressed="false">Backup que falhou (8)</button><button class="filtro" data-tipo="migracao" aria-pressed="false">Migração e sincronização (2)</button><button class="filtro" data-tipo="desastre" aria-pressed="false">Desastre físico (1)</button><button class="filtro" data-tipo="ataque" aria-pressed="false">Ataque e ransomware (3)</button><button class="filtro" data-tipo="exposicao" aria-pressed="false">Vazamento e mídia perdida (2)</button></div>
+        <div class="grade grade-3">
+          <!-- Caso: Pixar (Toy Story 2) -->
+          <article class="cartao caso" data-tipos="acidente backup">
+            <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><span class="ano">1998</span><span class="tag">Grande porte</span></div>
+            <h3>Pixar (Toy Story 2)</h3>
+            <p><strong>Um comando apagou quase todo o filme, e o backup não funcionava</strong></p>
+            <p class="secundario">Um comando de exclusão rodou na pasta com os arquivos do filme. O sistema de backup, descobriu-se, não vinha funcionando. O filme foi salvo por uma cópia que a supervisora técnica mantinha em casa. Os relatos divergem sobre o comando exato e o tamanho da perda.</p>
+            <p class="licao"><strong>Lição:</strong> Backup que nunca foi conferido pode não existir. E apagar não pode ser imediato nem irreversível.</p>
+            <div><span class="tag tag-ok">Verificador de backup</span> <span class="tag tag-ok">Lixeira restaurável e Desfazer</span></div>
+            
+            <a class="fonte" href="https://www.techdirt.com/2012/05/18/how-toy-story-2-almost-got-deleted-except-that-one-person-made-home-backup" target="_blank" rel="noopener noreferrer">Fonte: Techdirt (relato de Oren Jacob) ↗</a>
+          </article>
+          <!-- Caso: GitLab -->
+          <article class="cartao caso" data-tipos="acidente backup">
+            <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><span class="ano">2017</span><span class="tag">Grande porte</span></div>
+            <h3>GitLab</h3>
+            <p><strong>Diretório errado apagado; as rotinas de backup tinham falhado em silêncio</strong></p>
+            <p class="secundario">Durante uma manutenção, os dados do banco principal foram removidos por engano. Na hora de restaurar, os backups falharam: o bucket com os dumps estava vazio por incompatibilidade de versões. Um snapshot manual de 6 horas antes salvou o restante; cerca de 6 horas de dados se perderam.</p>
+            <p class="licao"><strong>Lição:</strong> Teste a restauração, não só a cópia. Falha de backup precisa gerar alerta.</p>
+            <div><span class="tag tag-ok">Verificador de backup</span> <span class="tag tag-ok">Modo automático com relatório</span> <span class="tag tag-ok">Histórico de cada ação</span></div>
+            
+            <a class="fonte" href="https://about.gitlab.com/blog/postmortem-of-database-outage-of-january-31/" target="_blank" rel="noopener noreferrer">Fonte: GitLab — postmortem oficial ↗</a>
+          </article>
+          <!-- Caso: MySpace -->
+          <article class="cartao caso" data-tipos="migracao backup">
+            <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><span class="ano">2019</span><span class="tag">Grande porte</span></div>
+            <h3>MySpace</h3>
+            <p><strong>12 anos de músicas perdidos numa migração de servidores</strong></p>
+            <p class="secundario">A empresa informou que arquivos foram corrompidos na migração e não puderam ser transferidos: cerca de 50 milhões de músicas enviadas entre 2003 e 2015, além de fotos e vídeos. Disse não haver como recuperar.</p>
+            <p class="licao"><strong>Lição:</strong> Antes de apagar a origem, confira a cópia arquivo por arquivo, pelo conteúdo.</p>
+            <div><span class="tag tag-ok">Verificador de backup</span> <span class="tag tag-ok">SHA-256 e verificação de integridade</span></div>
+            
+            <a class="fonte" href="https://www.rollingstone.com/music/music-news/Myspace-lost-music-809455/" target="_blank" rel="noopener noreferrer">Fonte: Rolling Stone ↗</a>
+          </article>
+          <!-- Caso: Universidade de Kyoto + HPE -->
+          <article class="cartao caso" data-tipos="backup acidente">
+            <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><span class="ano">2021</span><span class="tag">Grande porte</span></div>
+            <h3>Universidade de Kyoto + HPE</h3>
+            <p><strong>Script de limpeza com bug apagou 77 TB do disco de backup</strong></p>
+            <p class="secundario">Uma atualização do script que deveria apagar logs antigos foi aplicada com a versão anterior em execução, e o script removeu os arquivos errados: cerca de 77 TB (34 milhões de arquivos) de 14 grupos de pesquisa. Parte não pôde ser recuperada. A HPE assumiu 100% da responsabilidade.</p>
+            <p class="licao"><strong>Lição:</strong> Automação que apaga precisa de lixeira, limite e registro. Nada de exclusão direta.</p>
+            <div><span class="tag tag-ok">Lixeira restaurável e Desfazer</span> <span class="tag tag-ok">Modo automático com relatório</span> <span class="tag tag-ok">Histórico de cada ação</span></div>
+            
+            <a class="fonte" href="https://www.datacenterdynamics.com/en/news/kyoto-university-loses-77tb-of-supercomputer-data-after-buggy-update-to-hpe-backup-program/" target="_blank" rel="noopener noreferrer">Fonte: DatacenterDynamics ↗</a>
+          </article>
+          <!-- Caso: OVHcloud (Estrasburgo) e clientes -->
+          <article class="cartao caso" data-tipos="desastre backup">
+            <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><span class="ano">2021</span><span class="tag">Grande porte</span></div>
+            <h3>OVHcloud (Estrasburgo) e clientes</h3>
+            <p><strong>Incêndio destruiu um datacenter; quem tinha o backup no mesmo prédio perdeu tudo</strong></p>
+            <p class="secundario">Em março de 2021, um incêndio destruiu o prédio SBG2. Clientes perderam dados de vez, entre eles empresas pequenas cujo backup ficava no mesmo prédio. A Justiça francesa condenou a OVH a indenizar clientes.</p>
+            <p class="licao"><strong>Lição:</strong> Regra 3-2-1: três cópias, em dois meios diferentes, uma fora do local.</p>
+            <div><span class="tag tag-ok">Checklist 3-2-1</span> <span class="tag tag-ok">Verificador de backup</span></div>
+            <p class="limite"><strong>Limite honesto:</strong> O app não guarda cópias na nuvem: ele ajuda a fazer e conferir a cópia no pendrive ou em outro disco.</p>
+            <a class="fonte" href="https://blocksandfiles.com/2023/03/23/ovh-cloud-must-pay-damages-for-lost-backup-data/" target="_blank" rel="noopener noreferrer">Fonte: Blocks &amp; Files ↗</a>
+          </article>
+          <!-- Caso: UniSuper + Google Cloud -->
+          <article class="cartao caso" data-tipos="acidente backup">
+            <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><span class="ano">2024</span><span class="tag">Grande porte</span></div>
+            <h3>UniSuper + Google Cloud</h3>
+            <p><strong>Erro de configuração apagou a nuvem privada de um fundo de previdência</strong></p>
+            <p class="secundario">Uma configuração errada no provisionamento apagou a assinatura de nuvem privada do fundo, inclusive nas duas regiões com cópias. Os serviços voltaram depois de mais de uma semana, com a ajuda de um backup guardado em outro fornecedor.</p>
+            <p class="licao"><strong>Lição:</strong> Tenha uma cópia que não dependa do mesmo fornecedor nem da mesma conta.</p>
+            <div><span class="tag tag-ok">Checklist 3-2-1</span> <span class="tag tag-ok">Verificador de backup</span></div>
+            <p class="limite"><strong>Limite honesto:</strong> Nenhum app no seu aparelho impede erros dentro de um provedor de nuvem; uma cópia independente, sim.</p>
+            <a class="fonte" href="https://www.datacenterdynamics.com/en/news/google-cloud-accidentally-deleted-unisupers-private-cloud-subscription" target="_blank" rel="noopener noreferrer">Fonte: DatacenterDynamics ↗</a>
+          </article>
+          <!-- Caso: Code Spaces -->
+          <article class="cartao caso" data-tipos="ataque backup">
+            <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><span class="ano">2014</span><span class="tag">Pequeno porte / terceirizada</span></div>
+            <h3>Code Spaces</h3>
+            <p><strong>Invasor apagou dados e backups pelo mesmo painel; a empresa fechou</strong></p>
+            <p class="secundario">Com acesso ao painel da nuvem, o invasor pediu resgate e, sem pagamento, apagou servidores, discos e backups em cerca de 12 horas. Os backups eram controlados pelo mesmo painel. A empresa encerrou as atividades.</p>
+            <p class="licao"><strong>Lição:</strong> Backup isolado (offline) e senha forte com segundo fator.</p>
+            <div><span class="tag tag-ok">Checklist 3-2-1</span> <span class="tag tag-ok">Cofre AES-256-GCM</span></div>
+            <p class="limite"><strong>Limite honesto:</strong> Segurança de contas na nuvem (MFA, permissões) fica fora do app.</p>
+            <a class="fonte" href="https://www.networkworld.com/article/2366862/a-wakeup-call-for-the-cloud.html" target="_blank" rel="noopener noreferrer">Fonte: Network World ↗</a>
+          </article>
+          <!-- Caso: Google Drive para computador -->
+          <article class="cartao caso" data-tipos="migracao">
+            <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><span class="ano">2023</span><span class="tag">Grande porte</span></div>
+            <h3>Google Drive para computador</h3>
+            <p><strong>Bug de sincronização fez arquivos sumirem para parte dos usuários</strong></p>
+            <p class="secundario">Nas versões 84.0.0.0 a 84.0.4.0 do Drive para computador, alterações locais ainda não sincronizadas se perderam. O Google lançou uma ferramenta de recuperação, que não funcionou para todos.</p>
+            <p class="licao"><strong>Lição:</strong> Sincronizar não é fazer backup: um erro sincronizado se espalha.</p>
+            <div><span class="tag tag-ok">Processamento 100% local</span> <span class="tag tag-ok">Verificador de backup</span></div>
+            
+            <a class="fonte" href="https://www.bleepingcomputer.com/news/google/google-shares-fix-for-deleted-google-drive-files" target="_blank" rel="noopener noreferrer">Fonte: BleepingComputer ↗</a>
+          </article>
+          <!-- Caso: Western Digital My Book Live -->
+          <article class="cartao caso" data-tipos="ataque">
+            <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><span class="ano">2021</span><span class="tag">Grande porte</span></div>
+            <h3>Western Digital My Book Live</h3>
+            <p><strong>Discos ligados à internet foram apagados remotamente</strong></p>
+            <p class="secundario">Falhas antigas, sem correção porque a linha não recebia mais atualizações, permitiram que atacantes mandassem um reset de fábrica pela internet. Muitos donos perderam tudo; a recuperação raramente funcionou.</p>
+            <p class="licao"><strong>Lição:</strong> Dispositivo de armazenamento exposto à internet e sem atualização é um risco.</p>
+            <div><span class="tag tag-ok">Processamento 100% local</span> <span class="tag tag-ok">Checklist 3-2-1</span></div>
+            
+            <a class="fonte" href="https://www.engadget.com/western-digital-my-book-live-factory-reset-two-vulnerabilities-044122712.html" target="_blank" rel="noopener noreferrer">Fonte: Engadget ↗</a>
+          </article>
+          <!-- Caso: Prefeitura de Amagasaki (Japão), via terceirizada -->
+          <article class="cartao caso" data-tipos="exposicao">
+            <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><span class="ano">2022</span><span class="tag">Pequeno porte / terceirizada</span></div>
+            <h3>Prefeitura de Amagasaki (Japão), via terceirizada</h3>
+            <p><strong>Pendrive com dados de todos os 460 mil moradores perdido após um jantar</strong></p>
+            <p class="secundario">Um funcionário de empresa contratada levou pendrives com nome, endereço, data de nascimento e dados bancários de beneficiários, e os perdeu após sair de um bar. Os dados estavam cifrados e com senha. Os pendrives foram encontrados.</p>
+            <p class="licao"><strong>Lição:</strong> Pendrive com dado pessoal deve ir cifrado, e o dado deve ser apagado quando o trabalho acaba.</p>
+            <div><span class="tag tag-ok">Cofre AES-256-GCM</span> <span class="tag tag-ok">Lixeira restaurável e Desfazer</span></div>
+            
+            <a class="fonte" href="https://www.cbsnews.com/news/amagasaki-japan-lost-usb-data-460000-residents/" target="_blank" rel="noopener noreferrer">Fonte: CBS News ↗</a>
+          </article>
+          <!-- Caso: Superior Tribunal de Justiça (Brasil) -->
+          <article class="cartao caso" data-tipos="ataque backup">
+            <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><span class="ano">2020</span><span class="tag">Grande porte</span></div>
+            <h3>Superior Tribunal de Justiça (Brasil)</h3>
+            <p><strong>Ransomware paralisou o tribunal por mais de uma semana</strong></p>
+            <p class="secundario">Em novembro de 2020, um ataque criptografou sistemas e interrompeu sessões. O tribunal afirmou que os dados estavam preservados em backup; reportagens relataram backups também atingidos. As fontes divergem sobre a extensão.</p>
+            <p class="licao"><strong>Lição:</strong> Mantenha um backup desconectado e um registro de hashes para provar o que mudou.</p>
+            <div><span class="tag tag-ok">SHA-256 e verificação de integridade</span> <span class="tag tag-ok">Checklist 3-2-1</span> <span class="tag tag-ok">Verificador de backup</span></div>
+            
+            <a class="fonte" href="https://www.conjur.com.br/2020-nov-05/stj-processos-preservados-conta-inteligencia-exercito/" target="_blank" rel="noopener noreferrer">Fonte: ConJur ↗</a>
+          </article>
+          <!-- Caso: Megavazamento de 223 milhões de CPFs (Brasil) -->
+          <article class="cartao caso" data-tipos="exposicao">
+            <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><span class="ano">2021</span><span class="tag">Grande porte</span></div>
+            <h3>Megavazamento de 223 milhões de CPFs (Brasil)</h3>
+            <p><strong>Base com dados de quase todos os brasileiros circulou na internet</strong></p>
+            <p class="secundario">Em janeiro de 2021 foi descoberta uma base com cerca de 223 milhões de CPFs, com endereço, telefone, score e outros dados, distribuída em um fórum. A ANPD investigou e a PF prendeu um suspeito. A origem exata não foi confirmada publicamente.</p>
+            <p class="licao"><strong>Lição:</strong> Guarde só o necessário e cifre o que for sensível (LGPD).</p>
+            <div><span class="tag tag-ok">Cofre AES-256-GCM</span> <span class="tag tag-ok">Processamento 100% local</span></div>
+            <p class="limite"><strong>Limite honesto:</strong> O app não protege bases de outras empresas: ele evita que os seus arquivos saiam do seu aparelho.</p>
+            <a class="fonte" href="https://tecnoblog.net/especiais/megavazamento-de-223-milhoes-de-cpfs-um-ano-se-passou-e-ainda-ha-perguntas-sem-resposta/" target="_blank" rel="noopener noreferrer">Fonte: Tecnoblog ↗</a>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===================== RODAPÉ ===================== -->
+  <footer class="rodape">
+    <div class="envolve">
+      <!-- MUDE AQUI o texto do rodapé (nomes, turma, escola, data...) -->
+      <p>USB Intelligence · Plataforma brasileira de inteligência de arquivos · Projeto feito com apoio de IA.</p>
+      <p>Versão manual (HTML, CSS e JavaScript). App completo: <a href="https://enriszx.github.io/escreva-usb-intelligence/">enriszx.github.io/escreva-usb-intelligence/</a></p>
+    </div>
+  </footer>
+  <script src="script.js"></script>
+</body>
+</html>

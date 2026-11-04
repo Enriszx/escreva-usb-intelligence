@@ -33,6 +33,13 @@ Ferramentas da área:
 - **Verificador de backup:** compara a pasta original com a cópia, pelo caminho e pelo SHA-256. Mostra iguais, diferentes, faltando e extras, e diz se a cópia é confiável.
 - **Checklist 3-2-1:** salvo neste navegador.
 
+## Versão manual (HTML + CSS + JS puros)
+
+A pasta `public/manual/` tem uma versão editável à mão, sem compilação: `index.html`, `casos.html` e `ferramentas.html` (verificador de backup, checklist 3-2-1, hash ao vivo), mais `estilo.css`, `script.js` e `imagens/`. As instruções estão em `public/manual/COMO-EDITAR.md`.
+- Abre com dois cliques e funciona sem internet.
+- Pode ser colada no Google Sites, no Wix ou no WordPress.
+- Publicada em https://enriszx.github.io/escreva-usb-intelligence/manual/.
+
 ## Modo apresentação
 
 `/apresentacao`: 8 slides em tela cheia (capa, problema, causas, solução, segurança, IA, demonstração ao vivo e encerramento com QR code do site público).

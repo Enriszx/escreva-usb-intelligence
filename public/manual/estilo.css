@@ -1,0 +1,177 @@
+/* =====================================================================
+   USB Intelligence — VERSÃO MANUAL (HTML + CSS + JS puros)
+   Pode editar à vontade. Não precisa instalar nada: abra o .html no
+   navegador para ver e abra no Bloco de Notas / VS Code para mudar.
+
+   >>> MUDE AQUI as cores, fontes e cantos do site inteiro. <<<
+   ===================================================================== */
+:root {
+  /* Cores da bandeira */
+  --verde: #009c3b;
+  --amarelo: #ffdf00;
+  --azul: #002776;
+
+  /* Tema escuro (padrão) */
+  --fundo: #04120c;           /* cor de fundo da página */
+  --cartao: rgba(12, 34, 25, 0.78); /* fundo dos cartões */
+  --texto: #f2f7f3;           /* texto principal */
+  --texto-2: #9fb3a7;         /* texto secundário */
+  --linha: rgba(255, 255, 255, 0.10);
+  --destaque: #ffdf00;        /* botões principais */
+  --destaque-texto: #0b1a00;  /* texto dentro do botão principal */
+  --ok: #2fd57f;
+  --alerta: #ffdf00;
+  --erro: #ff7a66;
+
+  /* Fontes: as do sistema (funcionam sem internet) */
+  --fonte-titulo: "Segoe UI", Inter, system-ui, -apple-system, Roboto, Arial, sans-serif;
+  --fonte-texto: "Segoe UI", Inter, system-ui, -apple-system, Roboto, Arial, sans-serif;
+
+  --canto: 18px;              /* arredondamento dos cartões */
+  --largura: 1200px;          /* largura máxima do conteúdo */
+}
+
+/* Tema claro (botão de sol/lua no topo) */
+html.claro {
+  --fundo: #f4f8f5;
+  --cartao: rgba(255, 255, 255, 0.88);
+  --texto: #0a1c13;
+  --texto-2: #46594e;
+  --linha: rgba(4, 18, 12, 0.12);
+  --destaque: #007a37;
+  --destaque-texto: #ffffff;
+  --ok: #00703a;
+  --alerta: #7a5c00;
+  --erro: #b42318;
+}
+
+/* ---------- Base ---------- */
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0; background: var(--fundo); color: var(--texto);
+  font-family: var(--fonte-texto); font-size: 16px; line-height: 1.6;
+  overflow-x: hidden;
+}
+img, svg { max-width: 100%; display: block; }
+a { color: inherit; }
+h1, h2, h3 { font-family: var(--fonte-titulo); line-height: 1.1; margin: 0; letter-spacing: -0.02em; }
+p { margin: 0; }
+.envolve { width: 100%; max-width: var(--largura); margin: 0 auto; padding: 0 20px; }
+.secundario { color: var(--texto-2); }
+.gradiente { background: linear-gradient(100deg, var(--amarelo), #9be15d 45%, var(--ok)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+html.claro .gradiente { background-image: linear-gradient(100deg, #007a37, #0b49c4); }
+:focus-visible { outline: 2px solid var(--ok); outline-offset: 3px; }
+
+/* ---------- Fundo inspirado na bandeira (estilizado) ---------- */
+.fundo-bandeira { position: fixed; inset: 0; width: 100%; height: 100%; max-width: none; object-fit: cover; z-index: -1; pointer-events: none; opacity: 0.9; }
+html.claro .fundo-bandeira { opacity: 0.35; }
+
+/* ---------- Cabeçalho ---------- */
+.topo {
+  position: sticky; top: 0; z-index: 10;
+  background: color-mix(in srgb, var(--fundo) 80%, transparent);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border-bottom: 3px solid; border-image: linear-gradient(90deg, var(--verde) 0 33%, var(--amarelo) 33% 66%, #2c5be0 66%) 1;
+}
+.topo .envolve { display: flex; align-items: center; gap: 16px; min-height: 64px; }
+.marca { display: flex; align-items: center; gap: 10px; text-decoration: none; font-weight: 800; font-size: 1.1rem; }
+.marca img { width: 32px; height: 32px; }
+.menu { display: flex; gap: 4px; margin-left: auto; list-style: none; padding: 0; margin-top: 0; margin-bottom: 0; }
+.menu a { display: block; padding: 8px 14px; border-radius: 999px; text-decoration: none; color: var(--texto-2); font-weight: 600; }
+.menu a:hover, .menu a[aria-current="page"] { color: var(--texto); background: var(--linha); }
+.botao-icone { width: 40px; height: 40px; border-radius: 12px; border: 1px solid var(--linha); background: transparent; color: var(--texto); font-size: 18px; cursor: pointer; }
+.abre-menu { display: none; }
+
+/* ---------- Botões ---------- */
+.botao {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 22px;
+  border-radius: 12px; font-weight: 700; text-decoration: none; border: 0; cursor: pointer; font-size: 1rem;
+}
+.botao-principal { background: var(--destaque); color: var(--destaque-texto); box-shadow: 0 10px 28px -12px var(--destaque); }
+.botao-principal:hover { filter: brightness(1.06); transform: translateY(-1px); }
+.botao-secundario { background: var(--linha); color: var(--texto); border: 1px solid var(--linha); }
+.linha-botoes { display: flex; flex-wrap: wrap; gap: 10px; }
+
+/* ---------- Cartões e seções ---------- */
+.cartao { background: var(--cartao); border: 1px solid var(--linha); border-radius: var(--canto); padding: 24px; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.secao { padding: 72px 0; }
+.etiqueta { display: inline-block; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--texto-2); margin-bottom: 10px; }
+.titulo-secao { font-size: clamp(1.8rem, 1.2rem + 2.4vw, 3rem); margin-bottom: 14px; }
+.grade { display: grid; gap: 16px; }
+.grade-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.grade-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.grade-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+/* ---------- Abertura ---------- */
+.abertura { padding: 80px 0 48px; }
+.abertura h1 { font-size: clamp(2.4rem, 1.4rem + 4.6vw, 5rem); font-weight: 800; max-width: 14ch; margin: 16px 0; }
+.abertura .lead { font-size: 1.15rem; color: var(--texto-2); max-width: 58ch; margin-bottom: 24px; }
+.selo { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--linha); background: var(--linha); font-size: 0.85rem; font-weight: 600; }
+.confianca { display: flex; flex-wrap: wrap; gap: 8px 20px; list-style: none; padding: 0; margin: 22px 0 0; color: var(--texto-2); font-weight: 600; font-size: 0.92rem; }
+.confianca li::before { content: "✔ "; color: var(--ok); }
+
+/* ---------- Etapas (interativo) ---------- */
+.etapas { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; list-style: none; padding: 0; margin: 0 0 16px; }
+.etapa { width: 100%; display: grid; justify-items: center; gap: 6px; padding: 14px 6px; border-radius: 16px; border: 1px solid var(--linha); background: var(--cartao); color: var(--texto); cursor: pointer; font: inherit; font-weight: 700; }
+.etapa span { font-size: 28px; }
+.etapa.ativa { background: var(--amarelo); color: #0b1a00; border-color: transparent; transform: translateY(-3px); }
+.detalhe-etapa { text-align: center; }
+
+/* ---------- Números e barras ---------- */
+.numeros { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 18px; }
+.numero { padding: 14px; border-radius: 12px; background: var(--linha); }
+.numero small { display: block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--texto-2); }
+.numero strong { font-family: var(--fonte-titulo); font-size: 1.8rem; }
+.barra { display: grid; grid-template-columns: 120px 1fr auto; gap: 12px; align-items: center; padding: 8px 0; }
+.barra .trilho { height: 14px; border-radius: 0 4px 4px 0; background: var(--linha); overflow: hidden; }
+.barra .trilho i { display: block; height: 100%; border-radius: 0 4px 4px 0; }
+.barra b { font-variant-numeric: tabular-nums; }
+
+/* ---------- Casos ---------- */
+.filtros { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+.filtro { min-height: 36px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--linha); background: var(--linha); color: var(--texto-2); font: inherit; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+.filtro.ativo { background: var(--destaque); color: var(--destaque-texto); }
+.caso { display: grid; gap: 10px; align-content: start; }
+.caso[hidden] { display: none; }
+.caso .ano { font-family: var(--fonte-titulo); font-weight: 800; font-size: 1.4rem; color: var(--destaque); }
+.caso h3 { font-size: 1.1rem; }
+.caso .licao { padding: 10px 12px; border-radius: 12px; background: var(--linha); font-size: 0.92rem; }
+.caso .limite { border-left: 3px solid var(--linha); padding-left: 10px; color: var(--texto-2); font-size: 0.88rem; }
+.caso .fonte { color: var(--ok); font-size: 0.88rem; }
+.tag { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 700; border: 1px solid var(--linha); color: var(--texto-2); }
+.tag-ok { color: var(--ok); border-color: currentColor; }
+.causas { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.causas li { display: grid; grid-template-columns: 1fr 1.2fr; gap: 12px; padding: 12px 0; border-top: 1px solid var(--linha); }
+
+/* ---------- Ferramentas ---------- */
+.escolha { display: grid; gap: 4px; padding: 16px; border: 1px dashed var(--linha); border-radius: 14px; cursor: pointer; }
+.escolha input { margin-top: 6px; }
+.resultado { margin-top: 14px; padding: 14px; border-radius: 12px; background: var(--linha); }
+.resultado ul { max-height: 260px; overflow: auto; padding-left: 18px; }
+.lista-checagem { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+.lista-checagem label { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }
+.lista-checagem input { width: 20px; height: 20px; accent-color: var(--destaque); }
+.progresso { height: 8px; border-radius: 99px; background: var(--linha); overflow: hidden; margin: 12px 0 6px; }
+.progresso i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--verde), var(--amarelo)); transition: width 0.3s; }
+.campo { width: 100%; min-height: 44px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--linha); background: var(--linha); color: var(--texto); font: inherit; }
+.hash { font-family: ui-monospace, Consolas, monospace; font-size: 0.78rem; word-break: break-all; padding: 10px; border-radius: 10px; background: var(--linha); color: var(--texto-2); }
+
+/* ---------- Rodapé ---------- */
+.rodape { padding: 40px 0; border-top: 1px solid var(--linha); color: var(--texto-2); font-size: 0.9rem; }
+
+/* ---------- Celular ---------- */
+@media (max-width: 860px) {
+  .grade-3, .grade-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .etapas { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .causas li { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .grade-2, .grade-3, .grade-4, .numeros { grid-template-columns: 1fr 1fr; }
+  .grade-2, .grade-3 { grid-template-columns: 1fr; }
+  .abre-menu { display: block; margin-left: auto; }
+  .menu { display: none; position: absolute; top: 64px; left: 0; right: 0; flex-direction: column; padding: 10px 20px 16px; background: var(--fundo); border-bottom: 1px solid var(--linha); }
+  .menu.aberto { display: flex; }
+  .barra { grid-template-columns: 90px 1fr auto; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
