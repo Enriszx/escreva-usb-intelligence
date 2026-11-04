@@ -76,9 +76,41 @@ for (const scheme of ['dark', 'light']) {
     await ctx.close();
   }
 }
+// Telas que só aparecem com interação: visualizador, aviso (toast) e painel do Vigia.
+for (const scheme of ['dark', 'light']) {
+  for (const vw of [1440, 360]) {
+    const ctx = await browser.newContext({ viewport: { width: vw, height: 800 }, colorScheme: scheme, reducedMotion: 'reduce' });
+    await ctx.addInitScript(() => { try { sessionStorage.setItem('usbi.acesso', '1'); } catch { /* */ } });
+    const page = await ctx.newPage();
+    const where = `interações · ${scheme} · ${vw}px`;
+    const add = (kind, msg) => problems.push({ where, kind, msg: String(msg).replace(/\s+/g, ' ').slice(0, 300) });
+    page.on('pageerror', (e) => add('erro JS', e.message));
+    page.on('console', (m) => { if (m.type() === 'error') add('console', m.text()); });
+    await page.goto(`${BASE}#/arquivos`);
+    await page.locator('.intake input[type=file]:not([webkitdirectory])').first().setInputFiles([
+      { name: 'a.txt', mimeType: 'text/plain', buffer: Buffer.from('texto') }, { name: 'b.csv', mimeType: 'text/csv', buffer: Buffer.from('x;y\n1;2') },
+    ]);
+    const axeNow = async (label) => {
+      checks++;
+      await page.addScriptTag({ content: AXE });
+      const v = await page.evaluate(async () => (await window.axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] } })).violations.filter((x) => ['serious', 'critical'].includes(x.impact)).map((x) => `${x.id} (${x.impact}): ${x.help} — ${x.nodes.slice(0, 3).map((n) => n.target.join(' ')).join(' | ')}`));
+      for (const x of v) add('acessibilidade', `${label}: ${x}`);
+    };
+    await page.locator('.toast').first().waitFor({ timeout: 8000 }).catch(() => {});
+    await page.locator('.fname-btn', { hasText: 'b.csv' }).click();
+    await page.locator('.viewer-table').waitFor();
+    await axeNow('visualizador + aviso');
+    await page.keyboard.press('Escape');
+    await page.getByRole('button', { name: /Abrir o assistente/ }).click();
+    await page.locator('.ai-panel').waitFor();
+    await axeNow('painel do Vigia');
+    await page.getByRole('button', { name: 'Menu' }).first().click().catch(() => {});
+    await ctx.close();
+  }
+}
 await browser.close();
 server.kill();
-console.log(`Auditoria: ${checks} verificações (${ROUTES.length} páginas × 2 temas × 2 tamanhos).`);
+console.log(`Auditoria: ${checks} verificações (${ROUTES.length} páginas × 2 temas × 2 tamanhos + telas de interação).`);
 if (!problems.length) console.log('✔ Nenhum problema encontrado.');
 else {
   const seen = new Set();

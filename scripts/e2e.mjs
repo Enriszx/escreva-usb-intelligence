@@ -576,6 +576,65 @@ await test('27. Casos reais, Verificador de backup e Modo apresentação', async
   await c.close();
 });
 
+await test('28. Abrir arquivos de verdade e falar com o Vigia por voz', async () => {
+  const c = await browser.newContext({ viewport: { width: 1366, height: 900 } });
+  await c.addInitScript(UNLOCK);
+  // Microfone e voz simulados: o reconhecimento "ouve" a frase do teste; a fala é registrada.
+  await c.addInitScript(() => {
+    window.__falas = [];
+    class FakeRec {
+      constructor() { this.onresult = null; this.onend = null; this.onerror = null; }
+      start() { setTimeout(() => { const r = [{ transcript: window.__frase || '' }]; r.isFinal = true; this.onresult?.({ resultIndex: 0, results: [r] }); this.onend?.(); }, 200); }
+      stop() { this.onend?.(); }
+      abort() {}
+    }
+    window.webkitSpeechRecognition = FakeRec;
+    window.SpeechRecognition = FakeRec;
+    Object.defineProperty(window, 'speechSynthesis', { configurable: true, value: { cancel() {}, getVoices: () => [], speak(u) { window.__falas.push(u.text); setTimeout(() => u.onend?.(), 50); } } });
+  });
+  const p = await c.newPage();
+  const perr = [];
+  p.on('pageerror', (e) => perr.push(e.message));
+  await p.goto(`${BASE}#/arquivos`);
+  const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
+  await p.locator('.intake input[type=file]:not([webkitdirectory])').first().setInputFiles([
+    { name: 'foto.png', mimeType: 'image/png', buffer: png },
+    { name: 'notas.txt', mimeType: 'text/plain', buffer: Buffer.from('Reunião às 15h.\n<script>alert(1)</script>') },
+    { name: 'tabela.csv', mimeType: 'text/csv', buffer: Buffer.from('nome;valor\nAna;10\nBeto;20') },
+    { name: 'relatorio.docx', mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', buffer: Buffer.from('PK fake') },
+  ]);
+  // Tocar no nome abre o arquivo.
+  await p.locator('.fname-btn', { hasText: 'notas.txt' }).click();
+  await p.locator('.viewer-text').waitFor();
+  assert(/<script>alert\(1\)<\/script>/.test(await p.locator('.viewer-text').innerText()), 'texto mostrado como texto, sem executar');
+  // Setas trocam de arquivo dentro do visualizador.
+  const names = new Set();
+  for (let i = 0; i < 4; i++) { names.add(await p.locator('#modal-title').innerText()); await p.keyboard.press('ArrowRight'); await p.waitForTimeout(200); }
+  assert(names.size === 4, `navegou pelos 4 arquivos (${[...names]})`);
+  await p.keyboard.press('Escape');
+  await p.locator('.fname-btn', { hasText: 'foto.png' }).click();
+  await p.waitForFunction(() => { const i = document.querySelector('.viewer-body img'); return i && i.complete && i.naturalWidth === 1; });
+  await p.keyboard.press('Escape');
+  await p.locator('.fname-btn', { hasText: 'tabela.csv' }).click();
+  assert(/Beto/.test(await p.locator('.viewer-table td').nth(2).innerText()), 'CSV vira tabela');
+  await p.keyboard.press('Escape');
+  await p.locator('.fname-btn', { hasText: 'relatorio.docx' }).click();
+  const dl = p.locator('.viewer a[download]', { hasText: 'Baixar e abrir' });
+  await dl.waitFor();
+  assert((await dl.getAttribute('download')) === 'relatorio.docx', 'Word oferece baixar com o nome certo');
+  await p.keyboard.press('Escape');
+  // Voz: fala "abrir notas" → o Vigia abre o arquivo e responde em voz alta.
+  await p.getByRole('button', { name: /Abrir o assistente/ }).click();
+  await p.getByRole('button', { name: 'Falar as respostas em voz alta' }).click();
+  await p.evaluate(() => { window.__frase = 'abrir notas'; });
+  await p.getByRole('button', { name: 'Falar com o Vigia' }).click();
+  await p.locator('.viewer-text').waitFor({ timeout: 10000 });
+  assert(await p.locator('.ai-msg.is-user', { hasText: 'abrir notas' }).count(), 'a frase falada virou mensagem');
+  await p.waitForFunction(() => window.__falas.some((t) => /Abri notas\.txt/.test(t)), null, { timeout: 5000 });
+  assert(!perr.length, perr.join(' | '));
+  await c.close();
+});
+
 await test('14a. Manifesto PWA válido e instalável', async () => {
   const r = await page.request.get(`${BASE}manifest.webmanifest`);
   assert(r.ok(), `manifesto HTTP ${r.status()}`);

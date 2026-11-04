@@ -10,6 +10,10 @@ import { saveCSV, stamp } from '../../lib/export';
 import { put } from '../../lib/storage/db';
 import { ACCESSORIES, EYES, FINISHES, HEADS, OUTFITS, POSES, PRESETS, cloneConfig, validateCharacter, type CharacterConfig } from '../character/model';
 import { DRAFT_KEY } from '../character/useCharacterEditor';
+import { KIND_LABEL, openFile, readTextStart, viewKind } from '../files/viewKind';
+
+/** Lembretes criados pela IA chegam por este evento (o painel mostra e fala). */
+export const REMINDER_EVENT = 'usbi:lembrete';
 import type { useFiles } from '../files/store';
 import type { useFolder } from '../files/folder';
 import type { ConfirmOptions } from '../../app/feedback';
@@ -29,6 +33,8 @@ export interface ToolContext {
   confirm: (o: ConfirmOptions) => Promise<boolean>;
   /** Registra o que a ferramenta está fazendo, para o painel mostrar. */
   report: (line: string) => void;
+  /** Modo automático (opcional: nos testes pode faltar). */
+  auto?: { phase: string; drive: string | null; runNow: () => Promise<void> };
 }
 
 export interface AssistantTool {
@@ -43,6 +49,7 @@ export interface AssistantTool {
 const AREAS: Record<string, string> = {
   inicio: '/', arquivos: '/arquivos', laboratorio: '/laboratorio', personagem: '/personagem', seguranca: '/seguranca',
   relatorios: '/relatorios', historico: '/historico', configuracoes: '/configuracoes', ajuda: '/ajuda',
+  automatico: '/automatico', casos: '/casos', apresentacao: '/apresentacao',
 };
 const TABS = ['acervo', 'painel', 'duplicados', 'nomes', 'organizacao', 'lixeira'];
 
@@ -379,6 +386,71 @@ export const TOOLS: AssistantTool[] = [
     async execute(input) {
       const h = await listHistory();
       return h.slice(0, Math.min(30, num(input.limite, 10))).map((x) => ({ quando: new Date(x.at).toLocaleString('pt-BR'), tipo: HISTORY_LABEL[x.type], titulo: x.title, resultado: x.result }));
+    },
+  },
+  {
+    name: 'abrir_arquivo',
+    label: 'Abrindo o arquivo',
+    description: 'Abre um arquivo da biblioteca no visualizador do app (imagem, vídeo, áudio, PDF, planilha CSV, texto ou código; outros tipos oferecem baixar). Use o id de listar_arquivos.',
+    inputSchema: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'], additionalProperties: false },
+    async execute(input, ctx) {
+      const [f] = pick(ctx.files.entries, [str(input.id)]);
+      openFile(f.id);
+      return { aberto: f.name, como: KIND_LABEL[viewKind(f.ext, f.mime)] };
+    },
+  },
+  {
+    name: 'ler_arquivo',
+    label: 'Lendo o conteúdo do arquivo',
+    description: 'Lê o TEXTO de um arquivo de texto, código ou CSV (até 15 mil caracteres) para resumir, explicar, revisar ou responder perguntas sobre ele. Só funciona com permissão do usuário, que o app pede. Não lê PDF, Word ou imagens.',
+    inputSchema: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'], additionalProperties: false },
+    async execute(input, ctx) {
+      const [f] = pick(ctx.files.entries, [str(input.id)]);
+      const k = viewKind(f.ext, f.mime);
+      if (k !== 'texto' && k !== 'tabela') throw new Error(`"${f.name}" não é um arquivo de texto (${KIND_LABEL[k]}). Ofereça abrir_arquivo para o usuário ver.`);
+      const blob = ctx.files.getFile(f.id) ?? (ctx.folder.backend?.kind === 'web' && f.source === 'pasta' ? await ctx.folder.backend.getBlob(f.path) : null);
+      if (!blob) throw new Error('O conteúdo deste item não está disponível agora (é só o registro salvo). Peça para escolher o arquivo de novo.');
+      const ok = await ctx.confirm({
+        title: `Deixar a IA ler “${f.name}”?`,
+        body: 'O texto do arquivo será lido pela IA para responder ao seu pedido. Com a IA online ligada, esse texto vai para o serviço gratuito (Pollinations). Com a IA do aparelho, nada sai daqui.',
+        confirm: 'Permitir leitura',
+      });
+      if (!ok) return { lido: false, motivo: 'O usuário não autorizou a leitura.' };
+      const { text, cut } = await readTextStart(blob, 15_000);
+      return { lido: true, arquivo: f.name, cortado: cut, texto: text };
+    },
+  },
+  {
+    name: 'modo_automatico',
+    label: 'Modo automático',
+    description: 'Consulta o estado do modo automático do pendrive ou manda executar de novo (ler, verificar, duplicados, organizar, relatório). Se o pendrive ainda não foi configurado, leva o usuário à tela certa: a primeira conexão exige um toque dele.',
+    inputSchema: { type: 'object', properties: { acao: { type: 'string', enum: ['estado', 'executar'] } }, required: ['acao'], additionalProperties: false },
+    async execute(input, ctx) {
+      const a = ctx.auto;
+      if (!a) throw new Error('Modo automático indisponível.');
+      if (str(input.acao) === 'executar') {
+        if (a.phase === 'pronto' || a.phase === 'erro') {
+          void a.runNow();
+          ctx.navigate('/automatico');
+          return { executando: true, pendrive: a.drive };
+        }
+        ctx.navigate('/automatico');
+        return { executando: false, estado: a.phase, observacao: a.phase === 'indisponivel' ? 'Este navegador não acessa pastas (celular): use o app Android ou escolha os arquivos na Central.' : 'Peça ao usuário para tocar em "Conectar pendrive" ou encaixar o pendrive; depois tudo roda sozinho.' };
+      }
+      return { estado: a.phase, pendrive: a.drive };
+    },
+  },
+  {
+    name: 'lembrete',
+    label: 'Criando lembrete',
+    description: 'Cria um lembrete que aparece na tela (e é falado, se a voz estiver ligada) daqui a N minutos. Vale enquanto o site estiver aberto.',
+    inputSchema: { type: 'object', properties: { minutos: { type: 'number', minimum: 0.1, maximum: 720 }, texto: { type: 'string' } }, required: ['minutos', 'texto'], additionalProperties: false },
+    async execute(input) {
+      const min = Math.min(720, Math.max(0.1, num(input.minutos, 5)));
+      const texto = str(input.texto).slice(0, 200) || 'Lembrete';
+      setTimeout(() => window.dispatchEvent(new CustomEvent(REMINDER_EVENT, { detail: { texto } })), min * 60_000);
+      const at = new Date(Date.now() + min * 60_000);
+      return { criado: true, quando: at.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }), texto, aviso: 'Só funciona com o site aberto.' };
     },
   },
 ];

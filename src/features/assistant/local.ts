@@ -114,6 +114,21 @@ export async function runLocal(text: string, ctx: ToolContext, onTool: (t: Assis
     return `Você tem ${s.arquivos} arquivo(s), ${s.volume} no total. Por tipo: ${s.por_tipo.map((x) => `${x.tipo} ${x.arquivos}`).join(', ')}. ${s.com_hash} com hash; ${s.duplicados.grupos} grupo(s) de duplicados (${s.duplicados.recuperavel} recuperáveis).`;
   }
 
+  // "abrir contrato", "mostra a foto da praia": abre o arquivo cujo nome bate melhor.
+  const ab = /\b(abr[aei]r?|abre|mostr[ae]r?|ver|visualiz[ae]r?)\s+(?:o |a |os |as )?(?:arquivo |foto |documento |video |musica )?(.+)$/.exec(t);
+  if (ab) {
+    const want = ab[2].replace(/[.?!]+$/, '').trim();
+    const scored = ctx.files.entries
+      .map((f) => { const n = norm(f.name); const base = n.replace(/\.[^.]+$/, ''); return { f, s: base === want ? 3 : n === want ? 3 : n.startsWith(want) ? 2 : n.includes(want) ? 1 : 0 }; })
+      .filter((x) => x.s > 0)
+      .sort((a, b) => b.s - a.s || a.f.name.length - b.f.name.length);
+    if (scored.length) {
+      const f = scored[0].f;
+      await run('abrir_arquivo', { id: f.id });
+      return scored.length > 1 ? `Abri ${f.name}. Encontrei ${scored.length} arquivos parecidos; diga o nome completo para abrir outro.` : `Abri ${f.name}.`;
+    }
+  }
+
   const area = AREA_WORDS.find(([re]) => re.test(t));
   if (area && /\b(abr|ir|va|vai|leva|mostr|entra)/.test(t)) {
     await run('abrir_area', { area: area[1] });

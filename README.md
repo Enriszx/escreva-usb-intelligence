@@ -19,6 +19,27 @@ Onde funciona sozinho: **Chrome/Edge no computador** (escolha "Permitir em todas
 
 Detalhe técnico: o handle da pasta é lido do IndexedDB uma única vez e fica em memória. Reconstruir do banco um handle cuja pasta sumiu derrubou o Chromium nos testes; na memória, ele só dá `NotFoundError` e volta a funcionar quando o pendrive retorna.
 
+## Abrir arquivos (visualizador)
+
+Na Central de arquivos, tocar no nome (ou na miniatura) **abre o arquivo** dentro do site:
+- imagens, vídeos e áudios, com player;
+- PDF;
+- planilhas CSV, mostradas como tabela;
+- textos e códigos (txt, md, json, html, py…), mostrados como texto e nunca executados.
+
+O que o navegador não abre por dentro (Word, Excel, ZIP, programas) oferece **Baixar e abrir** no programa do aparelho. As setas ← → passam para o próximo arquivo. O botão ⓘ abre os detalhes (hash, cópias, nomes parecidos).
+
+## Vigia IA: voz e ações
+
+- **Voz:** o microfone (Chrome/Edge) transcreve o que você fala. No Chrome, o áudio é transcrito pelo serviço do Google. O botão de alto-falante faz o Vigia **falar as respostas** com as vozes do sistema.
+- **Modo conversa** (fone de ouvido): o Vigia ouve, responde em voz e volta a ouvir, sem tocar em nada.
+- **Ações novas:**
+  - `abrir_arquivo` e `ler_arquivo`: lê o texto de um arquivo para resumir ou explicar, **só com permissão**, pedida a cada leitura;
+  - `modo_automatico`: estado ou executar de novo;
+  - `lembrete`: avisa e fala daqui a N minutos, com o site aberto;
+  - `abrir_area`: agora também leva ao Automático, aos Casos reais e à Apresentação.
+- **Sem IA ligada:** o comando "abrir <nome do arquivo>" também funciona por voz e offline.
+
 ## Casos reais e Verificador de backup
 
 Área **Casos reais** (`/casos`): 12 incidentes pesquisados, com fonte:

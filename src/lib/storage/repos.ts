@@ -126,6 +126,8 @@ export interface Settings {
   aiInstalled: string | null;
   /** IA online grátis (gpt-oss-20b via Pollinations) autorizada pelo usuário. */
   aiOnline: boolean;
+  /** O Vigia fala as respostas em voz alta. */
+  aiVoice: boolean;
   /** Modo automático: ao detectar o pendrive, executa as etapas sozinho. */
   autoRun: boolean;
   /** Verificação completa (SHA-256 de tudo) em vez de só candidatos a duplicado. */
@@ -148,6 +150,7 @@ export const DEFAULT_SETTINGS: Settings = {
   aiModel: 'Qwen2.5-1.5B-Instruct-q4f16_1-MLC',
   aiInstalled: null,
   aiOnline: false,
+  aiVoice: false,
   autoRun: true,
   autoDeep: true,
   autoOrganize: false,

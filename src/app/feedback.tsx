@@ -20,7 +20,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastCtx.Provider value={push}>
       {children}
-      <div className="toasts" role="status" aria-live="polite">
+      <div className="toasts" data-tone="grafite" role="status" aria-live="polite">
         <AnimatePresence initial={false}>
           {items.map((t) => {
             const Icon = ICON[t.tone];

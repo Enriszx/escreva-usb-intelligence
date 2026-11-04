@@ -46,7 +46,7 @@
 @keyframes ai-dots { 0% { content: ''; } 25% { content: '.'; } 50% { content: '..'; } 75% { content: '...'; } }
 .ai-tools { list-style: none; display: grid; gap: 2px; font-size: 0.72rem; text-transform: none; letter-spacing: 0; color: var(--fg-2); }
 .ai-tools li::before { content: '→ '; color: var(--signal); }
-.ai-form { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: end; padding: 12px; border-top: 1px solid var(--line); }
+.ai-form { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: end; padding: 12px; border-top: 1px solid var(--line); }
 .ai-form textarea { width: 100%; min-height: 48px; max-height: 160px; resize: none; padding: 12px 14px; background: var(--bg-2); color: var(--fg); border: 1px solid var(--line-strong); font: inherit; line-height: 1.4; }
 .ai-form textarea:focus-visible { outline: 2px solid var(--signal); outline-offset: 0; border-color: transparent; }
 .ai-send { width: 48px; height: 48px; display: grid; place-items: center; background: var(--accent); color: var(--accent-fg); border: 0; }
@@ -116,3 +116,10 @@
 .ai-copy svg { width: 14px; height: 14px; }
 .ai-activate.is-alt { border-left-color: var(--line-strong); }
 .ai-engine.is-online { color: var(--signal); }
+
+/* Voz */
+.ai-icon.is-on { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 60%, transparent); }
+.ai-mic { width: 48px; height: 48px; display: grid; place-items: center; border-radius: 14px; border: 1px solid var(--line-strong); background: var(--bg-3); color: var(--fg); }
+.ai-mic svg { width: 20px; height: 20px; }
+.ai-mic.is-on { background: var(--st-err); color: #fff; border-color: transparent; animation: ai-pulse 1.2s ease-in-out infinite; }
+@keyframes ai-pulse { 50% { box-shadow: 0 0 0 8px color-mix(in srgb, var(--st-err) 25%, transparent); } }

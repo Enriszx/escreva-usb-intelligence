@@ -9,7 +9,7 @@
 
 - **O que é:** web app 3D "USB Intelligence", com estética brasileira futurista. Usa React 18, TypeScript, Vite 5, three.js e React Three Fiber. Analisa arquivos de verdade (SHA-256, duplicados por conteúdo, plano de organização), gerencia pastas reais (renomear, mover, lixeira, apagar, desfazer) e tem cofre AES-GCM, personagem 3D editável, relatórios, histórico e PWA offline. Tem também app Android (Capacitor + plugin SAF próprio) e o assistente **Vigia IA**.
 - **Idioma:** tudo em **português do Brasil**: interface, commits, README e respostas ao usuário.
-- **Estado atual:** todos os testes passam: **74 unitários (Vitest)** e **25 grupos e2e (Playwright)**. Visual "Brasil Moderno" e Modo automático no ar (seção 6b). Os builds `dist/` e `dist-artifact/` estão gerados, e os pacotes `.zip` em `release/` foram regenerados.
+- **Estado atual:** todos os testes passam: **87 unitários (Vitest)** e **27 grupos e2e (Playwright)**. Visual "Brasil Moderno" e Modo automático no ar (seção 6b). Os builds `dist/` e `dist-artifact/` estão gerados, e os pacotes `.zip` em `release/` foram regenerados.
 - **Publicado:** Artifact privado em https://claude.ai/artifact/2sEcU5zeBd4jDTUN19HXXS (prévia). Ele não usa mais nenhuma capacidade do Claude.
 - **GitHub:** https://github.com/Enriszx/escreva-usb-intelligence (repositório **público**). Tudo foi enviado, e o site público está em https://enriszx.github.io/escreva-usb-intelligence/. **A senha nunca vai para o repositório**: ela entra no build pela variável `VITE_PASS_HASH` (seção 4).
 - **Decisão do usuário (03/11):** "desconecte do Claude e coloque um código de IA PRÓPRIO e grátis que não gaste nada". Por isso não há mais SDK da Anthropic nem capacidade `sample`. Não reintroduzir sem pedido.
@@ -155,6 +155,25 @@ No build Artifact (`IS_ARTIFACT`) ficam escondidos ou ganham alternativa: servic
 - **Relatórios** (JSON e CSV), **Histórico**, **Configurações** (backup, armazenamento, assistente), **Ajuda e diagnóstico**.
 - **PWA instalável** e offline, com manifesto e ícones.
 - **Senha (por variável de build), tema e Vigia IA com IA grátis no aparelho.**
+
+## 6d. Visualizador de arquivos e Vigia com voz (04/11, mais recente)
+
+Pedido: "IA integrada que nem o J.A.R.V.I.S." e "site todo funcional, como abrir arquivos". O nome do personagem não foi usado; o Vigia ganhou a postura de mordomo digital.
+- **Visualizador:**
+  - `src/features/files/viewKind.ts`: `viewKind`, `parseCsv`, `readTextStart` (com FileReader de reserva), `openFile(id)` via o evento `usbi:abrir-arquivo`;
+  - `FileViewer.tsx` (`FileViewerHost`, montado no App): imagem, vídeo, áudio, PDF (iframe de blob), CSV em tabela, texto em `<pre>`; o resto vira download;
+  - o blob vem de `files.getFile` ou `folder.backend.getBlob`; no Android o conteúdo não atravessa a ponte (mensagem honesta);
+  - na Central (`ArchiveTab`), o nome e a miniatura abrem o arquivo; o botão ⓘ abre os detalhes; os detalhes têm "Abrir arquivo".
+- **Voz** (`src/features/assistant/voice.ts`): `listenOnce` (SpeechRecognition pt-BR), `speak`/`speakable` (speechSynthesis).
+  - No painel: botão de microfone, alto-falante (`Settings.aiVoice`) e modo conversa (volta a ouvir depois de falar).
+  - **Nos testes, simule `window.SpeechRecognition` E `webkitSpeechRecognition`** (o Chromium já tem o nativo) e use `Object.defineProperty` para `speechSynthesis`.
+- **Ferramentas novas** (`tools.ts`): `abrir_arquivo`, `ler_arquivo` (confirm a cada leitura; até 15 mil caracteres; só texto/CSV), `modo_automatico` (`ToolContext.auto`), `lembrete` (evento `usbi:lembrete`, toast + fala).
+  - `abrir_area` ganhou automatico, casos e apresentacao.
+  - O prompt diz que conteúdo só entra via `ler_arquivo` e traz data e hora.
+  - `local.ts` ganhou o comando "abrir <nome>".
+- Toasts ganharam `data-tone` (no tema claro estavam sem as variáveis de cor, e o contraste falhava).
+- A auditoria passou a abrir visualizador, aviso e painel nos dois temas (56 verificações).
+- Testes: `tests/viewer-voice.test.ts` (8) e o e2e 28.
 
 ## 6c. Casos reais, apresentação e auditoria (04/11, mais recente)
 

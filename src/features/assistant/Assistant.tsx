@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { Link, useNavigate, type NavigateFunction } from 'react-router-dom';
-import { ArrowUp, Check, Copy, Download, Globe, RotateCcw, Square, X } from 'lucide-react';
+import { ArrowUp, Check, Copy, Download, Globe, Headphones, Mic, RotateCcw, Square, Volume2, VolumeX, X } from 'lucide-react';
 import { useFiles } from '../files/store';
 import { useFolder } from '../files/folder';
 import { useSettings } from '../../app/settings';
-import { useConfirm } from '../../app/feedback';
+import { useConfirm, useToast } from '../../app/feedback';
+import { useAuto } from '../auto/auto';
+import { canListen, canSpeak, listenOnce, speak, stopSpeaking } from './voice';
 import { useOnline } from '../../app/hooks';
 import { LogoMark } from '../../components/ui/Logo';
 import { AssistantError, runDevice, type EngineKind } from './engines';
@@ -12,7 +14,7 @@ import { checkGpu, GPU_MESSAGE, getLoadState, loadModel, modelInfo, onLoadState,
 import { OnlineError, runOnline, type OAMsg } from './online';
 import { runLocal } from './local';
 import { Markdown } from './Markdown';
-import type { AssistantTool, ToolContext } from './tools';
+import { REMINDER_EVENT, type AssistantTool, type ToolContext } from './tools';
 import './assistant.css';
 
 interface Msg {
@@ -62,6 +64,12 @@ export function Assistant() {
   const folder = useFolder();
   const { settings, update } = useSettings();
   const confirm = useConfirm();
+  const toast = useToast();
+  const auto = useAuto();
+  const [listening, setListening] = useState(false);
+  const [conversa, setConversa] = useState(false);
+  const stopListen = useRef<(() => void) | null>(null);
+  const sendRef = useRef<(t: string) => void>(() => {});
   const navigate = useNavigate();
   const online = useOnline();
   const saved = useRef(loadSaved());
@@ -79,7 +87,7 @@ export function Assistant() {
   const list = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLTextAreaElement>(null);
   const ctxRef = useRef<ToolContext>();
-  ctxRef.current = { files, folder, navigate, settings, updateSettings: update, confirm, report: () => {} };
+  ctxRef.current = { files, folder, navigate, settings, updateSettings: update, confirm, report: () => {}, auto: { phase: auto.phase, drive: auto.drive, runNow: auto.runNow } };
 
   useEffect(() => { if (open) checkGpu().then(setGpu); }, [open]);
   useEffect(() => onLoadState(setLoad), []);
@@ -133,6 +141,7 @@ export function Assistant() {
       get folder() { return live().folder; },
       get settings() { return live().settings; },
       navigate: ((...a: unknown[]) => (live().navigate as (...x: unknown[]) => void)(...a)) as NavigateFunction,
+      get auto() { return live().auto; },
       updateSettings: (p) => live().updateSettings(p),
       confirm: (o) => live().confirm(o),
       report: (line) => patch(aid, (m) => ({ tools: [...m.tools, line] })),
@@ -162,6 +171,9 @@ export function Assistant() {
         answer = await runLocal(t, ctx, cb.onTool);
       }
       patch(aid, { text: answer, state: undefined, note });
+      // Voz: fala a resposta e, no modo conversa, volta a ouvir sozinho.
+      if (ctxRef.current?.settings.aiVoice) speak(answer, () => { if (conversaRef.current) startListening(); });
+      else if (conversaRef.current) startListening();
     } catch (e) {
       const cancelled = (e instanceof AssistantError || e instanceof OnlineError) && e.kind === 'cancelled';
       const msg = cancelled ? 'Parado.' : (e as Error).message;
@@ -171,6 +183,37 @@ export function Assistant() {
       ctl.current = null;
     }
   };
+
+  sendRef.current = (t: string) => { void send(t); };
+  const conversaRef = useRef(conversa);
+  conversaRef.current = conversa;
+  const startListening = useCallback(() => {
+    if (!canListen()) return;
+    stopSpeaking();
+    stopListen.current?.();
+    setListening(true);
+    stopListen.current = listenOnce({
+      onInterim: (t) => setDraft(t),
+      onFinal: (t) => sendRef.current(t),
+      onError: (msg) => { setConversa(false); toast({ tone: 'aviso', title: 'Voz', body: msg }); },
+      onEnd: () => { setListening(false); stopListen.current = null; },
+    });
+  }, [toast]);
+  const toggleListen = () => {
+    if (listening) { stopListen.current?.(); setListening(false); return; }
+    startListening();
+  };
+  // Lembretes criados pela IA: aviso na tela e em voz.
+  useEffect(() => {
+    const on = (e: Event) => {
+      const t = (e as CustomEvent<{ texto: string }>).detail.texto;
+      toast({ tone: 'info', title: 'Lembrete do Vigia', body: t });
+      if (ctxRef.current?.settings.aiVoice) speak(`Lembrete: ${t}`);
+    };
+    window.addEventListener(REMINDER_EVENT, on);
+    return () => window.removeEventListener(REMINDER_EVENT, on);
+  }, [toast]);
+  useEffect(() => () => { stopListen.current?.(); stopSpeaking(); }, []);
 
   const reset = () => {
     ctl.current?.abort();
@@ -224,6 +267,16 @@ export function Assistant() {
               </div>
             </div>
             <div className="ai-head-actions">
+              {canSpeak() && (
+                <button className={`ai-icon ${settings.aiVoice ? 'is-on' : ''}`} onClick={() => { if (settings.aiVoice) stopSpeaking(); update({ aiVoice: !settings.aiVoice }); }} aria-pressed={settings.aiVoice} aria-label={settings.aiVoice ? 'Parar de falar as respostas' : 'Falar as respostas em voz alta'} title={settings.aiVoice ? 'Voz ligada' : 'Voz desligada'}>
+                  {settings.aiVoice ? <Volume2 aria-hidden /> : <VolumeX aria-hidden />}
+                </button>
+              )}
+              {canListen() && (
+                <button className={`ai-icon ${conversa ? 'is-on' : ''}`} onClick={() => { const v = !conversa; setConversa(v); if (v) { if (!settings.aiVoice) update({ aiVoice: true }); startListening(); } else { stopListen.current?.(); stopSpeaking(); } }} aria-pressed={conversa} aria-label={conversa ? 'Sair do modo conversa' : 'Modo conversa: falar e ouvir sem tocar'} title="Modo conversa">
+                  <Headphones aria-hidden />
+                </button>
+              )}
               <button className="ai-icon" onClick={reset} aria-label="Nova conversa" title="Nova conversa" disabled={!msgs.length}><RotateCcw aria-hidden /></button>
               <button className="ai-icon" onClick={() => setOpen(false)} aria-label="Fechar o assistente"><X aria-hidden /></button>
             </div>
@@ -311,9 +364,14 @@ export function Assistant() {
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               onKeyDown={onKey}
-              placeholder={engine === 'local' ? 'Ex.: procurar duplicados' : 'Pergunte ou peça qualquer coisa'}
+              placeholder={listening ? 'Ouvindo… pode falar' : engine === 'local' ? 'Ex.: procurar duplicados' : 'Pergunte, peça ou toque no microfone'}
               maxLength={8000}
             />
+            {canListen() && !busy && (
+              <button type="button" className={`ai-mic ${listening ? 'is-on' : ''}`} onClick={toggleListen} aria-pressed={listening} aria-label={listening ? 'Parar de ouvir' : 'Falar com o Vigia'} title="Falar (microfone)">
+                <Mic aria-hidden />
+              </button>
+            )}
             {busy ? (
               <button type="button" className="ai-send is-stop" onClick={() => ctl.current?.abort()} aria-label="Parar"><Square aria-hidden /></button>
             ) : (

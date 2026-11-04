@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { ArrowDownAZ, ArrowUpAZ, FolderInput, LayoutGrid, List, ListX, Pencil, Search, Trash2, X } from 'lucide-react';
+import { ArrowDownAZ, ArrowUpAZ, FolderInput, Info, LayoutGrid, List, ListX, Pencil, Search, Trash2, X } from 'lucide-react';
+import { openFile } from './viewKind';
 import { useFiles } from './store';
 import { CATEGORIES, CATEGORY_LABEL, type Category, type FileEntry } from '../../lib/analysis/types';
 import { formatBytes, formatDate, formatInt, plural } from '../../lib/format';
@@ -252,11 +253,12 @@ export function ArchiveTab({ category, setCategory, ext, setExt }: { category: C
                         <input type="checkbox" aria-label={`Selecionar ${f.name}`} checked={sel.has(f.id)} onChange={() => toggle(f.id)} />
                       </span>
                       <span role="cell" className="fname">
-                        <button className="fname-btn" onClick={() => setDetail(f)}>
+                        <button className="fname-btn" onClick={() => openFile(f.id)} title="Abrir arquivo">
                           <i style={{ background: CAT_VAR[f.category] }} aria-hidden />
                           <span>{f.name}</span>
                         </button>
                         {f.path !== f.name && <span className="fpath mono muted">{f.path}</span>}
+                        <button className="row-rename" aria-label={`Detalhes de ${f.name}`} title="Detalhes" onClick={() => setDetail(f)}><Info aria-hidden /></button>
                         {live && <button className="row-rename" aria-label={`Renomear ${f.name}`} disabled={busy} onClick={() => setRenaming(f)}><Pencil aria-hidden /></button>}
                       </span>
                       <span role="cell" className="mono ftype">{f.ext ? `.${f.ext}` : '—'} <span className="muted">{CATEGORY_LABEL[f.category]}</span></span>
@@ -275,7 +277,7 @@ export function ArchiveTab({ category, setCategory, ext, setExt }: { category: C
                         <label className="fcard-check">
                           <input type="checkbox" aria-label={`Selecionar ${f.name}`} checked={sel.has(f.id)} onChange={() => toggle(f.id)} />
                         </label>
-                        <button className="fcard-thumb" onClick={() => setDetail(f)} aria-label={`Detalhes de ${f.name}`}>
+                        <button className="fcard-thumb" onClick={() => openFile(f.id)} aria-label={`Abrir ${f.name}`}>
                           {url ? (
                             <img src={url} alt="" loading="lazy" decoding="async" />
                           ) : (
@@ -287,6 +289,7 @@ export function ArchiveTab({ category, setCategory, ext, setExt }: { category: C
                         {f.path !== f.name && <span className="mono muted fcard-meta fcard-path" title={f.path}>{f.path}</span>}
                         <span className="fcard-foot">
                           {hashCell(f)}
+                          <button className="row-rename-inline" aria-label={`Detalhes de ${f.name}`} title="Detalhes" onClick={() => setDetail(f)}><Info aria-hidden /></button>
                           {live && <button className="row-rename-inline" aria-label={`Renomear ${f.name}`} disabled={busy} onClick={() => setRenaming(f)}><Pencil aria-hidden /></button>}
                         </span>
                       </li>

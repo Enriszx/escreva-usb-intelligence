@@ -11,6 +11,7 @@ import { ExportFallback } from '../components/layout/ExportFallback';
 import { BrasilBackdrop } from '../components/layout/BrasilBackdrop';
 import { AutoProvider } from '../features/auto/auto';
 import { GlobalDrop } from '../features/files/GlobalDrop';
+import { FileViewerHost } from '../features/files/FileViewer';
 import { Assistant } from '../features/assistant/Assistant';
 import { routeFor } from './routes';
 import HomePage from '../features/home/HomePage';
@@ -78,6 +79,7 @@ function Shell() {
       {!presenting && <MobileTabs />}
       <ExportFallback />
       <GlobalDrop />
+      <FileViewerHost />
       {!presenting && <Assistant />}
     </div>
   );

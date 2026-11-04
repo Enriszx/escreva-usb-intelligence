@@ -1,0 +1,15 @@
+.viewer { display: grid; gap: 12px; }
+.viewer-meta { overflow-wrap: anywhere; text-transform: none; letter-spacing: 0; font-weight: 500; }
+.viewer-body { display: grid; place-items: center; min-height: 200px; max-height: 70vh; border-radius: var(--r-2); background: var(--bg-3); overflow: hidden; }
+.viewer-body img { max-width: 100%; max-height: 70vh; object-fit: contain; }
+.viewer-body video { width: 100%; max-height: 70vh; background: #000; }
+.viewer-body audio { width: min(520px, 100%); margin: 40px 16px; }
+.viewer-body iframe { width: 100%; height: 70vh; border: 0; background: #fff; }
+.viewer-body.is-texto, .viewer-body.is-tabela { place-items: stretch; }
+.viewer-text { margin: 0; padding: 16px; overflow: auto; max-height: 70vh; font-family: var(--f-mono); font-size: 0.82rem; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--fg); }
+.viewer-table { overflow: auto; max-height: 70vh; }
+.viewer-table table { border-collapse: collapse; font-size: 0.82rem; min-width: 100%; }
+.viewer-table th, .viewer-table td { border: 1px solid var(--line); padding: 6px 10px; text-align: left; white-space: nowrap; }
+.viewer-table th { position: sticky; top: 0; background: var(--surface-solid); font-weight: 700; }
+.viewer-msg { padding: 24px; max-width: 56ch; text-align: center; }
+.viewer-actions { align-items: center; }

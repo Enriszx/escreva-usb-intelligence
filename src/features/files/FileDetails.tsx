@@ -1,5 +1,6 @@
 import { useMemo, useState, type ReactNode } from 'react';
-import { Copy, Hash } from 'lucide-react';
+import { Copy, Eye, Hash } from 'lucide-react';
+import { openFile } from './viewKind';
 import { Modal, useToast } from '../../app/feedback';
 import { useFiles } from './store';
 import { CATEGORY_LABEL, type FileEntry } from '../../lib/analysis/types';
@@ -94,7 +95,8 @@ export function FileDetails({ entry, onClose, onRename, onMove, onTrash }: { ent
         {!onTrash && <button className="btn btn-ghost" onClick={() => { remove([entry.id]); onClose(); toast({ tone: 'ok', title: 'Tirado da lista', body: 'O arquivo original não foi alterado.' }); }}>
           Tirar da lista
         </button>}
-        <button className="btn btn-primary" onClick={onClose}>Fechar</button>
+        <button className="btn btn-ghost" onClick={onClose}>Fechar</button>
+        <button className="btn btn-primary" onClick={() => { onClose(); openFile(entry.id); }}><Eye aria-hidden /> Abrir arquivo</button>
       </div>
     </Modal>
   );
