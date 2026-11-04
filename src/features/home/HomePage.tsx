@@ -5,6 +5,7 @@ import {
   ArrowDown, ArrowRight, ArrowUpRight, CheckCircle2, Copy, FileBarChart2, FolderTree, Fingerprint, Lock, Presentation, RotateCcw, ScanSearch, Sparkles, Undo2, Usb, WifiOff, Zap,
 } from 'lucide-react';
 import { DeviceIllustration } from '../../components/three/Fallbacks';
+import { HomeAvatar } from './HomeAvatar';
 import { GROUPS, ROUTES } from '../../app/routes';
 import { useSettings } from '../../app/settings';
 import { useDocumentTitle } from '../../app/hooks';
@@ -79,6 +80,7 @@ export default function HomePage() {
     <>
       {/* ===================== ABERTURA ===================== */}
       <section className="hero" data-tone="grafite" aria-labelledby="hero-title">
+        <HomeAvatar />
         <div className="wrap hero-grid">
           <div className="hero-copy">
             <motion.span className="eyebrow" {...fade(0)}>
