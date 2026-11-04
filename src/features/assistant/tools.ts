@@ -8,12 +8,13 @@ import { formatBytes } from '../../lib/format';
 import { listHistory, HISTORY_LABEL, type Settings } from '../../lib/storage/repos';
 import { saveCSV, stamp } from '../../lib/export';
 import { put } from '../../lib/storage/db';
-import { ACCESSORIES, EYES, FINISHES, HEADS, OUTFITS, POSES, PRESETS, cloneConfig, validateCharacter, type CharacterConfig } from '../character/model';
+import { ACCESSORIES, BODIES, BUILDS, EYES, FINISHES, HAIRS, HEADS, MOUTHS, OUTFITS, POSES, PRESETS, cloneConfig, validateCharacter, type CharacterConfig } from '../character/model';
 import { DRAFT_KEY } from '../character/useCharacterEditor';
 import { KIND_LABEL, openFile, readTextStart, viewKind } from '../files/viewKind';
 
 /** Lembretes criados pela IA chegam por este evento (o painel mostra e fala). */
 export const REMINDER_EVENT = 'usbi:lembrete';
+export const REPO_URL = 'https://github.com/Enriszx/escreva-usb-intelligence';
 import type { useFiles } from '../files/store';
 import type { useFolder } from '../files/folder';
 import type { ConfirmOptions } from '../../app/feedback';
@@ -353,6 +354,9 @@ export const TOOLS: AssistantTool[] = [
         cor_principal: { type: 'string' }, cor_secundaria: { type: 'string' }, cor_detalhes: { type: 'string' }, cor_luz: { type: 'string' },
         acabamento: { type: 'string', enum: [...FINISHES] }, olhos: { type: 'string', enum: [...EYES] }, cobertura: { type: 'string', enum: [...HEADS] },
         traje: { type: 'string', enum: [...OUTFITS] }, pose: { type: 'string', enum: [...POSES] },
+        corpo: { type: 'string', enum: [...BODIES], description: 'menino, menina ou neutro' }, porte: { type: 'string', enum: [...BUILDS] },
+        altura: { type: 'number', minimum: 0.88, maximum: 1.12 }, cabelo: { type: 'string', enum: [...HAIRS] }, expressao: { type: 'string', enum: [...MOUTHS] },
+        cor_cabelo: { type: 'string' }, cor_olhos: { type: 'string' }, cor_pele: { type: 'string' },
         acessorios: { type: 'array', items: { type: 'string', enum: [...ACCESSORIES] }, description: 'Lista completa dos acessórios que devem ficar ligados.' },
       },
       additionalProperties: false,
@@ -368,6 +372,12 @@ export const TOOLS: AssistantTool[] = [
       if (str(input.cobertura)) c.head = str(input.cobertura) as CharacterConfig['head'];
       if (str(input.traje)) c.outfit = str(input.traje) as CharacterConfig['outfit'];
       if (str(input.pose)) c.pose = str(input.pose) as CharacterConfig['pose'];
+      if (str(input.corpo)) c.body = str(input.corpo) as CharacterConfig['body'];
+      if (str(input.porte)) c.build = str(input.porte) as CharacterConfig['build'];
+      if (typeof input.altura === 'number') c.height = Math.min(1.12, Math.max(0.88, input.altura));
+      if (str(input.cabelo)) c.hair = str(input.cabelo) as CharacterConfig['hair'];
+      if (str(input.expressao)) c.mouth = str(input.expressao) as CharacterConfig['mouth'];
+      color('hair', input.cor_cabelo); color('iris', input.cor_olhos); color('skin', input.cor_pele);
       if (Array.isArray(input.acessorios)) for (const a of ACCESSORIES) c.accessories[a] = input.acessorios.includes(a);
       const v = validateCharacter(c);
       if (!v.ok || !v.value) throw new Error(v.errors.join(' '));
@@ -451,6 +461,80 @@ export const TOOLS: AssistantTool[] = [
       setTimeout(() => window.dispatchEvent(new CustomEvent(REMINDER_EVENT, { detail: { texto } })), min * 60_000);
       const at = new Date(Date.now() + min * 60_000);
       return { criado: true, quando: at.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }), texto, aviso: 'Só funciona com o site aberto.' };
+    },
+  },
+  {
+    name: 'personalizar_visual',
+    label: 'Mudando o visual do site',
+    description: 'Muda a aparência do site inteiro na hora: cor de destaque (hex #rrggbb, ou "original"), cantos (reto, padrao, redondo), tamanho do texto (0.9 a 1.25), fundo da bandeira (forte, suave, desligado) e tema (automatico, claro, escuro). Envie só o que for mudar.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        cor_destaque: { type: 'string', description: '#rrggbb ou "original"' },
+        cantos: { type: 'string', enum: ['reto', 'padrao', 'redondo'] },
+        tamanho_texto: { type: 'number', minimum: 0.9, maximum: 1.25 },
+        fundo: { type: 'string', enum: ['forte', 'suave', 'desligado'] },
+        tema: { type: 'string', enum: ['automatico', 'claro', 'escuro'] },
+        restaurar: { type: 'boolean', description: 'true volta tudo ao visual original' },
+      },
+      additionalProperties: false,
+    },
+    async execute(input, ctx) {
+      const p: Partial<Settings> = {};
+      if (input.restaurar === true) Object.assign(p, { uiAccent: '', uiRadius: 'padrao', uiFont: 1, uiBackdrop: 'forte' });
+      const cor = str(input.cor_destaque).toLowerCase();
+      if (cor === 'original') p.uiAccent = '';
+      else if (cor) { if (!/^#[0-9a-f]{6}$/.test(cor)) throw new Error('Cor inválida: use o formato #rrggbb.'); p.uiAccent = cor; }
+      if (['reto', 'padrao', 'redondo'].includes(str(input.cantos))) p.uiRadius = str(input.cantos) as Settings['uiRadius'];
+      if (typeof input.tamanho_texto === 'number') p.uiFont = Math.min(1.25, Math.max(0.9, Math.round(input.tamanho_texto * 20) / 20));
+      if (['forte', 'suave', 'desligado'].includes(str(input.fundo))) p.uiBackdrop = str(input.fundo) as Settings['uiBackdrop'];
+      if (['automatico', 'claro', 'escuro'].includes(str(input.tema))) p.theme = str(input.tema) as Settings['theme'];
+      if (!Object.keys(p).length) throw new Error('Diga o que mudar: cor_destaque, cantos, tamanho_texto, fundo, tema ou restaurar.');
+      await ctx.updateSettings(p);
+      return { aplicado: p, observacao: 'Mudança visível na hora em todas as páginas. Desfaz em Configurações → Aparência.' };
+    },
+  },
+  {
+    name: 'meu_perfil',
+    label: 'Atualizando seu perfil',
+    description: 'Grava como o assistente deve chamar o usuário (nome, apelido/tratamento, concordância masculina/feminina/neutra) e o nome do próprio assistente. Use quando o usuário disser "me chama de...", "meu nome é...", "sou mulher", "quero que você se chame...".',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        nome: { type: 'string' },
+        como_chamar: { type: 'string', description: 'Ex.: "chefe", "senhor Enrique"' },
+        genero: { type: 'string', enum: ['masculino', 'feminino', 'neutro'] },
+        nome_assistente: { type: 'string' },
+      },
+      additionalProperties: false,
+    },
+    async execute(input, ctx) {
+      const p: Partial<Settings> = {};
+      const clip = (v: unknown, n: number) => str(v).slice(0, n);
+      if (str(input.nome)) p.userName = clip(input.nome, 40);
+      if (str(input.como_chamar)) p.userCall = clip(input.como_chamar, 40);
+      if (['masculino', 'feminino', 'neutro'].includes(str(input.genero))) p.userGender = str(input.genero) as Settings['userGender'];
+      if (str(input.nome_assistente)) p.aiName = clip(input.nome_assistente, 24);
+      if (!Object.keys(p).length) throw new Error('Nada para gravar.');
+      await ctx.updateSettings(p);
+      return { gravado: p };
+    },
+  },
+  {
+    name: 'pedir_mudanca',
+    label: 'Preparando o pedido de mudança',
+    description: 'Para mudanças que exigem mexer no CÓDIGO do site (nova página, novo recurso, layout diferente do que personalizar_visual faz). Monta um pedido para o Claude no GitHub do projeto e devolve o link. O usuário abre o link e toca em "Submit new issue"; o Claude faz a mudança, testa e responde no próprio pedido com o link. Escreva o pedido bem detalhado em português.',
+    inputSchema: {
+      type: 'object',
+      properties: { titulo: { type: 'string' }, descricao: { type: 'string', description: 'O que mudar, onde e como deve ficar.' } },
+      required: ['titulo', 'descricao'],
+      additionalProperties: false,
+    },
+    async execute(input) {
+      const titulo = str(input.titulo).slice(0, 120) || 'Pedido de mudança no site';
+      const body = `@claude ${str(input.descricao).slice(0, 4000)}\n\n---\nInstruções: faça a mudança no código deste repositório seguindo o CONTINUIDADE.md, rode \`npm test\`, \`npm run build\` e \`npm run audit\`, abra um pull request e responda aqui com o link. Pedido criado pelo assistente do site.`;
+      const url = `${REPO_URL}/issues/new?${new URLSearchParams({ title: `[Pedido] ${titulo}`, body, labels: 'pedido-site' }).toString()}`;
+      return { link: url, instrucao: 'Mostre este link ao usuário como um link Markdown chamado "Enviar pedido ao Claude". Explique: abrir, tocar em "Submit new issue"; o andamento aparece em Configurações → Pedidos de mudança.' };
     },
   },
 ];

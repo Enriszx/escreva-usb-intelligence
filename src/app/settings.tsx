@@ -58,6 +58,18 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     else delete root.dataset.theme;
   }, [settings.theme]);
 
+  // Aparência personalizada (pelo usuário ou pelo assistente): um <style> que vence os temas.
+  useEffect(() => {
+    document.getElementById('usbi-aparencia')?.remove();
+    document.documentElement.style.fontSize = settings.uiFont && settings.uiFont !== 1 ? `${Math.round(settings.uiFont * 100)}%` : '';
+    const css = customCss(settings);
+    if (!css) return;
+    const el = document.createElement('style');
+    el.id = 'usbi-aparencia';
+    el.textContent = css;
+    document.head.appendChild(el);
+  }, [settings.uiAccent, settings.uiRadius, settings.uiFont, settings.uiBackdrop]);
+
   const update = useCallback(async (patch: Partial<Settings>) => {
     let next: Settings = DEFAULT_SETTINGS;
     setSettings((s) => (next = { ...s, ...patch }));
@@ -83,4 +95,24 @@ export function useSettings() {
   const c = useContext(Ctx);
   if (!c) throw new Error('useSettings fora do SettingsProvider');
   return c;
+}
+
+/** Texto escuro ou claro sobre a cor de destaque, pelo contraste (WCAG). */
+export function accentText(hex: string): string {
+  const v = (i: number) => { const c = parseInt(hex.slice(i, i + 2), 16) / 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
+  const L = 0.2126 * v(1) + 0.7152 * v(3) + 0.0722 * v(5);
+  return (L + 0.05) / 0.05 >= 1.05 / (L + 0.05) ? '#0b1a00' : '#ffffff';
+}
+
+export function customCss(s: Pick<Settings, 'uiAccent' | 'uiRadius' | 'uiBackdrop'>): string {
+  const out: string[] = [];
+  if (/^#[0-9a-f]{6}$/i.test(s.uiAccent)) {
+    const fg = accentText(s.uiAccent);
+    out.push(`[data-tone], html[data-theme] [data-tone] { --accent: ${s.uiAccent} !important; --accent-fg: ${fg} !important; --glow-y: ${s.uiAccent}55 !important; }`);
+  }
+  if (s.uiRadius === 'reto') out.push(':root { --r-1: 2px; --r-2: 4px; --r-3: 6px; --r-4: 8px; }');
+  if (s.uiRadius === 'redondo') out.push(':root { --r-1: 12px; --r-2: 18px; --r-3: 26px; --r-4: 34px; }');
+  if (s.uiBackdrop === 'suave') out.push('.bb-front, .bb-mid { opacity: 0.35 !important; }');
+  if (s.uiBackdrop === 'desligado') out.push('.bb-layer { display: none !important; }');
+  return out.join('\n');
 }

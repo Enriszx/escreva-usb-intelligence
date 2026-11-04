@@ -1,0 +1,45 @@
+# Pedidos de mudança feitos pelo site (ou por você no GitHub) chegam como issues
+# com "@claude". O Claude lê o pedido, muda o código, testa e responde com o link.
+#
+# PARA FUNCIONAR, falta um passo seu (uma vez só):
+#   1. No seu computador, com o Claude Code instalado, rode:  claude setup-token
+#      (usa a sua assinatura Claude Pro/Max; não pague nada a mais)
+#   2. No GitHub: Settings → Secrets and variables → Actions → New repository secret
+#      Nome: CLAUDE_CODE_OAUTH_TOKEN   Valor: o token que o comando mostrou
+#   Nunca cole esse token em conversa nenhuma.
+name: Claude (pedidos do site)
+
+on:
+  issues:
+    types: [opened]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  id-token: write
+  actions: read
+
+jobs:
+  claude:
+    # Só atende quem é dono ou colaborador do repositório (o repositório é público).
+    if: >-
+      (github.event_name == 'issues' && contains(github.event.issue.body, '@claude') &&
+        contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.issue.author_association)) ||
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude') &&
+        contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}

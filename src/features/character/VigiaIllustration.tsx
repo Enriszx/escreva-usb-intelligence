@@ -21,7 +21,10 @@ export function VigiaIllustration({ config }: { config: CharacterConfig }) {
         <rect x="142" y="104" width="18" height="76" rx="9" fill={c.primary} />
         <rect x="58" y="172" width="84" height="7" fill={c.detail} />
         <circle cx="100" cy="64" r="36" fill={c.skin} />
-        {config.head !== 'nenhum' && <path d="M62 60 A38 38 0 0 1 138 60 Z" fill={config.head === 'crista' ? c.detail : c.primary} />}
+        {config.hair !== 'careca' && <path d="M62 60 A38 38 0 0 1 138 60 Z" fill={c.hair} />}
+        {(config.hair === 'longo' || config.hair === 'trancas' || config.hair === 'rabo') && <rect x="62" y="58" width="12" height="52" rx="6" fill={c.hair} />}
+        {(config.hair === 'longo' || config.hair === 'trancas') && <rect x="126" y="58" width="12" height="52" rx="6" fill={c.hair} />}
+        {config.head !== 'nenhum' && <path d="M62 56 A38 38 0 0 1 138 56 Z" fill={c.primary} />}
         {config.eyes === 'visor' ? <rect x="72" y="62" width="56" height="10" fill={glow} /> : <><circle cx="88" cy="68" r="5" fill={glow} /><circle cx="112" cy="68" r="5" fill={glow} /></>}
         {config.accessories.cachecol && <rect x="76" y="96" width="48" height="10" fill={c.detail} />}
       </svg>

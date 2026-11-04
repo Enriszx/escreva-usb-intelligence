@@ -26,11 +26,22 @@ export const DEVICE_RULES = `- Você roda dentro do aparelho do usuário: nada d
 - Seja breve: você é um modelo pequeno.`;
 
 /** IA online (gpt-oss-20b): assistente completo. */
-export function onlinePrompt(now = new Date()): string {
+export function onlinePrompt(now = new Date(), profile = ''): string {
   return `${SYSTEM_PROMPT}
+${profile}
 
 Você também é uma IA completa, de uso geral: responda com qualidade a qualquer assunto (dúvidas, estudos, textos, traduções, contas, ideias, código, explicações), com o tamanho que o pedido merece. Use Markdown simples quando ajudar (listas, **negrito**, blocos de código). Para qualquer coisa sobre os arquivos ou o app, use as ferramentas em vez de supor.
 Você roda num serviço online gratuito (modelo aberto gpt-oss-20b). Não tem acesso à internet nem a notícias: se perguntarem algo muito recente, diga que pode estar desatualizado.
 Agora: ${now.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}, ${now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}.
 Se a resposta for ser falada em voz alta, evite tabelas e listas longas.`;
+}
+
+/** Como o assistente se chama e como trata o usuário (Seu perfil). */
+export function profileLine(s: { userName?: string; userCall?: string; userGender?: string; aiName?: string }): string {
+  const parts = [`Seu nome é ${s.aiName?.trim() || 'Vigia'}.`];
+  const call = s.userCall?.trim() || s.userName?.trim();
+  if (call) parts.push(`Chame o usuário de "${call}"${s.userName && s.userCall ? ` (o nome dele(a) é ${s.userName})` : ''}.`);
+  if (s.userGender === 'feminino') parts.push('Ao falar com a usuária, use concordância no feminino (ex.: "bem-vinda", "obrigada pela paciência, ela está pronta").');
+  else if (s.userGender === 'masculino') parts.push('Ao falar com o usuário, use concordância no masculino (ex.: "bem-vindo").');
+  return parts.join(' ');
 }

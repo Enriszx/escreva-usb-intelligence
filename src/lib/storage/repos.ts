@@ -126,6 +126,19 @@ export interface Settings {
   aiInstalled: string | null;
   /** IA online grátis (gpt-oss-20b via Pollinations) autorizada pelo usuário. */
   aiOnline: boolean;
+  /** Seu nome (o assistente usa para falar com você). */
+  userName: string;
+  /** Como o assistente deve te chamar (ex.: "Enrique", "chefe", "senhor"). Vazio = pelo nome. */
+  userCall: string;
+  /** Concordância: masculino, feminino ou neutro. */
+  userGender: 'masculino' | 'feminino' | 'neutro';
+  /** Nome do assistente (padrão: Vigia). */
+  aiName: string;
+  /** Aparência personalizada (vazio/padrão = desenho original). */
+  uiAccent: string;
+  uiRadius: 'reto' | 'padrao' | 'redondo';
+  uiFont: number;
+  uiBackdrop: 'forte' | 'suave' | 'desligado';
   /** O Vigia fala as respostas em voz alta. */
   aiVoice: boolean;
   /** Modo automático: ao detectar o pendrive, executa as etapas sozinho. */
@@ -151,6 +164,14 @@ export const DEFAULT_SETTINGS: Settings = {
   aiInstalled: null,
   aiOnline: false,
   aiVoice: false,
+  uiAccent: '',
+  uiRadius: 'padrao',
+  uiFont: 1,
+  uiBackdrop: 'forte',
+  userName: '',
+  userCall: '',
+  userGender: 'neutro',
+  aiName: 'Vigia',
   autoRun: true,
   autoDeep: true,
   autoOrganize: false,

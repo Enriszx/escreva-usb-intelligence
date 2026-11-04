@@ -1,4 +1,4 @@
-import { onlinePrompt } from './prompt';
+import { onlinePrompt, profileLine } from './prompt';
 import { TOOLS, toolByName, type AssistantTool, type ToolContext } from './tools';
 
 /**
@@ -118,7 +118,7 @@ export async function runOnline(history: OAMsg[], userText: string, ctx: ToolCon
       // Corta o histórico antigo sem separar uma chamada de ferramenta do seu resultado.
       let from = Math.max(0, history.length - KEEP);
       while (from > 0 && history[from].role === 'tool') from--;
-      const res = await request([{ role: 'system', content: onlinePrompt() }, ...history.slice(from)], cb.signal);
+      const res = await request([{ role: 'system', content: onlinePrompt(new Date(), profileLine(ctx.settings)) }, ...history.slice(from)], cb.signal);
       let text = '';
       const calls: OAToolCall[] = [];
       try {

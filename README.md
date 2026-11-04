@@ -40,6 +40,19 @@ O que o navegador não abre por dentro (Word, Excel, ZIP, programas) oferece **B
   - `abrir_area`: agora também leva ao Automático, aos Casos reais e à Apresentação.
 - **Sem IA ligada:** o comando "abrir <nome do arquivo>" também funciona por voz e offline.
 
+## Personagem, seu perfil e aparência
+
+- **Meu personagem:** menino, menina ou neutro; porte e altura; 11 penteados; 4 tipos de olhos e 4 expressões; 7 trajes; 5 poses; 10 acessórios; cores de cabelo, olhos e pele.
+- **Você e o assistente:** seu nome, como quer ser chamado(a), concordância (masculino, feminino ou neutro) e o nome do assistente. As duas IAs usam isso.
+- **Aparência do site** (Configurações → Aparência): cor de destaque, cantos, tamanho do texto e intensidade do fundo da bandeira.
+- Tudo isso também por voz ou texto: "me chama de chefe", "deixa o site azul", "quero uma personagem menina de tranças".
+
+## Pedidos de mudança no código (Claude no GitHub)
+
+Para mudanças que o site não faz sozinho (página nova, recurso novo): Configurações → **Pedidos de mudança**, ou peça ao assistente. Abre uma issue já preenchida com `@claude`; o workflow `.github/workflows/claude.yml` faz a mudança, roda os testes, abre um pull request e responde com o link. Você revisa, faz o merge e o site publica sozinho.
+
+**Configuração (uma vez):** no seu computador, com o Claude Code instalado, rode `claude setup-token` e salve o valor em GitHub → Settings → Secrets and variables → Actions → New repository secret, com o nome `CLAUDE_CODE_OAUTH_TOKEN`. Não cole esse token em conversa nenhuma. Só o dono e colaboradores do repositório disparam o Claude.
+
 ## Casos reais e Verificador de backup
 
 Área **Casos reais** (`/casos`): 12 incidentes pesquisados, com fonte:

@@ -156,7 +156,21 @@ No build Artifact (`IS_ARTIFACT`) ficam escondidos ou ganham alternativa: servic
 - **PWA instalável** e offline, com manifesto e ícones.
 - **Senha (por variável de build), tema e Vigia IA com IA grátis no aparelho.**
 
-## 6d. Visualizador de arquivos e Vigia com voz (04/11, mais recente)
+## 6e. Personagem v2, seu perfil, aparência e pedidos ao Claude (04/11, mais recente)
+
+Pedido: "dê acesso ao microfone… acesso a todas as funções do site… mudar visual… quando for feito algum pedido de mudança no site, joga para você… personalização do personagem bem mais complexa, menino e menina e como a IA deve te chamar".
+- **Microfone:** já existia (6d). O navegador pede a permissão; não dá para conceder por código.
+- **Personagem v2** (`model.ts`, `VigiaModel.tsx`, `CharacterPage.tsx`):
+  - campos novos: `body` (menino/menina/neutro), `build`, `height` (0,88–1,12), `mouth`, `hair` (11 penteados), `colors.hair`, `colors.iris`; trajes moletom/vestido/social/esportivo; poses vitória/pensativo; acessórios óculos/fones/capa/colar/brincos; cobertura tiara;
+  - arquivos antigos continuam válidos: campos novos são opcionais e `head: 'crista'` vira `hair: 'crista'`;
+  - **Armadilha:** no `POSE`, o ombro direito usa `z` positivo para abrir o braço para fora (z negativo cruza o braço na frente da cabeça).
+- **Seu perfil** (grupo 00 do editor): `userName`, `userCall`, `userGender`, `aiName`. `profileLine()` entra nos prompts das duas IAs; o painel usa `aiName` e saúda com "Bem-vindo/Bem-vinda".
+- **Aparência** (`AppearanceSettings.tsx`, `customCss()` em `app/settings.tsx`): `uiAccent`, `uiRadius`, `uiFont`, `uiBackdrop`, injetados em `<style id="usbi-aparencia">` com `!important` (vence os tokens de `[data-tone]`). `accentText()` escolhe o texto pelo contraste.
+- **Ferramentas novas:** `personalizar_visual`, `meu_perfil`, `pedir_mudanca`; `personagem` ganhou corpo, porte, altura, cabelo, expressão e cores.
+- **Pedidos de mudança no código:** `pedir_mudanca` e a seção Configurações → Pedidos (`ChangeRequests.tsx`) abrem uma issue já preenchida com `@claude` e o rótulo `pedido-site`. O workflow `.github/workflows/claude.yml` roda `anthropics/claude-code-action@v1`, só para OWNER/MEMBER/COLLABORATOR. **Requer o segredo `CLAUDE_CODE_OAUTH_TOKEN`** (o dono gera com `claude setup-token`; nunca pedir o token na conversa). O Claude abre um PR; o dono faz o merge e o Pages publica.
+- Testes: `tests/personalization.test.ts` (10) e o e2e 29.
+
+## 6d. Visualizador de arquivos e Vigia com voz (04/11)
 
 Pedido: "IA integrada que nem o J.A.R.V.I.S." e "site todo funcional, como abrir arquivos". O nome do personagem não foi usado; o Vigia ganhou a postura de mordomo digital.
 - **Visualizador:**

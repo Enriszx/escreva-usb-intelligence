@@ -11,6 +11,8 @@ import { formatInt } from '../../lib/format';
 import { DEFAULT_SETTINGS, type Settings } from '../../lib/storage/repos';
 import { useFiles } from '../files/store';
 import { AssistantSettings } from './AssistantSettings';
+import { AppearanceSettings } from './AppearanceSettings';
+import { ChangeRequests } from './ChangeRequests';
 import './settings.css';
 
 const CLEARABLE: { store: StoreName; label: string; note: string }[] = [
@@ -124,7 +126,9 @@ export default function SettingsPage() {
             <p className="hint">Guarda só nome, caminho, tamanho, datas e hash — nunca o conteúdo. Depois de recarregar, os itens aparecem como “registro” e dá para escolher os arquivos de novo para voltar a analisá-los.</p>
           </section>
 
+          <AppearanceSettings set={set} />
           <AssistantSettings set={set} />
+          <ChangeRequests />
 
           <section className="set-sec set-wide" aria-labelledby="st-data">
             <h2 id="st-data" className="h3">Dados locais</h2>

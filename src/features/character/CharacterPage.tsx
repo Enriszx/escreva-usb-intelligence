@@ -1,13 +1,14 @@
 import { useRef, useState, type ReactNode } from 'react';
 import {
-  Backpack, Camera, Dices, Download, Flashlight, Minus, Pencil, Plus, RadioTower, Ribbon, RotateCcw, Save, Trash2, Undo2, Upload, Watch, FolderOpen,
+  Backpack, Camera, Dices, Download, Flashlight, Gem, Glasses, Headphones, Minus, Pencil, Plus, RadioTower, Ribbon, RotateCcw, Save, Shield, Sparkle, Trash2, Undo2, Upload, UserRound, Watch, FolderOpen,
 } from 'lucide-react';
 import { CharacterScene, type SceneHandle, type View } from './CharacterScene';
 import { useCharacterEditor } from './useCharacterEditor';
 import {
-  ACCESSORIES, EYES, FINISHES, HEADS, LABELS, OUTFITS, POSES, PRESETS, exportEnvelope, validateCharacter, type Accessory, type CharacterConfig,
+  ACCESSORIES, BODIES, BUILDS, EYES, FINISHES, HAIRS, HEADS, LABELS, MOUTHS, OUTFITS, POSES, PRESETS, exportEnvelope, validateCharacter, type Accessory, type CharacterConfig,
 } from './model';
 import { Modal, useConfirm, useToast } from '../../app/feedback';
+import { useSettings } from '../../app/settings';
 import { useDocumentTitle } from '../../app/hooks';
 import { saveBlob, saveJSON, safeFileName, stamp } from '../../lib/export';
 import { formatDate } from '../../lib/format';
@@ -15,12 +16,16 @@ import './character.css';
 
 const SWATCHES = ['#063d2e', '#0b5a43', '#00e676', '#ffd600', '#1464f4', '#07152d', '#f4f7f2', '#101311', '#e2572b', '#6c9dff'];
 const SKINS = ['#5e3b27', '#7a4b31', '#8d5a3b', '#a8714c', '#c58c63', '#e0ac82', '#f1c9a5'];
-const ACC_ICON: Record<Accessory, typeof Backpack> = { mochila: Backpack, antena: RadioTower, cachecol: Ribbon, lanterna: Flashlight, bracelete: Watch };
+const ACC_ICON: Record<Accessory, typeof Backpack> = { mochila: Backpack, antena: RadioTower, cachecol: Ribbon, lanterna: Flashlight, bracelete: Watch, oculos: Glasses, fones: Headphones, capa: Shield, colar: Gem, brincos: Sparkle };
+const HAIR_SW = ['#0b0b0b', '#17110d', '#3b2414', '#5a3a22', '#8a5a2b', '#c99a5b', '#e8d3a2', '#b33a2e', '#6c9dff', '#ffd600'];
+const IRIS_SW = ['#3b2414', '#6b4423', '#2f5d3a', '#1f3f8a', '#4a4a4a', '#7fb2d9'];
 const COLOR_FIELDS: { key: keyof CharacterConfig['colors']; label: string; swatches: string[] }[] = [
   { key: 'primary', label: 'Cor principal', swatches: SWATCHES },
   { key: 'secondary', label: 'Cor secundária', swatches: SWATCHES },
   { key: 'detail', label: 'Detalhes', swatches: SWATCHES },
   { key: 'skin', label: 'Pele', swatches: SKINS },
+  { key: 'hair', label: 'Cabelo', swatches: HAIR_SW },
+  { key: 'iris', label: 'Olhos (íris)', swatches: IRIS_SW },
 ];
 
 export default function CharacterPage() {
@@ -126,6 +131,8 @@ export default function CharacterPage() {
             <button className="btn btn-primary btn-sm" onClick={() => save(false)} disabled={!ed.name.trim()}><Save aria-hidden /> Salvar</button>
           </div>
 
+          <ProfileGroup />
+
           <Group n="01" title="Estilos">
             <div className="presets">
               {PRESETS.map((p) => (
@@ -160,17 +167,29 @@ export default function CharacterPage() {
             </label>
           </Group>
 
-          <Group n="04" title="Rosto e cabeça">
-            <Choice label="Olhos" value={c.eyes} options={EYES} labels={LABELS.eyes} onChange={(v) => ed.update((x) => { x.eyes = v; })} />
-            <Choice label="Cobertura" value={c.head} options={HEADS} labels={LABELS.head} onChange={(v) => ed.update((x) => { x.head = v; })} />
+          <Group n="04" title="Corpo">
+            <Choice label="Silhueta" value={c.body} options={BODIES} labels={LABELS.body} onChange={(v) => ed.update((x) => { x.body = v; })} />
+            <Choice label="Porte" value={c.build} options={BUILDS} labels={LABELS.build} onChange={(v) => ed.update((x) => { x.build = v; })} />
+            <label className="field">
+              <span>Altura: {Math.round(c.height * 100)}%</span>
+              <input type="range" className="range" min={0.88} max={1.12} step={0.01} value={c.height} onChange={(e) => ed.update((x) => { x.height = Number(e.target.value); })} />
+            </label>
           </Group>
 
-          <Group n="05" title="Traje e pose">
+          <Group n="05" title="Rosto e cabeça">
+            <Choice label="Olhos" value={c.eyes} options={EYES} labels={LABELS.eyes} onChange={(v) => ed.update((x) => { x.eyes = v; })} />
+            <Choice label="Expressão" value={c.mouth} options={MOUTHS} labels={LABELS.mouth} onChange={(v) => ed.update((x) => { x.mouth = v; })} />
+            <Choice label="Cabelo" value={c.hair} options={HAIRS} labels={LABELS.hair} onChange={(v) => ed.update((x) => { x.hair = v; })} />
+            <Choice label="Cobertura" value={c.head} options={HEADS} labels={LABELS.head} onChange={(v) => ed.update((x) => { x.head = v; })} />
+            {c.head === 'capacete' && c.hair !== 'careca' && <p className="hint">O capacete esconde o cabelo. Troque a cobertura para ver o penteado.</p>}
+          </Group>
+
+          <Group n="06" title="Traje e pose">
             <Choice label="Traje" value={c.outfit} options={OUTFITS} labels={LABELS.outfit} onChange={(v) => ed.update((x) => { x.outfit = v; })} />
             <Choice label="Pose" value={c.pose} options={POSES} labels={LABELS.pose} onChange={(v) => ed.update((x) => { x.pose = v; })} />
           </Group>
 
-          <Group n="06" title="Acessórios">
+          <Group n="07" title="Acessórios">
             <div className="acc-grid">
               {ACCESSORIES.map((a) => {
                 const Icon = ACC_ICON[a];
@@ -185,7 +204,7 @@ export default function CharacterPage() {
             {c.accessories.mochila && <p className="hint">Dica: a mochila aparece melhor na câmera “Costas”.</p>}
           </Group>
 
-          <Group n="07" title="Arquivo">
+          <Group n="08" title="Arquivo">
             <div className="btn-row">
               <button className="btn btn-ghost btn-sm" onClick={async () => { const r = await saveJSON(exportEnvelope(ed.name.trim() || 'Vigia', c), `vigia-${safeFileName(ed.name)}.json`); if (r !== 'cancelado') toast({ tone: 'ok', title: 'JSON exportado' }); }}>
                 <Download aria-hidden /> Exportar JSON
@@ -196,7 +215,7 @@ export default function CharacterPage() {
             <input ref={importInput} type="file" accept="application/json,.json" hidden onChange={(e) => { onImport(e.target.files?.[0]); e.target.value = ''; }} />
           </Group>
 
-          <Group n="08" title={`Coleção (${ed.saved.length})`}>
+          <Group n="09" title={`Coleção (${ed.saved.length})`}>
             {ed.storageError && <p className="error-text">{ed.storageError}</p>}
             {ed.saved.length === 0 ? (
               <p className="muted">Nenhum personagem salvo ainda. Use “Salvar” acima.</p>
@@ -330,5 +349,45 @@ function RenameDialog({ initial, onClose, onSave }: { initial: string; onClose: 
         </div>
       </form>
     </Modal>
+  );
+}
+
+/** Seu perfil: como o assistente fala com você. Salvo nas configurações. */
+function ProfileGroup() {
+  const { settings, update } = useSettings();
+  const toast = useToast();
+  const [name, setName] = useState(settings.userName);
+  const [call, setCall] = useState(settings.userCall);
+  const [ai, setAi] = useState(settings.aiName);
+  const save = async (p: Partial<typeof settings>) => {
+    await update(p);
+    toast({ tone: 'ok', title: 'Perfil salvo', body: 'O assistente já fala com você assim.' });
+  };
+  const preview = (call.trim() || name.trim() || 'você');
+  return (
+    <Group n="00" title="Você e o assistente">
+      <p className="hint"><UserRound aria-hidden style={{ display: 'inline', width: 14, height: 14 }} /> Como o assistente deve te chamar. Ele usa isso nas respostas e na voz.</p>
+      <label className="field">
+        <span>Seu nome</span>
+        <input id="perfil-nome" className="input" value={name} maxLength={40} onChange={(e) => setName(e.target.value)} onBlur={() => name !== settings.userName && save({ userName: name.trim() })} placeholder="Ex.: Enrique" />
+      </label>
+      <label className="field">
+        <span>Como quer ser chamado(a)</span>
+        <input id="perfil-chamar" className="input" value={call} maxLength={40} onChange={(e) => setCall(e.target.value)} onBlur={() => call !== settings.userCall && save({ userCall: call.trim() })} placeholder="Ex.: chefe, senhor Enrique, Dona Ana" />
+      </label>
+      <div className="field">
+        <span id="perfil-genero-l">Falar comigo no</span>
+        <div className="seg seg-wrap" role="radiogroup" aria-labelledby="perfil-genero-l">
+          {(['masculino', 'feminino', 'neutro'] as const).map((g) => (
+            <label key={g}><input type="radio" name="perfil-genero" checked={settings.userGender === g} onChange={() => save({ userGender: g })} /><span>{g === 'masculino' ? 'Masculino' : g === 'feminino' ? 'Feminino' : 'Neutro'}</span></label>
+          ))}
+        </div>
+      </div>
+      <label className="field">
+        <span>Nome do assistente</span>
+        <input id="perfil-ia" className="input" value={ai} maxLength={24} onChange={(e) => setAi(e.target.value)} onBlur={() => ai.trim() && ai !== settings.aiName && save({ aiName: ai.trim() })} placeholder="Vigia" />
+      </label>
+      <p className="hint">Prévia: “{settings.userGender === 'feminino' ? 'Bem-vinda de volta' : settings.userGender === 'masculino' ? 'Bem-vindo de volta' : 'Que bom ter você de volta'}, {preview}. Em que posso ajudar?” — {ai.trim() || 'Vigia'}</p>
+    </Group>
   );
 }

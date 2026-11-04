@@ -635,6 +635,57 @@ await test('28. Abrir arquivos de verdade e falar com o Vigia por voz', async ()
   await c.close();
 });
 
+await test('29. Personagem v2, seu perfil, aparência e pedidos de mudança', async () => {
+  const c = await browser.newContext({ viewport: { width: 1366, height: 900 } });
+  await c.addInitScript(UNLOCK);
+  const p = await c.newPage();
+  const perr = [];
+  p.on('pageerror', (e) => perr.push(e.message));
+  await p.goto(`${BASE}#/personagem`);
+  await p.locator('.char-stage canvas').waitFor({ timeout: 15000 });
+  // Corpo, cabelo, roupa e acessórios novos.
+  const pick = async (group, opt) => { await p.getByRole('radiogroup', { name: group }).getByRole('radio', { name: opt, exact: true }).check(); assert(await p.getByRole('radiogroup', { name: group }).getByRole('radio', { name: opt }).isChecked(), `${group}: ${opt}`); };
+  await pick('Silhueta', 'Menina');
+  await pick('Cabelo', 'Tranças');
+  await pick('Traje', 'Vestido');
+  await pick('Expressão', 'Animada');
+  const capa = p.getByRole('button', { name: 'Capa', exact: true });
+  await capa.click();
+  assert((await capa.getAttribute('aria-pressed')) === 'true', 'capa ligada');
+  await p.waitForTimeout(600);
+  if (process.env.E2E_SHOTS) await p.locator('.char-stage').screenshot({ path: `${process.env.E2E_SHOTS}/29-menina.png` });
+  // Perfil: como o assistente te chama.
+  await p.locator('#perfil-chamar').fill('chefe');
+  await p.locator('#perfil-chamar').blur();
+  await p.getByRole('radiogroup', { name: 'Falar comigo no' }).getByRole('radio', { name: 'Feminino' }).check();
+  await p.locator('#perfil-ia').fill('Íris');
+  await p.locator('#perfil-ia').blur();
+  await p.waitForTimeout(400);
+  await p.getByRole('button', { name: /Abrir o assistente Íris/ }).click();
+  await p.locator('.ai-panel', { hasText: 'Bem-vinda, chefe!' }).waitFor();
+  await p.keyboard.press('Escape');
+  // Aparência: cor de destaque aplicada ao site inteiro.
+  await p.goto(`${BASE}#/configuracoes`);
+  await p.getByRole('radio', { name: /Azul/ }).click();
+  await p.waitForFunction(() => getComputedStyle(document.querySelector('.btn-primary') || document.body).getPropertyValue('--accent').trim() === '#3d7bff');
+  await p.getByRole('radiogroup', { name: 'Cantos' }).getByRole('radio', { name: 'Retos' }).check();
+  assert((await p.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--r-1').trim())) === '2px', 'cantos retos');
+  // Pedido de mudança: botão só vira link com descrição, e o link leva @claude.
+  const sec = p.locator('#pedidos');
+  assert(await sec.getByRole('button', { name: /Enviar pedido ao Claude/ }).isDisabled(), 'sem descrição, bloqueado');
+  await p.locator('#ped-titulo').fill('Página de contato');
+  await p.locator('#ped-desc').fill('Criar uma página de contato.');
+  const href = await sec.getByRole('link', { name: /Enviar pedido ao Claude/ }).getAttribute('href');
+  const u = new URL(href);
+  assert(u.pathname.endsWith('/issues/new') && /^@claude Criar/.test(u.searchParams.get('body')) && u.searchParams.get('labels') === 'pedido-site', href);
+  // Voltar ao visual original.
+  await p.getByRole('button', { name: /Voltar ao visual original/ }).first().click();
+  await p.waitForTimeout(300);
+  assert(!(await p.evaluate(() => document.getElementById('usbi-aparencia')?.textContent || '')).includes('#3d7bff'), 'restaurou');
+  assert(!perr.length, perr.join(' | '));
+  await c.close();
+});
+
 await test('14a. Manifesto PWA válido e instalável', async () => {
   const r = await page.request.get(`${BASE}manifest.webmanifest`);
   assert(r.ok(), `manifesto HTTP ${r.status()}`);

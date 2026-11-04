@@ -244,6 +244,9 @@ export function Assistant() {
   };
 
   if (!settings.assistant) return null;
+  const aiName = settings.aiName?.trim() || 'Vigia';
+  const callMe = settings.userCall?.trim() || settings.userName?.trim();
+  const greet = callMe ? `${settings.userGender === 'feminino' ? 'Bem-vinda' : settings.userGender === 'masculino' ? 'Bem-vindo' : 'Olá'}, ${callMe}! ` : '';
 
   const pct = Math.round(load.progress * 100);
   const suggestions = engine === 'local' ? APP_SUGGESTIONS : [...APP_SUGGESTIONS.slice(0, 2), ...AI_SUGGESTIONS];
@@ -251,18 +254,18 @@ export function Assistant() {
   return (
     <>
       {!open && (
-        <button className="ai-fab" onClick={() => setOpen(true)} aria-label="Abrir o assistente Vigia IA (Ctrl+K)">
+        <button className="ai-fab" onClick={() => setOpen(true)} aria-label={`Abrir o assistente ${aiName} (Ctrl+K)`}>
           <LogoMark size={22} />
-          <span>Pergunte ao Vigia</span>
+          <span>Pergunte ao {aiName}</span>
         </button>
       )}
       {open && (
-        <section className="ai-panel" role="dialog" aria-label="Assistente Vigia IA" data-tone="grafite">
+        <section className="ai-panel" role="dialog" aria-label={`Assistente ${aiName}`} data-tone="grafite">
           <header className="ai-head">
             <div className="ai-title">
               <LogoMark size={26} />
               <div>
-                <strong>Vigia IA</strong>
+                <strong>{aiName}</strong>
                 <span className={`ai-engine is-${engine}`}>{ENGINE_LABEL[engine]}</span>
               </div>
             </div>
@@ -286,7 +289,7 @@ export function Assistant() {
             {!msgs.length && (
               <div className="ai-empty">
                 <p className="ai-hello">
-                  {engine === 'local'
+                  {greet}{engine === 'local'
                     ? 'Diga o que precisa. Eu analiso, procuro, organizo, mudo o tema, ajusto o personagem e levo você à tela certa.'
                     : 'Pergunte qualquer coisa: dúvidas, textos, explicações, ideias. E peça ações no app: analisar, achar duplicados, organizar, mudar o tema ou o personagem.'}
                 </p>

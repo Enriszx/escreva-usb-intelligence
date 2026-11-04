@@ -1,4 +1,4 @@
-import { DEVICE_RULES, SYSTEM_PROMPT } from './prompt';
+import { DEVICE_RULES, SYSTEM_PROMPT, profileLine } from './prompt';
 import { TOOLS, toolByName, type AssistantTool, type ToolContext } from './tools';
 import { runLocal } from './local';
 import { completeJSON, type ChatMsg } from './webllm';
@@ -104,7 +104,7 @@ export async function runDevice(model: string, history: ChatMsg[], userText: str
   }
 
   const recent = history.slice(-KEEP_HISTORY);
-  const msgs: ChatMsg[] = [{ role: 'system', content: DEVICE_PROMPT }, ...recent, { role: 'user', content: userText }];
+  const msgs: ChatMsg[] = [{ role: 'system', content: `${DEVICE_PROMPT}\n${profileLine(ctx.settings)}` }, ...recent, { role: 'user', content: userText }];
   let answer = '';
   for (let step = 0; step < MAX_STEPS && !answer; step++) {
     let raw: string;
