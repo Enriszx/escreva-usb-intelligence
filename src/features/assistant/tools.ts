@@ -11,6 +11,7 @@ import { put } from '../../lib/storage/db';
 import { ACCESSORIES, BODIES, BUILDS, EYES, FINISHES, HAIRS, HEADS, MOUTHS, OUTFITS, POSES, PRESETS, cloneConfig, validateCharacter, type CharacterConfig } from '../character/model';
 import { DRAFT_KEY } from '../character/useCharacterEditor';
 import { KIND_LABEL, openFile, readTextStart, viewKind } from '../files/viewKind';
+import { searchWeb, fetchPage } from './web';
 
 /** Lembretes criados pela IA chegam por este evento (o painel mostra e fala). */
 export const REMINDER_EVENT = 'usbi:lembrete';
@@ -518,6 +519,53 @@ export const TOOLS: AssistantTool[] = [
       if (!Object.keys(p).length) throw new Error('Nada para gravar.');
       await ctx.updateSettings(p);
       return { gravado: p };
+    },
+  },
+  {
+    name: 'pesquisar_na_web',
+    label: 'Pesquisando na internet',
+    description: 'Pesquisa na internet (DuckDuckGo) e devolve resultados com título, link e resumo. Use quando o usuário perguntar algo que exige informação atualizada, notícias, fatos, definições, preços, ou qualquer coisa que você não sabe de cor.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        consulta: { type: 'string', description: 'O que pesquisar (em português ou inglês, como digitaria no Google).' },
+      },
+      required: ['consulta'],
+      additionalProperties: false,
+    },
+    async execute(input, ctx) {
+      const q = str(input.consulta);
+      if (!q) throw new Error('Diga o que pesquisar.');
+      ctx.report(`Pesquisando "${q}"…`);
+      const r = await searchWeb(q);
+      return {
+        resposta_direta: r.instant || null,
+        fonte: r.source || null,
+        fonte_url: r.sourceUrl || null,
+        resultados: r.results.map((x) => ({ titulo: x.title, url: x.url, resumo: x.snippet })),
+        total: r.results.length,
+        dica: r.results.length ? 'Use ler_pagina com a url de um resultado para ver o conteúdo completo.' : 'Nenhum resultado — tente reformular a consulta.',
+      };
+    },
+  },
+  {
+    name: 'ler_pagina',
+    label: 'Lendo página da web',
+    description: 'Abre uma página da internet e extrai o texto (até 10 mil caracteres). Use depois de pesquisar_na_web para ler um resultado, ou quando o usuário pedir para acessar um link específico.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        url: { type: 'string', description: 'Endereço completo da página (https://…).' },
+      },
+      required: ['url'],
+      additionalProperties: false,
+    },
+    async execute(input, ctx) {
+      const url = str(input.url);
+      if (!url || !url.startsWith('http')) throw new Error('Informe uma URL válida (começando com http).');
+      ctx.report(`Abrindo ${new URL(url).hostname}…`);
+      const text = await fetchPage(url);
+      return { url, caracteres: text.length, texto: text };
     },
   },
   {
