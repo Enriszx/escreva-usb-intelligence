@@ -101,7 +101,7 @@ export const TOOLS: AssistantTool[] = [
   {
     name: 'resumo_biblioteca',
     label: 'Lendo o resumo da biblioteca',
-    description: 'Resumo dos arquivos que o usuário tem no app agora: totais, tipos, extensões, duplicados, quantos têm hash, se há pasta conectada. Use antes de responder perguntas sobre os arquivos.',
+    description: 'Resumo geral: totais, tipos, duplicados, hash, pasta conectada.',
     inputSchema: { type: 'object', properties: {}, additionalProperties: false },
     async execute(_input, ctx) {
       const e = ctx.files.entries;
@@ -123,7 +123,7 @@ export const TOOLS: AssistantTool[] = [
   {
     name: 'listar_arquivos',
     label: 'Procurando arquivos',
-    description: 'Lista arquivos da biblioteca com filtros. Devolve id, nome, caminho, tipo, tamanho e estado do hash. Os ids servem para renomear, mover, lixeira e tirar da lista.',
+    description: 'Busca e lista arquivos. Use busca para achar por nome. Retorna id, nome, caminho, tipo, tamanho.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -155,7 +155,7 @@ export const TOOLS: AssistantTool[] = [
   {
     name: 'duplicados',
     label: 'Conferindo duplicados',
-    description: 'Grupos de arquivos com conteúdo idêntico (por SHA-256, nunca por nome) e o espaço que liberaria manter uma cópia. Se houver candidatos sem hash, diga que é preciso analisar.',
+    description: 'Grupos de duplicados por SHA-256 e espaço recuperável.',
     inputSchema: { type: 'object', properties: {}, additionalProperties: false },
     async execute(_input, ctx) {
       const d = findDuplicates(ctx.files.entries);
@@ -168,7 +168,7 @@ export const TOOLS: AssistantTool[] = [
   {
     name: 'analisar',
     label: 'Analisando arquivos (SHA-256)',
-    description: 'Calcula o SHA-256 dos arquivos abertos. modo "duplicados" lê só quem divide tamanho com outro (rápido); "completa" lê todos. Espera terminar e devolve o resultado.',
+    description: 'Calcula SHA-256. "duplicados"=rápido, "completa"=todos.',
     inputSchema: { type: 'object', properties: { modo: { type: 'string', enum: ['completa', 'duplicados'] } }, required: ['modo'], additionalProperties: false },
     async execute(input, ctx) {
       if (!ctx.files.entries.length) throw new Error('Não há arquivos. Peça ao usuário para escolher arquivos ou conectar uma pasta na Central de arquivos.');
@@ -184,7 +184,7 @@ export const TOOLS: AssistantTool[] = [
   {
     name: 'abrir_area',
     label: 'Abrindo a área',
-    description: 'Leva o usuário a uma área do app. Em "arquivos" dá para abrir uma aba e já aplicar busca, tipo ou extensão no acervo, ou um critério na aba organizacao.',
+    description: 'Navega para uma área do app. Em "arquivos" aceita aba, busca e filtros.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -218,7 +218,7 @@ export const TOOLS: AssistantTool[] = [
   {
     name: 'plano_organizacao',
     label: 'Montando o plano de organização',
-    description: 'Propõe pastas para os arquivos sem mexer em nada. criterio: categoria, extensao (tipo/formato), categoria-ano, ano-mes ou tamanho. Abre a aba Organização com o plano.',
+    description: 'Propõe organização em pastas sem mover nada.',
     inputSchema: { type: 'object', properties: { criterio: { type: 'string', enum: Object.keys(CRITERION_LABEL) } }, required: ['criterio'], additionalProperties: false },
     async execute(input, ctx) {
       const c = (str(input.criterio) in CRITERION_LABEL ? str(input.criterio) : 'categoria') as OrganizeCriterion;
@@ -235,7 +235,7 @@ export const TOOLS: AssistantTool[] = [
   {
     name: 'aplicar_organizacao',
     label: 'Pedindo confirmação para organizar',
-    description: 'Move de verdade os arquivos da pasta conectada para as pastas do plano. O app pede confirmação ao usuário; se ele recusar, nada muda. Pode ser desfeito.',
+    description: 'Aplica o plano de organização (move arquivos). Pede confirmação.',
     inputSchema: { type: 'object', properties: { criterio: { type: 'string', enum: Object.keys(CRITERION_LABEL) } }, required: ['criterio'], additionalProperties: false },
     async execute(input, ctx) {
       requireFolder(ctx);
@@ -256,7 +256,7 @@ export const TOOLS: AssistantTool[] = [
   {
     name: 'renomear',
     label: 'Pedindo confirmação para renomear',
-    description: 'Renomeia um arquivo da pasta conectada (pelo id). O app confirma com o usuário. Pode ser desfeito.',
+    description: 'Renomeia um arquivo. Pede confirmação.',
     inputSchema: { type: 'object', properties: { id: { type: 'string' }, novo_nome: { type: 'string' } }, required: ['id', 'novo_nome'], additionalProperties: false },
     async execute(input, ctx) {
       requireFolder(ctx);
@@ -272,7 +272,7 @@ export const TOOLS: AssistantTool[] = [
   {
     name: 'mover',
     label: 'Pedindo confirmação para mover',
-    description: 'Move arquivos da pasta conectada (pelos ids) para outra pasta dentro dela, criando-a se precisar. O app confirma com o usuário. Pode ser desfeito.',
+    description: 'Move arquivos para outra pasta. Pede confirmação.',
     inputSchema: { type: 'object', properties: { ids: { type: 'array', items: { type: 'string' } }, pasta: { type: 'string', description: 'Caminho relativo, ex.: Documentos/2024. Vazio = raiz.' } }, required: ['ids', 'pasta'], additionalProperties: false },
     async execute(input, ctx) {
       requireFolder(ctx);
@@ -287,7 +287,7 @@ export const TOOLS: AssistantTool[] = [
   {
     name: 'enviar_para_lixeira',
     label: 'Pedindo confirmação para a lixeira',
-    description: 'Manda arquivos da pasta conectada para a lixeira do app (restaurável). O app confirma com o usuário. Você NÃO pode apagar de vez: se o usuário pedir, explique que ele faz isso na aba Lixeira.',
+    description: 'Manda para a lixeira (restaurável). Pede confirmação.',
     inputSchema: { type: 'object', properties: { ids: { type: 'array', items: { type: 'string' } } }, required: ['ids'], additionalProperties: false },
     async execute(input, ctx) {
       requireFolder(ctx);
@@ -301,7 +301,7 @@ export const TOOLS: AssistantTool[] = [
   {
     name: 'tirar_da_lista',
     label: 'Tirando itens da lista',
-    description: 'Tira arquivos só da lista de análise (não toca no arquivo original). Funciona sem pasta conectada.',
+    description: 'Remove da lista de análise (não apaga o arquivo).',
     inputSchema: { type: 'object', properties: { ids: { type: 'array', items: { type: 'string' } } }, required: ['ids'], additionalProperties: false },
     async execute(input, ctx) {
       const list = pick(ctx.files.entries, ids(input.ids));
@@ -312,7 +312,7 @@ export const TOOLS: AssistantTool[] = [
   {
     name: 'exportar',
     label: 'Gerando arquivo',
-    description: 'Gera um arquivo CSV para o usuário salvar: "plano" (pasta sugerida para cada arquivo), "duplicados" ou "lista" (todos os arquivos).',
+    description: 'Exporta CSV: "plano", "duplicados" ou "lista".',
     inputSchema: { type: 'object', properties: { o_que: { type: 'string', enum: ['plano', 'duplicados', 'lista'] } }, required: ['o_que'], additionalProperties: false },
     async execute(input, ctx) {
       const e = ctx.files.entries;
@@ -335,7 +335,7 @@ export const TOOLS: AssistantTool[] = [
   {
     name: 'mudar_tema',
     label: 'Trocando o tema',
-    description: 'Troca o tema visual: automatico (cada página no seu desenho), claro ou escuro.',
+    description: 'Troca o tema: automatico, claro ou escuro.',
     inputSchema: { type: 'object', properties: { tema: { type: 'string', enum: ['automatico', 'claro', 'escuro'] } }, required: ['tema'], additionalProperties: false },
     async execute(input, ctx) {
       const t = str(input.tema) as Settings['theme'];
@@ -347,7 +347,7 @@ export const TOOLS: AssistantTool[] = [
   {
     name: 'personagem',
     label: 'Ajustando o personagem',
-    description: `Muda o personagem 3D (o Vigia) e abre a tela dele. Estilos: ${PRESETS.map((p) => p.name).join(', ')}. Cores em #RRGGBB. A mudança pode ser desfeita no editor; para guardar, o usuário toca em Salvar.`,
+    description: 'Muda o personagem 3D. Cores em #RRGGBB.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -392,7 +392,7 @@ export const TOOLS: AssistantTool[] = [
   {
     name: 'historico',
     label: 'Lendo o histórico',
-    description: 'Últimas operações registradas no aparelho (análises, organizações, exportações…), com data.',
+    description: 'Últimas operações registradas.',
     inputSchema: { type: 'object', properties: { limite: { type: 'integer', minimum: 1, maximum: 30 } }, additionalProperties: false },
     async execute(input) {
       const h = await listHistory();
@@ -402,7 +402,7 @@ export const TOOLS: AssistantTool[] = [
   {
     name: 'abrir_arquivo',
     label: 'Abrindo o arquivo',
-    description: 'Abre um arquivo da biblioteca no visualizador do app (imagem, vídeo, áudio, PDF, planilha CSV, texto ou código; outros tipos oferecem baixar). Use o id de listar_arquivos.',
+    description: 'Abre um arquivo no visualizador.',
     inputSchema: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'], additionalProperties: false },
     async execute(input, ctx) {
       const [f] = pick(ctx.files.entries, [str(input.id)]);
@@ -413,7 +413,7 @@ export const TOOLS: AssistantTool[] = [
   {
     name: 'ler_arquivo',
     label: 'Lendo o conteúdo do arquivo',
-    description: 'Lê o conteúdo de um arquivo (texto, código, CSV, planilha ou qualquer formato baseado em texto — até 30 mil caracteres) para resumir, explicar, revisar ou responder perguntas sobre ele. Não lê imagens, vídeos nem áudios. Para planilhas CSV/TSV, devolve os dados estruturados (colunas e linhas).',
+    description: 'Lê o conteúdo de texto/planilha para responder perguntas. CSV/TSV retorna dados estruturados.',
     inputSchema: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'], additionalProperties: false },
     async execute(input, ctx) {
       const [f] = pick(ctx.files.entries, [str(input.id)]);
@@ -439,7 +439,7 @@ export const TOOLS: AssistantTool[] = [
   {
     name: 'modo_automatico',
     label: 'Modo automático',
-    description: 'Consulta o estado do modo automático do pendrive ou manda executar de novo (ler, verificar, duplicados, organizar, relatório). Se o pendrive ainda não foi configurado, leva o usuário à tela certa: a primeira conexão exige um toque dele.',
+    description: 'Estado ou execução do modo automático do pendrive.',
     inputSchema: { type: 'object', properties: { acao: { type: 'string', enum: ['estado', 'executar'] } }, required: ['acao'], additionalProperties: false },
     async execute(input, ctx) {
       const a = ctx.auto;
@@ -459,7 +459,7 @@ export const TOOLS: AssistantTool[] = [
   {
     name: 'lembrete',
     label: 'Criando lembrete',
-    description: 'Cria um lembrete que aparece na tela (e é falado, se a voz estiver ligada) daqui a N minutos. Vale enquanto o site estiver aberto.',
+    description: 'Cria lembrete que aparece em N minutos.',
     inputSchema: { type: 'object', properties: { minutos: { type: 'number', minimum: 0.1, maximum: 720 }, texto: { type: 'string' } }, required: ['minutos', 'texto'], additionalProperties: false },
     async execute(input) {
       const min = Math.min(720, Math.max(0.1, num(input.minutos, 5)));
@@ -472,7 +472,7 @@ export const TOOLS: AssistantTool[] = [
   {
     name: 'instalar_app',
     label: 'Instalando o app',
-    description: 'Oferece instalar o USB Intelligence como aplicativo no celular ou computador (PWA). Instalado, funciona offline, permite arrastar arquivos de fora e recebe lembretes mesmo com o navegador minimizado.',
+    description: 'Instala o app no celular ou computador (PWA).',
     inputSchema: { type: 'object', properties: {}, additionalProperties: false },
     async execute(_input, ctx) {
       const { promptInstall } = await import('../../lib/pwa/pwa');
@@ -492,7 +492,7 @@ export const TOOLS: AssistantTool[] = [
   {
     name: 'personalizar_visual',
     label: 'Mudando o visual do site',
-    description: 'Muda a aparência do site inteiro na hora: cor de destaque (hex #rrggbb, ou "original"), cantos (reto, padrao, redondo), tamanho do texto (0.9 a 1.25), fundo da bandeira (forte, suave, desligado) e tema (automatico, claro, escuro). Envie só o que for mudar.',
+    description: 'Muda aparência: cor, cantos, texto, fundo, tema.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -523,7 +523,7 @@ export const TOOLS: AssistantTool[] = [
   {
     name: 'meu_perfil',
     label: 'Atualizando seu perfil',
-    description: 'Grava como o assistente deve chamar o usuário (nome, apelido/tratamento, concordância masculina/feminina/neutra) e o nome do próprio assistente. Use quando o usuário disser "me chama de...", "meu nome é...", "sou mulher", "quero que você se chame...".',
+    description: 'Grava nome, apelido, gênero do usuário e nome do assistente.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -549,7 +549,7 @@ export const TOOLS: AssistantTool[] = [
   {
     name: 'pesquisar_na_web',
     label: 'Pesquisando na internet',
-    description: 'Pesquisa na internet (DuckDuckGo) e devolve resultados com título, link e resumo. Use quando o usuário perguntar algo que exige informação atualizada, notícias, fatos, definições, preços, ou qualquer coisa que você não sabe de cor.',
+    description: 'Pesquisa na internet. SÓ para perguntas gerais, NUNCA sobre arquivos do usuário.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -576,7 +576,7 @@ export const TOOLS: AssistantTool[] = [
   {
     name: 'ler_pagina',
     label: 'Lendo página da web',
-    description: 'Abre uma página da internet e extrai o texto (até 20 mil caracteres). Use depois de pesquisar_na_web para ler um resultado, ou quando o usuário pedir para acessar um link específico.',
+    description: 'Lê o texto de uma página da internet.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -596,7 +596,7 @@ export const TOOLS: AssistantTool[] = [
   {
     name: 'pedir_mudanca',
     label: 'Preparando o pedido de mudança',
-    description: 'Para mudanças que exigem mexer no CÓDIGO do site (nova página, novo recurso, layout diferente do que personalizar_visual faz). Monta um pedido para o Claude no GitHub do projeto e devolve o link. O usuário abre o link e toca em "Submit new issue"; o Claude faz a mudança, testa e responde no próprio pedido com o link. Escreva o pedido bem detalhado em português.',
+    description: 'Abre pedido de mudança no código do site via GitHub.',
     inputSchema: {
       type: 'object',
       properties: { titulo: { type: 'string' }, descricao: { type: 'string', description: 'O que mudar, onde e como deve ficar.' } },

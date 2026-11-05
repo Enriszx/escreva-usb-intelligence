@@ -8,7 +8,7 @@ import { TOOLS, toolByName, type AssistantTool, type ToolContext } from './tools
  * tamanhos, datas, hashes). O conteúdo dos arquivos nunca.
  */
 export const ONLINE_URL = 'https://text.pollinations.ai/openai';
-export const ONLINE_MODEL = 'openai'; // apelido do gpt-oss-20b no serviço
+export const ONLINE_MODEL = 'openai-fast';
 
 export interface OAToolCall { id: string; type: 'function'; function: { name: string; arguments: string } }
 export type OAMsg =
@@ -75,14 +75,14 @@ async function request(messages: OAMsg[], signal: AbortSignal): Promise<Response
       res = await fetch(ONLINE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: ONLINE_MODEL, messages, tools: OA_TOOLS, stream: true, max_tokens: 16384, reasoning: true, private: true, referrer: 'usb-intelligence' }),
+        body: JSON.stringify({ model: ONLINE_MODEL, messages, tools: OA_TOOLS, stream: true, max_tokens: 16384, temperature: 0.3, private: true, referrer: 'usb-intelligence' }),
         signal,
       });
     } catch (e) {
       if ((e as Error).name === 'AbortError') throw new OnlineError('Parado.', 'cancelled');
       // Conexão caiu (comum no celular): tenta de novo até 2 vezes antes de desistir.
       if (attempt < 2) {
-        await wait(800 * (attempt + 1), signal);
+        await wait(400 * (attempt + 1), signal);
         continue;
       }
       throw new OnlineError('Sem conexão com a IA online. Confira a internet.', 'rede');
@@ -101,7 +101,7 @@ async function request(messages: OAMsg[], signal: AbortSignal): Promise<Response
 }
 
 const MAX_ROUNDS = 20;
-const KEEP = 30;
+const KEEP = 20;
 
 /**
  * Uma rodada de conversa: o modelo responde em streaming e chama as ferramentas
