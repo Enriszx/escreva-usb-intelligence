@@ -82,7 +82,7 @@ async function request(messages: OAMsg[], signal: AbortSignal): Promise<Response
       if ((e as Error).name === 'AbortError') throw new OnlineError('Parado.', 'cancelled');
       // Conexão caiu (comum no celular): tenta de novo até 2 vezes antes de desistir.
       if (attempt < 2) {
-        await wait(1500 * (attempt + 1), signal);
+        await wait(800 * (attempt + 1), signal);
         continue;
       }
       throw new OnlineError('Sem conexão com a IA online. Confira a internet.', 'rede');
@@ -101,7 +101,7 @@ async function request(messages: OAMsg[], signal: AbortSignal): Promise<Response
 }
 
 const MAX_ROUNDS = 8;
-const KEEP = 24;
+const KEEP = 16;
 
 /**
  * Uma rodada de conversa: o modelo responde em streaming e chama as ferramentas
@@ -151,7 +151,7 @@ export async function runOnline(history: OAMsg[], userText: string, ctx: ToolCon
       }
       history.push({ role: 'assistant', content: text || null, tool_calls: real });
       if (text.trim()) shown = shown ? `${shown}\n\n${text.trim()}` : text.trim();
-      for (const c of real) {
+      const results = await Promise.all(real.map(async (c) => {
         const tool = toolByName(c.function.name);
         let out: string;
         if (!tool) out = 'Erro: ferramenta desconhecida.';
@@ -165,8 +165,9 @@ export async function runOnline(history: OAMsg[], userText: string, ctx: ToolCon
             out = `Erro: ${(e as Error).message}`;
           }
         }
-        history.push({ role: 'tool', tool_call_id: c.id, content: out.length > 12_000 ? `${out.slice(0, 12_000)}…(cortado)` : out });
-      }
+        return { id: c.id, content: out.length > 12_000 ? `${out.slice(0, 12_000)}…(cortado)` : out };
+      }));
+      for (const r of results) history.push({ role: 'tool', tool_call_id: r.id, content: r.content });
     }
     const final = 'Parei aqui para não ficar em ciclo. Pode reformular o pedido?';
     history.push({ role: 'assistant', content: final });
