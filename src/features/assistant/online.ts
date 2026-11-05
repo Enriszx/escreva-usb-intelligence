@@ -100,8 +100,8 @@ async function request(messages: OAMsg[], signal: AbortSignal): Promise<Response
   }
 }
 
-const MAX_ROUNDS = 8;
-const KEEP = 16;
+const MAX_ROUNDS = 20;
+const KEEP = 30;
 
 /**
  * Uma rodada de conversa: o modelo responde em streaming e chama as ferramentas
@@ -165,7 +165,7 @@ export async function runOnline(history: OAMsg[], userText: string, ctx: ToolCon
             out = `Erro: ${(e as Error).message}`;
           }
         }
-        return { id: c.id, content: out.length > 12_000 ? `${out.slice(0, 12_000)}…(cortado)` : out };
+        return { id: c.id, content: out.length > 24_000 ? `${out.slice(0, 24_000)}…(cortado)` : out };
       }));
       for (const r of results) history.push({ role: 'tool', tool_call_id: r.id, content: r.content });
     }

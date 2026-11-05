@@ -25,7 +25,7 @@ async function runTool(t: AssistantTool, input: unknown, ctx: ToolContext, cb: T
     const out = await t.execute((input && typeof input === 'object' ? input : {}) as Record<string, unknown>, ctx);
     const s = typeof out === 'string' ? out : JSON.stringify(out);
     // Modelos pequenos têm memória curta (4 mil tokens): resultado enxuto.
-    return s.length > 1500 ? `${s.slice(0, 1500)}…(cortado)` : s;
+    return s.length > 4000 ? `${s.slice(0, 4000)}…(cortado)` : s;
   } catch (e) {
     return `Erro: ${(e as Error).message}`;
   }
@@ -88,8 +88,8 @@ export function parseDecision(raw: string): Decision | null {
   return tryParse(raw.trim()) ?? tryParse(raw.slice(raw.indexOf('{'), raw.lastIndexOf('}') + 1));
 }
 
-const MAX_STEPS = 4;
-const KEEP_HISTORY = 8;
+const MAX_STEPS = 10;
+const KEEP_HISTORY = 16;
 
 /**
  * Uma rodada com a IA do aparelho. Comandos diretos ("procure duplicados",

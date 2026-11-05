@@ -146,7 +146,7 @@ function extractText(html: string): string {
   t = t.replace(/<br\s*\/?>/gi, '\n');
   t = stripHtml(t);
   t = t.replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
-  return t.slice(0, 10_000);
+  return t.slice(0, 20_000);
 }
 
 export async function fetchPage(url: string): Promise<string> {

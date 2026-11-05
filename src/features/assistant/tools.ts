@@ -132,7 +132,7 @@ export const TOOLS: AssistantTool[] = [
         extensao: { type: 'string', description: 'Ex.: pdf, jpg (sem ponto).' },
         ordenar: { type: 'string', enum: ['nome', 'tamanho', 'modificacao', 'importacao'] },
         decrescente: { type: 'boolean' },
-        limite: { type: 'integer', minimum: 1, maximum: 50 },
+        limite: { type: 'integer', minimum: 1, maximum: 100 },
       },
       additionalProperties: false,
     },
@@ -148,7 +148,7 @@ export const TOOLS: AssistantTool[] = [
       };
       if (cmp[key]) list = [...list].sort(cmp[key]);
       if (input.decrescente) list.reverse();
-      const limit = Math.min(50, Math.max(1, num(input.limite, 20)));
+      const limit = Math.min(100, Math.max(1, num(input.limite, 30)));
       return { total_encontrado: list.length, mostrando: Math.min(limit, list.length), arquivos: list.slice(0, limit).map(fileRow) };
     },
   },
@@ -160,7 +160,7 @@ export const TOOLS: AssistantTool[] = [
     async execute(_input, ctx) {
       const d = findDuplicates(ctx.files.entries);
       return {
-        grupos: d.groups.slice(0, 20).map((g) => ({ tamanho: formatBytes(g.size), arquivos: g.files.map((f) => ({ id: f.id, caminho: f.path })), liberaria: formatBytes(g.recoverable) })),
+        grupos: d.groups.slice(0, 50).map((g) => ({ tamanho: formatBytes(g.size), arquivos: g.files.map((f) => ({ id: f.id, caminho: f.path })), liberaria: formatBytes(g.recoverable) })),
         total_grupos: d.groups.length, recuperavel: formatBytes(d.recoverable), candidatos_sem_hash: d.unresolved.length,
       };
     },
@@ -396,7 +396,7 @@ export const TOOLS: AssistantTool[] = [
     inputSchema: { type: 'object', properties: { limite: { type: 'integer', minimum: 1, maximum: 30 } }, additionalProperties: false },
     async execute(input) {
       const h = await listHistory();
-      return h.slice(0, Math.min(30, num(input.limite, 10))).map((x) => ({ quando: new Date(x.at).toLocaleString('pt-BR'), tipo: HISTORY_LABEL[x.type], titulo: x.title, resultado: x.result }));
+      return h.slice(0, Math.min(50, num(input.limite, 20))).map((x) => ({ quando: new Date(x.at).toLocaleString('pt-BR'), tipo: HISTORY_LABEL[x.type], titulo: x.title, resultado: x.result }));
     },
   },
   {
@@ -413,7 +413,7 @@ export const TOOLS: AssistantTool[] = [
   {
     name: 'ler_arquivo',
     label: 'Lendo o conteúdo do arquivo',
-    description: 'Lê o conteúdo de um arquivo (texto, código, CSV, planilha ou qualquer formato baseado em texto — até 15 mil caracteres) para resumir, explicar, revisar ou responder perguntas sobre ele. Não lê imagens, vídeos nem áudios. Para planilhas CSV/TSV, devolve os dados estruturados (colunas e linhas).',
+    description: 'Lê o conteúdo de um arquivo (texto, código, CSV, planilha ou qualquer formato baseado em texto — até 30 mil caracteres) para resumir, explicar, revisar ou responder perguntas sobre ele. Não lê imagens, vídeos nem áudios. Para planilhas CSV/TSV, devolve os dados estruturados (colunas e linhas).',
     inputSchema: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'], additionalProperties: false },
     async execute(input, ctx) {
       const [f] = pick(ctx.files.entries, [str(input.id)]);
@@ -427,11 +427,11 @@ export const TOOLS: AssistantTool[] = [
         confirm: 'Permitir leitura',
       });
       if (!ok) return { lido: false, motivo: 'O usuário não autorizou a leitura.' };
-      const { text, cut } = await readTextStart(blob, 15_000);
+      const { text, cut } = await readTextStart(blob, 30_000);
       if (k === 'tabela') {
-        const rows = parseCsv(text, 200);
+        const rows = parseCsv(text, 500);
         const headers = rows[0] ?? [];
-        return { lido: true, arquivo: f.name, cortado: cut, tipo: 'planilha', colunas: headers, linhas: rows.length - 1, dados: rows.slice(0, 50).map((r) => Object.fromEntries(headers.map((h, i) => [h || `col${i + 1}`, r[i] ?? '']))), texto_completo: text };
+        return { lido: true, arquivo: f.name, cortado: cut, tipo: 'planilha', colunas: headers, linhas: rows.length - 1, dados: rows.slice(0, 200).map((r) => Object.fromEntries(headers.map((h, i) => [h || `col${i + 1}`, r[i] ?? '']))), texto_completo: text };
       }
       return { lido: true, arquivo: f.name, cortado: cut, texto: text };
     },
@@ -576,7 +576,7 @@ export const TOOLS: AssistantTool[] = [
   {
     name: 'ler_pagina',
     label: 'Lendo página da web',
-    description: 'Abre uma página da internet e extrai o texto (até 10 mil caracteres). Use depois de pesquisar_na_web para ler um resultado, ou quando o usuário pedir para acessar um link específico.',
+    description: 'Abre uma página da internet e extrai o texto (até 20 mil caracteres). Use depois de pesquisar_na_web para ler um resultado, ou quando o usuário pedir para acessar um link específico.',
     inputSchema: {
       type: 'object',
       properties: {
