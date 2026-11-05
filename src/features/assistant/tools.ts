@@ -10,7 +10,7 @@ import { saveCSV, stamp } from '../../lib/export';
 import { put } from '../../lib/storage/db';
 import { ACCESSORIES, BODIES, BUILDS, EYES, FINISHES, HAIRS, HEADS, MOUTHS, OUTFITS, POSES, PRESETS, cloneConfig, validateCharacter, type CharacterConfig } from '../character/model';
 import { DRAFT_KEY } from '../character/useCharacterEditor';
-import { KIND_LABEL, openFile, parseCsv, readTextStart, viewKind } from '../files/viewKind';
+import { KIND_LABEL, openFile, parseCsv, readSpreadsheet, readTextStart, viewKind } from '../files/viewKind';
 import { searchWeb, fetchPage } from './web';
 
 /** Lembretes criados pela IA chegam por este evento (o painel mostra e fala). */
@@ -413,7 +413,7 @@ export const TOOLS: AssistantTool[] = [
   {
     name: 'ler_arquivo',
     label: 'Lendo o conteúdo do arquivo',
-    description: 'Lê o conteúdo de texto/planilha para responder perguntas. CSV/TSV retorna dados estruturados.',
+    description: 'Lê texto, CSV, XLSX, XLS, ODS. Planilhas retornam dados estruturados.',
     inputSchema: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'], additionalProperties: false },
     async execute(input, ctx) {
       const [f] = pick(ctx.files.entries, [str(input.id)]);
@@ -427,6 +427,13 @@ export const TOOLS: AssistantTool[] = [
         confirm: 'Permitir leitura',
       });
       if (!ok) return { lido: false, motivo: 'O usuário não autorizou a leitura.' };
+      const isXlsx = ['xlsx', 'xls', 'ods'].includes(f.ext.toLowerCase());
+      if (k === 'tabela' && isXlsx) {
+        const { text, sheets } = await readSpreadsheet(blob);
+        const rows = parseCsv(text, 500);
+        const headers = rows[0] ?? [];
+        return { lido: true, arquivo: f.name, cortado: false, tipo: 'planilha', formato: f.ext, abas: sheets, colunas: headers, linhas: rows.length - 1, dados: rows.slice(0, 200).map((r) => Object.fromEntries(headers.map((h, i) => [h || `col${i + 1}`, r[i] ?? '']))), texto_completo: text };
+      }
       const { text, cut } = await readTextStart(blob, 30_000);
       if (k === 'tabela') {
         const rows = parseCsv(text, 500);

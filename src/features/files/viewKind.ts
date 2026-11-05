@@ -8,6 +8,7 @@ const IMG = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'bmp', 'svg', 'ico'];
 const VID = ['mp4', 'webm', 'ogv', 'mov', 'm4v'];
 const AUD = ['mp3', 'wav', 'ogg', 'oga', 'm4a', 'aac', 'flac', 'opus'];
 const TAB = ['csv', 'tsv'];
+const SPREADSHEET = ['xlsx', 'xls', 'ods'];
 const TXT = ['txt', 'md', 'markdown', 'json', 'xml', 'html', 'htm', 'css', 'js', 'mjs', 'ts', 'tsx', 'jsx', 'py', 'java', 'c', 'cpp', 'h', 'cs', 'php', 'rb', 'go', 'rs', 'sh', 'bat', 'ps1', 'yml', 'yaml', 'ini', 'cfg', 'conf', 'log', 'sql', 'srt', 'vtt', 'env', 'toml', 'rtf'];
 
 export function viewKind(ext: string, mime = ''): ViewKind {
@@ -16,7 +17,7 @@ export function viewKind(ext: string, mime = ''): ViewKind {
   if (VID.includes(e) || mime.startsWith('video/')) return 'video';
   if (AUD.includes(e) || mime.startsWith('audio/')) return 'audio';
   if (e === 'pdf' || mime === 'application/pdf') return 'pdf';
-  if (TAB.includes(e) || mime === 'text/csv') return 'tabela';
+  if (TAB.includes(e) || SPREADSHEET.includes(e) || mime === 'text/csv' || mime === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || mime === 'application/vnd.ms-excel') return 'tabela';
   if (TXT.includes(e) || mime.startsWith('text/') || mime === 'application/json') return 'texto';
   return 'externo';
 }
@@ -34,6 +35,20 @@ export async function readTextStart(blob: Blob, max = 1_000_000): Promise<{ text
     ? await part.text()
     : await new Promise<string>((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result ?? '')); r.onerror = () => rej(r.error); r.readAsText(part); });
   return { text, cut };
+}
+
+/** Lê Excel/ODS como CSV text via SheetJS (carrega sob demanda). */
+export async function readSpreadsheet(blob: Blob): Promise<{ text: string; sheets: string[] }> {
+  const XLSX = await import('xlsx');
+  const buf = await blob.arrayBuffer();
+  const wb = XLSX.read(buf, { type: 'array' });
+  const sheets = wb.SheetNames;
+  const parts: string[] = [];
+  for (const name of sheets) {
+    const csv = XLSX.utils.sheet_to_csv(wb.Sheets[name], { FS: ',', RS: '\n' });
+    if (csv.trim()) parts.push(sheets.length > 1 ? `=== ${name} ===\n${csv}` : csv);
+  }
+  return { text: parts.join('\n\n').slice(0, 60_000), sheets };
 }
 
 /** CSV simples: respeita aspas, detecta ; ou , ou tab. Limita linhas para a tela. */
