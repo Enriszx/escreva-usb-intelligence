@@ -75,7 +75,7 @@ async function request(messages: OAMsg[], signal: AbortSignal): Promise<Response
       res = await fetch(ONLINE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: ONLINE_MODEL, messages, tools: OA_TOOLS, stream: true, private: true, referrer: 'usb-intelligence' }),
+        body: JSON.stringify({ model: ONLINE_MODEL, messages, tools: OA_TOOLS, stream: true, max_tokens: 16384, private: true, referrer: 'usb-intelligence' }),
         signal,
       });
     } catch (e) {

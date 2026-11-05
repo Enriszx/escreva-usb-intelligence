@@ -138,7 +138,7 @@ export async function completeJSON(id: string, messages: ChatMsg[], schema: obje
     const r = await e.chat.completions.create({
       messages,
       temperature: 0.2,
-      max_tokens: 500,
+      max_tokens: 2048,
       response_format: { type: 'json_object', schema: JSON.stringify(schema) },
     });
     if (signal.aborted) throw new DOMException('parado', 'AbortError');
