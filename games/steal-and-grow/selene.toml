@@ -1,0 +1,6 @@
+std = "roblox"
+
+[lints]
+mixed_table = "allow"
+if_same_then_else = "allow"
+manual_table_clone = "allow"

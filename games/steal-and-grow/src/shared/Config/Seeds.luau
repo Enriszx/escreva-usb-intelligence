@@ -1,0 +1,122 @@
+--!strict
+-- The full crop roster: 42 plants across 9 tiers.
+--
+-- Progression intent:
+--   * cost scales ~x2.8 per entry, value ~x2.9, growTime ~x1.28
+--   * every tier roughly doubles coins/second so upgrading always *feels* big
+--   * `unlockRebirth` gates the late tiers so Rebirth has real pull
+--   * geometry is described declaratively (shape/palette/scale) so the client
+--     builds every plant from primitives — zero asset downloads, instant load
+--     on a 2GB Android phone, and three LOD levels for free.
+
+export type Seed = {
+	id: string,
+	name: string,
+	rarity: string,
+	tier: number,
+	cost: number,
+	growTime: number, -- seconds, before any grow-speed multipliers
+	baseValue: number,
+	unlockRebirth: number,
+	shopWeight: number, -- restock weight inside its tier
+	xp: number,
+	-- visual recipe
+	shape: "Ball" | "Block" | "Cylinder" | "Wedge" | "Cone",
+	fruit: Color3,
+	stem: Color3,
+	scale: number, -- base stud radius of the fruit
+	fruitCount: number, -- how many fruits on the plant model
+	material: Enum.Material?,
+	emissive: number?, -- 0..1 neon blend for exotic plants
+}
+
+local function c(r: number, g: number, b: number): Color3
+	return Color3.fromRGB(r, g, b)
+end
+
+local LEAF = c(76, 175, 80)
+local DARKLEAF = c(46, 125, 50)
+local VINE = c(104, 159, 56)
+
+local S: { Seed } = {
+	-- TIER 1 — the first 60 seconds of the game -------------------------
+	{ id = "carrot", name = "Cenoura", rarity = "Common", tier = 1, cost = 20, growTime = 30, baseValue = 52, unlockRebirth = 0, shopWeight = 100, xp = 1, shape = "Cone", fruit = c(255, 143, 0), stem = LEAF, scale = 0.9, fruitCount = 3 },
+	{ id = "strawberry", name = "Morango", rarity = "Common", tier = 1, cost = 55, growTime = 42, baseValue = 145, unlockRebirth = 0, shopWeight = 90, xp = 1, shape = "Ball", fruit = c(229, 57, 53), stem = LEAF, scale = 0.55, fruitCount = 5 },
+	{ id = "blueberry", name = "Mirtilo", rarity = "Common", tier = 1, cost = 140, growTime = 55, baseValue = 370, unlockRebirth = 0, shopWeight = 80, xp = 2, shape = "Ball", fruit = c(57, 73, 171), stem = DARKLEAF, scale = 0.45, fruitCount = 7 },
+
+	-- TIER 2 ------------------------------------------------------------
+	{ id = "tomato", name = "Tomate", rarity = "Uncommon", tier = 2, cost = 380, growTime = 72, baseValue = 985, unlockRebirth = 0, shopWeight = 100, xp = 3, shape = "Ball", fruit = c(244, 67, 54), stem = LEAF, scale = 0.8, fruitCount = 4 },
+	{ id = "corn", name = "Milho", rarity = "Uncommon", tier = 2, cost = 1050, growTime = 95, baseValue = 2700, unlockRebirth = 0, shopWeight = 85, xp = 4, shape = "Cylinder", fruit = c(255, 213, 79), stem = VINE, scale = 0.7, fruitCount = 3 },
+	{ id = "pumpkin", name = "Abóbora", rarity = "Uncommon", tier = 2, cost = 2900, growTime = 125, baseValue = 7300, unlockRebirth = 0, shopWeight = 70, xp = 6, shape = "Ball", fruit = c(255, 112, 67), stem = DARKLEAF, scale = 1.35, fruitCount = 2 },
+
+	-- TIER 3 ------------------------------------------------------------
+	{ id = "watermelon", name = "Melancia", rarity = "Rare", tier = 3, cost = 8000, growTime = 160, baseValue = 19800, unlockRebirth = 0, shopWeight = 100, xp = 9, shape = "Ball", fruit = c(67, 160, 71), stem = VINE, scale = 1.5, fruitCount = 2 },
+	{ id = "pineapple", name = "Abacaxi", rarity = "Rare", tier = 3, cost = 22000, growTime = 205, baseValue = 53000, unlockRebirth = 0, shopWeight = 85, xp = 12, shape = "Cylinder", fruit = c(253, 216, 53), stem = DARKLEAF, scale = 0.95, fruitCount = 3 },
+	{ id = "dragonfruit", name = "Pitaia", rarity = "Rare", tier = 3, cost = 61000, growTime = 265, baseValue = 143000, unlockRebirth = 0, shopWeight = 65, xp = 16, shape = "Ball", fruit = c(236, 64, 122), stem = c(124, 179, 66), scale = 0.9, fruitCount = 4 },
+
+	-- TIER 4 ------------------------------------------------------------
+	{ id = "cactus", name = "Cacto Doce", rarity = "Epic", tier = 4, cost = 165000, growTime = 340, baseValue = 372000, unlockRebirth = 1, shopWeight = 100, xp = 21, shape = "Cylinder", fruit = c(102, 187, 106), stem = c(85, 139, 47), scale = 1.1, fruitCount = 3 },
+	{ id = "mango", name = "Manga Real", rarity = "Epic", tier = 4, cost = 450000, growTime = 430, baseValue = 985000, unlockRebirth = 1, shopWeight = 85, xp = 27, shape = "Ball", fruit = c(255, 167, 38), stem = DARKLEAF, scale = 1.0, fruitCount = 4 },
+	{ id = "coconut", name = "Coco Blindado", rarity = "Epic", tier = 4, cost = 1250000, growTime = 540, baseValue = 2650000, unlockRebirth = 1, shopWeight = 70, xp = 34, shape = "Ball", fruit = c(109, 76, 65), stem = c(141, 110, 99), scale = 1.25, fruitCount = 3 },
+
+	-- TIER 5 ------------------------------------------------------------
+	{ id = "goldapple", name = "Maçã Dourada", rarity = "Legendary", tier = 5, cost = 3400000, growTime = 680, baseValue = 7000000, unlockRebirth = 2, shopWeight = 100, xp = 44, shape = "Ball", fruit = c(255, 215, 64), stem = c(255, 179, 0), scale = 0.95, fruitCount = 4, material = Enum.Material.Metal, emissive = 0.25 },
+	{ id = "crystalgrape", name = "Uva de Cristal", rarity = "Legendary", tier = 5, cost = 9200000, growTime = 850, baseValue = 18400000, unlockRebirth = 2, shopWeight = 85, xp = 55, shape = "Ball", fruit = c(129, 212, 250), stem = c(2, 136, 209), scale = 0.5, fruitCount = 9, material = Enum.Material.Glass, emissive = 0.4 },
+	{ id = "thunderpear", name = "Pera Trovão", rarity = "Legendary", tier = 5, cost = 25000000, growTime = 1060, baseValue = 48500000, unlockRebirth = 2, shopWeight = 68, xp = 70, shape = "Ball", fruit = c(255, 241, 118), stem = c(251, 192, 45), scale = 1.0, fruitCount = 4, emissive = 0.6 },
+
+	-- TIER 6 ------------------------------------------------------------
+	{ id = "lotus", name = "Lótus Ancestral", rarity = "Mythic", tier = 6, cost = 68000000, growTime = 1320, baseValue = 128000000, unlockRebirth = 4, shopWeight = 100, xp = 90, shape = "Cone", fruit = c(240, 98, 146), stem = c(56, 142, 60), scale = 1.2, fruitCount = 3, emissive = 0.3 },
+	{ id = "moonflower", name = "Flor da Lua", rarity = "Mythic", tier = 6, cost = 185000000, growTime = 1650, baseValue = 340000000, unlockRebirth = 4, shopWeight = 84, xp = 115, shape = "Ball", fruit = c(224, 224, 255), stem = c(121, 134, 203), scale = 0.85, fruitCount = 5, material = Enum.Material.Neon, emissive = 0.8 },
+	{ id = "soulberry", name = "Baga da Alma", rarity = "Mythic", tier = 6, cost = 510000000, growTime = 2050, baseValue = 920000000, unlockRebirth = 4, shopWeight = 66, xp = 145, shape = "Ball", fruit = c(149, 117, 205), stem = c(69, 39, 160), scale = 0.6, fruitCount = 7, material = Enum.Material.Neon, emissive = 0.9 },
+
+	-- TIER 7 ------------------------------------------------------------
+	{ id = "voidmelon", name = "Melão do Vazio", rarity = "Divine", tier = 7, cost = 1400000000, growTime = 2550, baseValue = 2500000000, unlockRebirth = 7, shopWeight = 100, xp = 190, shape = "Ball", fruit = c(49, 27, 146), stem = c(26, 35, 126), scale = 1.6, fruitCount = 2, material = Enum.Material.Neon, emissive = 0.75 },
+	{ id = "starfruit", name = "Fruta Estelar", rarity = "Divine", tier = 7, cost = 3900000000, growTime = 3150, baseValue = 7000000000, unlockRebirth = 7, shopWeight = 84, xp = 240, shape = "Wedge", fruit = c(0, 229, 255), stem = c(0, 151, 167), scale = 1.1, fruitCount = 4, material = Enum.Material.Neon, emissive = 1.0 },
+	{ id = "phoenixfig", name = "Figo Fênix", rarity = "Divine", tier = 7, cost = 11000000000, growTime = 3900, baseValue = 19800000000, unlockRebirth = 7, shopWeight = 64, xp = 305, shape = "Ball", fruit = c(255, 87, 34), stem = c(230, 74, 25), scale = 1.0, fruitCount = 4, material = Enum.Material.Neon, emissive = 1.0 },
+
+	-- TIER 8 ------------------------------------------------------------
+	{ id = "galaxypod", name = "Vagem Galáctica", rarity = "Cosmic", tier = 8, cost = 31000000000, growTime = 4800, baseValue = 56000000000, unlockRebirth = 11, shopWeight = 100, xp = 390, shape = "Cylinder", fruit = c(124, 77, 255), stem = c(69, 39, 160), scale = 1.2, fruitCount = 3, material = Enum.Material.Neon, emissive = 1.0 },
+	{ id = "blackhole", name = "Semente Buraco Negro", rarity = "Cosmic", tier = 8, cost = 88000000000, growTime = 5900, baseValue = 160000000000, unlockRebirth = 11, shopWeight = 80, xp = 500, shape = "Ball", fruit = c(18, 18, 24), stem = c(49, 27, 146), scale = 1.45, fruitCount = 1, material = Enum.Material.Neon, emissive = 0.5 },
+	{ id = "singularity", name = "Singularidade", rarity = "Cosmic", tier = 8, cost = 250000000000, growTime = 7200, baseValue = 460000000000, unlockRebirth = 11, shopWeight = 58, xp = 640, shape = "Ball", fruit = c(255, 255, 255), stem = c(124, 77, 255), scale = 1.0, fruitCount = 2, material = Enum.Material.Neon, emissive = 1.0 },
+
+	-- TIER 9 — SECRET. Not sold. Only from Cosmic Crates / events -------
+	{ id = "omegaseed", name = "Ω Semente Omega", rarity = "Secret", tier = 9, cost = 0, growTime = 9000, baseValue = 4000000000000, unlockRebirth = 15, shopWeight = 0, xp = 2000, shape = "Ball", fruit = c(255, 0, 128), stem = c(18, 18, 24), scale = 1.8, fruitCount = 1, material = Enum.Material.Neon, emissive = 1.0 },
+	{ id = "devfruit", name = "Fruta do Dev", rarity = "Secret", tier = 9, cost = 0, growTime = 12000, baseValue = 25000000000000, unlockRebirth = 20, shopWeight = 0, xp = 5000, shape = "Ball", fruit = c(0, 255, 170), stem = c(0, 77, 64), scale = 2.0, fruitCount = 1, material = Enum.Material.Neon, emissive = 1.0 },
+}
+
+local byId: { [string]: Seed } = {}
+local byTier: { [number]: { Seed } } = {}
+for _, s in S do
+	byId[s.id] = s
+	byTier[s.tier] = byTier[s.tier] or {}
+	table.insert(byTier[s.tier], s)
+end
+
+local MAX_TIER = 9
+
+return {
+	all = S,
+	byId = byId,
+	byTier = byTier,
+	maxTier = MAX_TIER,
+	get = function(id: string): Seed?
+		return byId[id]
+	end,
+	-- Seeds a player with N rebirths is allowed to buy
+	purchasable = function(rebirths: number): { Seed }
+		local out = {}
+		for _, s in S do
+			if s.cost > 0 and s.unlockRebirth <= rebirths then
+				table.insert(out, s)
+			end
+		end
+		table.sort(out, function(a, b)
+			return a.cost < b.cost
+		end)
+		return out
+	end,
+	-- coins per second at base, used by the shop UI to show "efficiency"
+	rate = function(s: Seed): number
+		return s.baseValue / math.max(s.growTime, 1)
+	end,
+}

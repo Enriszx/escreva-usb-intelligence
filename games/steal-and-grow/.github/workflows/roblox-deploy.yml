@@ -1,0 +1,86 @@
+name: Deploy to Roblox
+
+# Fully automatic deploy: every push to the game's source publishes a new live
+# version of the place. The only manual steps in the whole pipeline are the
+# one-time creation of the experience and its passes (Roblox has no API for
+# either) — see docs/PUBLISHING.md.
+#
+# Repository secrets required:
+#   ROBLOX_API_KEY        Open Cloud key with universe-places:write
+#   ROBLOX_UNIVERSE_ID
+#   ROBLOX_PLACE_ID
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "games/steal-and-grow/src/**"
+      - "games/steal-and-grow/default.project.json"
+      - ".github/workflows/roblox-deploy.yml"
+  workflow_dispatch:
+    inputs:
+      version_type:
+        description: "Published (live) ou Saved (rascunho)"
+        required: true
+        default: "Published"
+        type: choice
+        options: [Published, Saved]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: games/steal-and-grow
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rojo
+        uses: ok-nick/setup-aftman@v0.4.2
+        with:
+          path: games/steal-and-grow
+
+      - name: Lint (selene)
+        continue-on-error: true
+        run: selene src
+
+      - name: Check formatting (stylua)
+        continue-on-error: true
+        run: stylua --check src
+
+      - name: Build place file
+        run: |
+          mkdir -p build
+          rojo build default.project.json --output build/StealAndGrow.rbxl
+          ls -lh build/StealAndGrow.rbxl
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: StealAndGrow-rbxl
+          path: games/steal-and-grow/build/StealAndGrow.rbxl
+          retention-days: 14
+
+      - name: Publish to Roblox
+        if: ${{ env.ROBLOX_API_KEY != '' }}
+        env:
+          ROBLOX_API_KEY: ${{ secrets.ROBLOX_API_KEY }}
+          ROBLOX_UNIVERSE_ID: ${{ secrets.ROBLOX_UNIVERSE_ID }}
+          ROBLOX_PLACE_ID: ${{ secrets.ROBLOX_PLACE_ID }}
+          VERSION_TYPE: ${{ github.event.inputs.version_type || 'Published' }}
+        run: |
+          code=$(curl -sS -X POST \
+            "https://apis.roblox.com/universes/v1/${ROBLOX_UNIVERSE_ID}/places/${ROBLOX_PLACE_ID}/versions?versionType=${VERSION_TYPE}" \
+            -H "x-api-key: ${ROBLOX_API_KEY}" \
+            -H "Content-Type: application/octet-stream" \
+            --data-binary @build/StealAndGrow.rbxl \
+            -o response.json -w "%{http_code}")
+          echo "HTTP $code"
+          cat response.json
+          test "$code" = "200" || test "$code" = "201"
+
+      - name: Skipped publish notice
+        if: ${{ env.ROBLOX_API_KEY == '' }}
+        run: |
+          echo "::warning::ROBLOX_API_KEY não configurado — o place foi construído"
+          echo "::warning::e salvo como artifact, mas não publicado."
