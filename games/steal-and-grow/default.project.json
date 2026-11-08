@@ -2,45 +2,53 @@
   "name": "StealAndGrow",
   "tree": {
     "$className": "DataModel",
-
     "ReplicatedStorage": {
       "$className": "ReplicatedStorage",
-      "Shared": { "$path": "src/shared" }
+      "Shared": {
+        "$path": "src/shared"
+      }
     },
-
     "ServerScriptService": {
       "$className": "ServerScriptService",
-      "Server": { "$path": "src/server" }
+      "Server": {
+        "$path": "src/server"
+      }
     },
-
     "StarterPlayer": {
       "$className": "StarterPlayer",
       "StarterPlayerScripts": {
         "$className": "StarterPlayerScripts",
-        "Client": { "$path": "src/client" }
+        "Client": {
+          "$path": "src/client"
+        }
       },
       "$properties": {
         "EnableMouseLockOption": false
       }
     },
-
     "Workspace": {
       "$className": "Workspace",
       "$properties": {
-        "FilteringEnabled": true,
         "StreamingEnabled": true,
         "StreamingTargetRadius": 384,
         "StreamingMinRadius": 96,
         "StreamOutBehavior": "LowMemory"
       }
     },
-
     "Lighting": {
       "$className": "Lighting",
       "$properties": {
         "Technology": "ShadowMap",
-        "Ambient": [0.231, 0.247, 0.306],
-        "OutdoorAmbient": [0.407, 0.439, 0.521],
+        "Ambient": [
+          0.231,
+          0.247,
+          0.306
+        ],
+        "OutdoorAmbient": [
+          0.407,
+          0.439,
+          0.521
+        ],
         "Brightness": 2.4,
         "ClockTime": 14.5,
         "GeographicLatitude": 12,
@@ -50,57 +58,89 @@
         "GlobalShadows": true,
         "ShadowSoftness": 0.35,
         "FogEnd": 2200,
-        "FogStart": 420,
-        "Sky": {
-          "$className": "Sky",
-          "$properties": { "StarCount": 3000, "SunAngularSize": 16 }
-        },
-        "Atmosphere": {
-          "$className": "Atmosphere",
-          "$properties": {
-            "Density": 0.32,
-            "Offset": 0.25,
-            "Color": [0.78, 0.84, 0.95],
-            "Decay": [0.42, 0.52, 0.68],
-            "Glare": 0.2,
-            "Haze": 1.4
-          }
-        },
-        "Bloom": {
-          "$className": "BloomEffect",
-          "$properties": { "Intensity": 0.55, "Size": 28, "Threshold": 1.05 }
-        },
-        "SunRays": {
-          "$className": "SunRaysEffect",
-          "$properties": { "Intensity": 0.08, "Spread": 0.6 }
-        },
-        "ColorCorrection": {
-          "$className": "ColorCorrectionEffect",
-          "$properties": { "Saturation": 0.14, "Contrast": 0.08, "Brightness": 0.01 }
+        "FogStart": 420
+      },
+      "Sky": {
+        "$className": "Sky",
+        "$properties": {
+          "StarCount": 3000,
+          "SunAngularSize": 16
+        }
+      },
+      "Atmosphere": {
+        "$className": "Atmosphere",
+        "$properties": {
+          "Density": 0.32,
+          "Offset": 0.25,
+          "Color": [
+            0.78,
+            0.84,
+            0.95
+          ],
+          "Decay": [
+            0.42,
+            0.52,
+            0.68
+          ],
+          "Glare": 0.2,
+          "Haze": 1.4
+        }
+      },
+      "Bloom": {
+        "$className": "BloomEffect",
+        "$properties": {
+          "Intensity": 0.55,
+          "Size": 28,
+          "Threshold": 1.05
+        }
+      },
+      "SunRays": {
+        "$className": "SunRaysEffect",
+        "$properties": {
+          "Intensity": 0.08,
+          "Spread": 0.6
+        }
+      },
+      "ColorCorrection": {
+        "$className": "ColorCorrectionEffect",
+        "$properties": {
+          "Saturation": 0.14,
+          "Contrast": 0.08,
+          "Brightness": 0.01
         }
       }
     },
-
     "SoundService": {
       "$className": "SoundService",
-      "$properties": { "DistanceFactor": 12, "RolloffScale": 0.4 }
+      "$properties": {
+        "DistanceFactor": 12,
+        "RolloffScale": 0.4
+      }
     },
-
     "Players": {
       "$className": "Players",
-      "$properties": { "CharacterAutoLoads": true, "RespawnTime": 3 }
+      "$properties": {
+        "CharacterAutoLoads": true,
+        "RespawnTime": 3
+      }
     },
-
     "HttpService": {
       "$className": "HttpService",
-      "$properties": { "HttpEnabled": true }
+      "$properties": {
+        "HttpEnabled": true
+      }
     },
-
-    "ReplicatedFirst": { "$className": "ReplicatedFirst" },
-    "ServerStorage": { "$className": "ServerStorage" },
+    "ReplicatedFirst": {
+      "$className": "ReplicatedFirst"
+    },
+    "ServerStorage": {
+      "$className": "ServerStorage"
+    },
     "TextChatService": {
       "$className": "TextChatService",
-      "$properties": { "ChatVersion": "TextChatService" }
+      "$properties": {
+        "ChatVersion": "TextChatService"
+      }
     }
   }
 }

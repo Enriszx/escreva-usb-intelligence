@@ -37,7 +37,9 @@ function AntiCheat:init(a)
 		if score >= Balance.suspicionKickThreshold then
 			-- not a ban: a disconnect. If it was a false positive the player
 			-- rejoins and keeps everything.
-			player:Kick("Atividade anormal detectada. Entre novamente.\n(Se isso foi um erro, nada foi perdido.)")
+			player:Kick(
+				"Atividade anormal detectada. Entre novamente.\n(Se isso foi um erro, nada foi perdido.)"
+			)
 		end
 	end
 end

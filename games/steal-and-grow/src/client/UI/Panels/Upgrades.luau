@@ -34,9 +34,16 @@ function Panel.build(parent, app)
 			end
 		end
 		local m = State.mult
-		panel.setSubtitle(m and ("Canteiros %d/%d  •  💰%s  ⚡%s"):format(
-			m.tiles, State.maxTiles, Format.multiplier(m.coin), Format.multiplier(m.grow)
-		) or "")
+		panel.setSubtitle(
+			m
+					and ("Canteiros %d/%d  •  💰%s  ⚡%s"):format(
+						m.tiles,
+						State.maxTiles,
+						Format.multiplier(m.coin),
+						Format.multiplier(m.grow)
+					)
+				or ""
+		)
 
 		for _, upgrade in Upgrades.all do
 			local level = State.upgrades[upgrade.key] or 0
@@ -54,16 +61,27 @@ function Panel.build(parent, app)
 				pad = 10,
 			})
 			B.label(upgrade.icon, {
-				Parent = row, Size = UDim2.fromOffset(44, 44), Position = UDim2.fromOffset(0, 2),
-				TextSize = 28, TextXAlignment = Enum.TextXAlignment.Center,
+				Parent = row,
+				Size = UDim2.fromOffset(44, 44),
+				Position = UDim2.fromOffset(0, 2),
+				TextSize = 28,
+				TextXAlignment = Enum.TextXAlignment.Center,
 			})
 			B.label(upgrade.name, {
-				Parent = row, Size = UDim2.new(1, -220, 0, 20), Position = UDim2.fromOffset(48, 0),
-				Font = Theme.fontBlack, TextSize = Theme.body, TextColor3 = upgrade.colour,
+				Parent = row,
+				Size = UDim2.new(1, -220, 0, 20),
+				Position = UDim2.fromOffset(48, 0),
+				Font = Theme.fontBlack,
+				TextSize = Theme.body,
+				TextColor3 = upgrade.colour,
 			})
 			B.label(upgrade.desc, {
-				Parent = row, Size = UDim2.new(1, -220, 0, 18), Position = UDim2.fromOffset(48, 21),
-				TextSize = Theme.tiny, TextColor3 = Theme.textDim, Font = Theme.fontBody,
+				Parent = row,
+				Size = UDim2.new(1, -220, 0, 18),
+				Position = UDim2.fromOffset(48, 21),
+				TextSize = Theme.tiny,
+				TextColor3 = Theme.textDim,
+				Font = Theme.fontBody,
 			})
 			B.bar({
 				parent = row,

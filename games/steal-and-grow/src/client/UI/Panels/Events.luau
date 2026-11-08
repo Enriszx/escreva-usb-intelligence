@@ -41,7 +41,10 @@ function Panel.build(parent, app)
 			local label = MOD_LABELS[key]
 			if label then
 				if key == "stealSpeed" then
-					table.insert(parts, ("%s %s"):format(label, Format.percent(1 - value, 0) .. " mais rápido"))
+					table.insert(
+						parts,
+						("%s %s"):format(label, Format.percent(1 - value, 0) .. " mais rápido")
+					)
 				else
 					table.insert(parts, ("%s %s"):format(label, Format.multiplier(value)))
 				end
@@ -78,17 +81,29 @@ function Panel.build(parent, app)
 			})
 			B.gradient((active.colour or Theme.warn):Lerp(Theme.panel, 0.6), Theme.panel, 115).Parent = card
 			B.label(("%s %s — ACONTECENDO AGORA"):format(active.icon or "", active.name or ""), {
-				Parent = card, Size = UDim2.new(1, 0, 0, 26), Font = Theme.fontBlack,
-				TextSize = Theme.h3, TextColor3 = active.colour or Theme.warn,
+				Parent = card,
+				Size = UDim2.new(1, 0, 0, 26),
+				Font = Theme.fontBlack,
+				TextSize = Theme.h3,
+				TextColor3 = active.colour or Theme.warn,
 			})
 			B.label(active.desc or "", {
-				Parent = card, Size = UDim2.new(1, 0, 0, 36), Position = UDim2.fromOffset(0, 28),
-				TextSize = Theme.small, TextColor3 = Theme.text, Font = Theme.fontBody, TextWrapped = true,
+				Parent = card,
+				Size = UDim2.new(1, 0, 0, 36),
+				Position = UDim2.fromOffset(0, 28),
+				TextSize = Theme.small,
+				TextColor3 = Theme.text,
+				Font = Theme.fontBody,
+				TextWrapped = true,
 				TextYAlignment = Enum.TextYAlignment.Top,
 			})
 			B.label(modText(active.mods or {}), {
-				Parent = card, Size = UDim2.new(1, 0, 0, 18), Position = UDim2.fromOffset(0, 66),
-				TextSize = Theme.tiny, TextColor3 = Theme.primary, Font = Theme.fontBlack,
+				Parent = card,
+				Size = UDim2.new(1, 0, 0, 18),
+				Position = UDim2.fromOffset(0, 66),
+				TextSize = Theme.tiny,
+				TextColor3 = Theme.primary,
+				Font = Theme.fontBlack,
 			})
 			B.bar({
 				parent = card,
@@ -110,8 +125,11 @@ function Panel.build(parent, app)
 				pad = 12,
 			})
 			B.label("⏳ Nenhum evento ativo", {
-				Parent = card, Size = UDim2.new(1, 0, 0, 24), Font = Theme.fontBlack,
-				TextSize = Theme.body, TextColor3 = Theme.textDim,
+				Parent = card,
+				Size = UDim2.new(1, 0, 0, 24),
+				Font = Theme.fontBlack,
+				TextSize = Theme.body,
+				TextColor3 = Theme.textDim,
 			})
 			B.bar({
 				parent = card,
@@ -140,8 +158,12 @@ function Panel.build(parent, app)
 		})
 
 		B.label("TODOS OS EVENTOS", {
-			Parent = list, Size = UDim2.new(1, 0, 0, 26), LayoutOrder = 3,
-			Font = Theme.fontBlack, TextSize = Theme.small, TextColor3 = Theme.textDim,
+			Parent = list,
+			Size = UDim2.new(1, 0, 0, 26),
+			LayoutOrder = 3,
+			Font = Theme.fontBlack,
+			TextSize = Theme.small,
+			TextColor3 = Theme.textDim,
 		})
 
 		local sorted = table.clone(Events.all)
@@ -159,26 +181,44 @@ function Panel.build(parent, app)
 				pad = 10,
 			})
 			B.label(event.icon, {
-				Parent = card, Size = UDim2.fromOffset(44, 44), TextSize = 28,
+				Parent = card,
+				Size = UDim2.fromOffset(44, 44),
+				TextSize = 28,
 				TextXAlignment = Enum.TextXAlignment.Center,
 			})
 			B.label(event.name, {
-				Parent = card, Size = UDim2.new(1, -50, 0, 20), Position = UDim2.fromOffset(48, 0),
-				Font = Theme.fontBlack, TextSize = Theme.small, TextColor3 = event.colour,
+				Parent = card,
+				Size = UDim2.new(1, -50, 0, 20),
+				Position = UDim2.fromOffset(48, 0),
+				Font = Theme.fontBlack,
+				TextSize = Theme.small,
+				TextColor3 = event.colour,
 			})
 			B.label(event.desc, {
-				Parent = card, Size = UDim2.new(1, -50, 0, 34), Position = UDim2.fromOffset(48, 20),
-				TextSize = Theme.tiny, TextColor3 = Theme.textDim, Font = Theme.fontBody,
-				TextWrapped = true, TextYAlignment = Enum.TextYAlignment.Top,
+				Parent = card,
+				Size = UDim2.new(1, -50, 0, 34),
+				Position = UDim2.fromOffset(48, 20),
+				TextSize = Theme.tiny,
+				TextColor3 = Theme.textDim,
+				Font = Theme.fontBody,
+				TextWrapped = true,
+				TextYAlignment = Enum.TextYAlignment.Top,
 			})
-			B.label(("%s  •  ⏱ %s  •  Chance %s"):format(
-				modText(event.mods),
-				Format.time(event.duration),
-				Format.percent(event.weight / 134, 0)
-			), {
-				Parent = card, Size = UDim2.new(1, -50, 0, 16), Position = UDim2.fromOffset(48, 56),
-				TextSize = Theme.tiny, TextColor3 = Theme.primary, Font = Theme.fontBlack,
-			})
+			B.label(
+				("%s  •  ⏱ %s  •  Chance %s"):format(
+					modText(event.mods),
+					Format.time(event.duration),
+					Format.percent(event.weight / 134, 0)
+				),
+				{
+					Parent = card,
+					Size = UDim2.new(1, -50, 0, 16),
+					Position = UDim2.fromOffset(48, 56),
+					TextSize = Theme.tiny,
+					TextColor3 = Theme.primary,
+					Font = Theme.fontBlack,
+				}
+			)
 		end
 	end
 

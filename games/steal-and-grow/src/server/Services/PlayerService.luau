@@ -411,7 +411,14 @@ function PlayerService:start()
 		if not profile or type(key) ~= "string" then
 			return
 		end
-		local allowed = { music = "boolean", sfx = "boolean", alarms = "boolean", announcements = "boolean", quality = "string", joystickSide = "string" }
+		local allowed = {
+			music = "boolean",
+			sfx = "boolean",
+			alarms = "boolean",
+			announcements = "boolean",
+			quality = "string",
+			joystickSide = "string",
+		}
 		local expect = allowed[key]
 		if not expect then
 			return

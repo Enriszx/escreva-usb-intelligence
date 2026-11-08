@@ -73,11 +73,12 @@ function CameraController:start()
 		if shake > 0.001 then
 			shake = math.max(0, shake - dt * 1.6)
 			local amount = shake * 0.55
-			camera.CFrame = camera.CFrame * CFrame.Angles(
-				(math.random() - 0.5) * amount * 0.02,
-				(math.random() - 0.5) * amount * 0.02,
-				(math.random() - 0.5) * amount * 0.02
-			)
+			camera.CFrame = camera.CFrame
+				* CFrame.Angles(
+					(math.random() - 0.5) * amount * 0.02,
+					(math.random() - 0.5) * amount * 0.02,
+					(math.random() - 0.5) * amount * 0.02
+				)
 		end
 	end)
 end

@@ -36,11 +36,19 @@ function Panel.build(parent, app)
 			pad = 10,
 		})
 		B.label(label, {
-			Parent = card, Size = UDim2.new(1, -110, 0, 20), Font = Theme.fontBlack, TextSize = Theme.small,
+			Parent = card,
+			Size = UDim2.new(1, -110, 0, 20),
+			Font = Theme.fontBlack,
+			TextSize = Theme.small,
 		})
 		B.label(desc, {
-			Parent = card, Size = UDim2.new(1, -110, 0, 22), Position = UDim2.fromOffset(0, 20),
-			TextSize = Theme.tiny, TextColor3 = Theme.textDim, Font = Theme.fontBody, TextWrapped = true,
+			Parent = card,
+			Size = UDim2.new(1, -110, 0, 22),
+			Position = UDim2.fromOffset(0, 20),
+			TextSize = Theme.tiny,
+			TextColor3 = Theme.textDim,
+			Font = Theme.fontBody,
+			TextWrapped = true,
 		})
 		local btn
 		btn = B.button({
@@ -83,13 +91,20 @@ function Panel.build(parent, app)
 			pad = 10,
 		})
 		B.label("Qualidade gráfica", {
-			Parent = card, Size = UDim2.new(1, 0, 0, 20), Font = Theme.fontBlack, TextSize = Theme.small,
+			Parent = card,
+			Size = UDim2.new(1, 0, 0, 20),
+			Font = Theme.fontBlack,
+			TextSize = Theme.small,
 		})
 		B.label(
 			("Automático ajusta sozinho pelo seu FPS. Atual: %s"):format(app.GraphicsController.tier.name),
 			{
-				Parent = card, Size = UDim2.new(1, 0, 0, 20), Position = UDim2.fromOffset(0, 20),
-				TextSize = Theme.tiny, TextColor3 = Theme.textDim, Font = Theme.fontBody,
+				Parent = card,
+				Size = UDim2.new(1, 0, 0, 20),
+				Position = UDim2.fromOffset(0, 20),
+				TextSize = Theme.tiny,
+				TextColor3 = Theme.textDim,
+				Font = Theme.fontBody,
 			}
 		)
 		local row = B.new("Frame", {
@@ -121,9 +136,14 @@ function Panel.build(parent, app)
 		B.label(
 			"Dica: no celular, use AUTO. Se travar, escolha Low ou Potato — o jogo continua bonito, só com menos detalhes por planta.",
 			{
-				Parent = card, Size = UDim2.new(1, 0, 0, 30), Position = UDim2.fromOffset(0, 94),
-				TextSize = Theme.tiny, TextColor3 = Theme.textFaint, Font = Theme.fontBody,
-				TextWrapped = true, TextYAlignment = Enum.TextYAlignment.Top,
+				Parent = card,
+				Size = UDim2.new(1, 0, 0, 30),
+				Position = UDim2.fromOffset(0, 94),
+				TextSize = Theme.tiny,
+				TextColor3 = Theme.textFaint,
+				Font = Theme.fontBody,
+				TextWrapped = true,
+				TextYAlignment = Enum.TextYAlignment.Top,
 			}
 		)
 
@@ -136,8 +156,11 @@ function Panel.build(parent, app)
 			pad = 12,
 		})
 		B.label("📊 Suas estatísticas", {
-			Parent = stats, Size = UDim2.new(1, 0, 0, 22), Font = Theme.fontBlack,
-			TextSize = Theme.small, TextColor3 = Theme.gems,
+			Parent = stats,
+			Size = UDim2.new(1, 0, 0, 22),
+			Font = Theme.fontBlack,
+			TextSize = Theme.small,
+			TextColor3 = Theme.gems,
 		})
 		local s = State.stats or {}
 		B.label(
@@ -152,16 +175,24 @@ function Panel.build(parent, app)
 				Format.short(s.bestCrop or 0)
 			),
 			{
-				Parent = stats, Size = UDim2.new(1, 0, 0, 108), Position = UDim2.fromOffset(0, 24),
-				TextSize = Theme.tiny, TextColor3 = Theme.textDim, Font = Theme.fontBody,
+				Parent = stats,
+				Size = UDim2.new(1, 0, 0, 108),
+				Position = UDim2.fromOffset(0, 24),
+				TextSize = Theme.tiny,
+				TextColor3 = Theme.textDim,
+				Font = Theme.fontBody,
 				TextYAlignment = Enum.TextYAlignment.Top,
 			}
 		)
 
 		B.label(("%s v%s"):format(Config.Balance.gameName, Config.Balance.version), {
-			Parent = list, Size = UDim2.new(1, 0, 0, 28), LayoutOrder = 7,
-			TextSize = Theme.tiny, TextColor3 = Theme.textFaint,
-			TextXAlignment = Enum.TextXAlignment.Center, Font = Theme.fontBody,
+			Parent = list,
+			Size = UDim2.new(1, 0, 0, 28),
+			LayoutOrder = 7,
+			TextSize = Theme.tiny,
+			TextColor3 = Theme.textFaint,
+			TextXAlignment = Enum.TextXAlignment.Center,
+			Font = Theme.fontBody,
 		})
 	end
 

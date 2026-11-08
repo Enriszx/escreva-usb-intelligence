@@ -74,7 +74,7 @@ end
 function TableUtil.sum<T>(t: { T }, fn: ((T) -> number)?): number
 	local n = 0
 	for _, v in t do
-		n += if fn then fn(v) else (v :: any)
+		n += if fn then fn(v) else v :: any
 	end
 	return n
 end

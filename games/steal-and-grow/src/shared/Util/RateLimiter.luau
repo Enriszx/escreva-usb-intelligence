@@ -11,11 +11,14 @@ local WINDOW = 10
 local RateLimiter = {}
 RateLimiter.__index = RateLimiter
 
-export type Limiter = typeof(setmetatable({} :: {
-	_hits: { [number]: { [string]: { number } } },
-	_suspicion: { [number]: number },
-	onSuspicion: any,
-}, RateLimiter))
+export type Limiter = typeof(setmetatable(
+	{} :: {
+		_hits: { [number]: { [string]: { number } } },
+		_suspicion: { [number]: number },
+		onSuspicion: any,
+	},
+	RateLimiter
+))
 
 function RateLimiter.new()
 	local self = setmetatable({

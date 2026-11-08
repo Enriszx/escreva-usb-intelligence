@@ -38,7 +38,8 @@ MonetizationService.onProductPurchased = Signal.new()
 local app
 local passCache = {} :: { [number]: { [string]: boolean } }
 local receiptStore = DataStoreService:GetDataStore("StealAndGrow_Receipts_v1")
-local serverBoostState = nil :: { coinMult: number?, luckMult: number?, growMult: number?, expires: number, by: string }?
+local serverBoostState =
+	nil :: { coinMult: number?, luckMult: number?, growMult: number?, expires: number, by: string }?
 
 function MonetizationService:init(a)
 	app = a
@@ -234,7 +235,10 @@ function MonetizationService:grant(player: Player, product, receiptId: string?):
 	end
 	if payload.egg then
 		app.PetService:giveEgg(player, payload.egg)
-		table.insert(lines, "+1 " .. (Config.Eggs.byId[payload.egg] and Config.Eggs.byId[payload.egg].name or "ovo"))
+		table.insert(
+			lines,
+			"+1 " .. (Config.Eggs.byId[payload.egg] and Config.Eggs.byId[payload.egg].name or "ovo")
+		)
 	end
 	if payload.boost then
 		local b = payload.boost
@@ -243,7 +247,10 @@ function MonetizationService:grant(player: Player, product, receiptId: string?):
 	end
 	if payload.stat and payload.seconds and not payload.server then
 		app.PlayerService:addBoost(player, payload.stat, payload.value, payload.seconds, product.key)
-		table.insert(lines, ("%s por %s"):format(Format.multiplier(payload.value), Format.time(payload.seconds)))
+		table.insert(
+			lines,
+			("%s por %s"):format(Format.multiplier(payload.value), Format.time(payload.seconds))
+		)
 	end
 	if payload.server then
 		self:startServerBoost(player, payload)

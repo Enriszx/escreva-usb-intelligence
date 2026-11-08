@@ -163,7 +163,7 @@ function QuestService:claim(player: Player, key: string): (boolean, string?)
 			end
 			if t.reward.egg then
 				app.PetService:giveEgg(player, t.reward.egg)
-				table.insert(lines, "+1 " .. (Config.Eggs.byId[t.reward.egg].name))
+				table.insert(lines, "+1 " .. Config.Eggs.byId[t.reward.egg].name)
 			end
 			Net:fire(player, "Toast", {
 				kind = "success",
@@ -283,8 +283,12 @@ function QuestService:indexPayload(player: Player)
 			seedsFound += 1
 		end
 		table.insert(seedEntries, {
-			id = s.id, name = s.name, rarity = s.rarity, tier = s.tier,
-			count = count, claimed = profile.indexClaimed["seed:" .. s.id] or false,
+			id = s.id,
+			name = s.name,
+			rarity = s.rarity,
+			tier = s.tier,
+			count = count,
+			claimed = profile.indexClaimed["seed:" .. s.id] or false,
 		})
 	end
 	for _, p in Pets.all do
@@ -293,8 +297,12 @@ function QuestService:indexPayload(player: Player)
 			petsFound += 1
 		end
 		table.insert(petEntries, {
-			id = p.id, name = p.name, rarity = p.rarity, egg = p.egg,
-			count = count, claimed = profile.indexClaimed["pet:" .. p.id] or false,
+			id = p.id,
+			name = p.name,
+			rarity = p.rarity,
+			egg = p.egg,
+			count = count,
+			claimed = profile.indexClaimed["pet:" .. p.id] or false,
 		})
 	end
 	return {

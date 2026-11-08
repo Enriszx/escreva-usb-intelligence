@@ -143,7 +143,10 @@ function FeedbackController:toast(payload)
 		end
 	end
 
-	self:play(payload.kind == "error" and "error" or payload.kind == "purchase" and "coins" or "success", 0.32)
+	self:play(
+		payload.kind == "error" and "error" or payload.kind == "purchase" and "coins" or "success",
+		0.32
+	)
 
 	task.delay(payload.duration or 3.4, function()
 		local index = table.find(toasts, card)
@@ -243,11 +246,18 @@ function FeedbackController:alarm(payload)
 	local info = kinds[payload.kind] or kinds.start
 	local body
 	if payload.kind == "stolen" then
-		body = ("%s levou sua %s (−%s moedas)"):format(payload.thief or "Alguém", payload.name or "planta", Format.short(payload.value or 0))
+		body = ("%s levou sua %s (−%s moedas)"):format(
+			payload.thief or "Alguém",
+			payload.name or "planta",
+			Format.short(payload.value or 0)
+		)
 	elseif payload.kind == "blocked" then
 		body = ("%s tentou roubar e falhou. Seu escudo aguentou!"):format(payload.thief or "Alguém")
 	elseif payload.kind == "start" then
-		body = ("%s está levando sua planta! Corra até o canteiro %d."):format(payload.thief or "Alguém", payload.tile or 0)
+		body = ("%s está levando sua planta! Corra até o canteiro %d."):format(
+			payload.thief or "Alguém",
+			payload.tile or 0
+		)
 	elseif payload.kind == "revenge" then
 		body = ("%s se vingou e levou uma planta sua."):format(payload.thief or "Alguém")
 	else
@@ -261,7 +271,11 @@ function FeedbackController:alarm(payload)
 		-- red vignette pulse: unmissable, and costs one frame's worth of work
 		self:flash(Theme.danger, 0.3)
 		if payload.position then
-			self:marker(payload.position, payload.kind == "start" and "🥷 LADRÃO!" or "💸 ROUBADA", Theme.danger)
+			self:marker(
+				payload.position,
+				payload.kind == "start" and "🥷 LADRÃO!" or "💸 ROUBADA",
+				Theme.danger
+			)
 		end
 	elseif payload.kind == "blocked" then
 		self:play("success", 0.5)
@@ -387,7 +401,11 @@ function FeedbackController:celebrate(payload)
 
 	local tilePos = State.plotId and Layout.tileWorldPosition(State.plotId, payload.tile)
 	if tilePos then
-		self:floatText(tilePos + Vector3.new(0, 4, 0), ("%s  %s"):format(label, Format.multiplier(mult)), colour)
+		self:floatText(
+			tilePos + Vector3.new(0, 4, 0),
+			("%s  %s"):format(label, Format.multiplier(mult)),
+			colour
+		)
 	end
 
 	if mult >= 15 then
@@ -396,7 +414,10 @@ function FeedbackController:celebrate(payload)
 		self:toast({
 			kind = "purchase",
 			title = ("✨ %s %s!"):format(label, seed and seed.name or ""),
-			body = ("%s  •  💰 %s moedas"):format(Format.multiplier(mult), Format.short(payload.value or 0)),
+			body = ("%s  •  💰 %s moedas"):format(
+				Format.multiplier(mult),
+				Format.short(payload.value or 0)
+			),
 			duration = 6,
 		})
 	else
@@ -527,7 +548,10 @@ function FeedbackController:start()
 			self:toast({
 				kind = "purchase",
 				title = ("🥷 Roubou %s!"):format(payload.name or "uma planta"),
-				body = ("+%s moedas  •  de %s"):format(Format.short(payload.value or 0), payload.victim or "?"),
+				body = ("+%s moedas  •  de %s"):format(
+					Format.short(payload.value or 0),
+					payload.victim or "?"
+				),
 				duration = 5,
 			})
 		else

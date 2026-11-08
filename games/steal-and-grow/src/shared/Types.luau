@@ -4,15 +4,15 @@
 
 export type Plant = {
 	seed: string,
-	plantedAt: number,   -- os.time()
-	duration: number,    -- effective seconds to ripen, already multiplied
-	element: string?,    -- rolled at ripen time
+	plantedAt: number, -- os.time()
+	duration: number, -- effective seconds to ripen, already multiplied
+	element: string?, -- rolled at ripen time
 	aura: string?,
 	size: number?,
 	giant: boolean?,
-	ripeAt: number?,     -- resolved completion stamp
+	ripeAt: number?, -- resolved completion stamp
 	stolen: boolean?,
-	plantedBy: number?,  -- for autoplant attribution / analytics
+	plantedBy: number?, -- for autoplant attribution / analytics
 }
 
 export type Tile = {
@@ -27,7 +27,7 @@ export type Crop = {
 	aura: string?,
 	size: number,
 	giant: boolean?,
-	value: number,       -- resolved at harvest, server-authoritative
+	value: number, -- resolved at harvest, server-authoritative
 	at: number,
 }
 
@@ -100,8 +100,8 @@ export type Profile = {
 	stats: {
 		harvested: number,
 		sold: number,
-		stolen: number,       -- plants you stole
-		robbed: number,       -- plants taken from you
+		stolen: number, -- plants you stole
+		robbed: number, -- plants taken from you
 		blocked: number,
 		hatched: number,
 		mutations: number,
@@ -116,7 +116,7 @@ export type Profile = {
 	settings: {
 		music: boolean,
 		sfx: boolean,
-		quality: string?,   -- nil = auto
+		quality: string?, -- nil = auto
 		alarms: boolean,
 		announcements: boolean,
 		joystickSide: string,

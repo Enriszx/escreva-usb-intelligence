@@ -66,17 +66,36 @@ function Panel.build(parent, app)
 
 	local function header(holder, text, colour)
 		B.label(text, {
-			Parent = holder, Size = UDim2.new(1, 0, 0, 24), Font = Theme.fontBlack,
-			TextSize = Theme.small, TextColor3 = colour, TextXAlignment = Enum.TextXAlignment.Center,
+			Parent = holder,
+			Size = UDim2.new(1, 0, 0, 24),
+			Font = Theme.fontBlack,
+			TextSize = Theme.small,
+			TextColor3 = colour,
+			TextXAlignment = Enum.TextXAlignment.Center,
 		})
 	end
 	header(mine, "SEUS ITENS", Theme.secondary)
 	header(offers, "NA MESA", Theme.warn)
 	header(theirs, "DO PARCEIRO", Theme.steal)
 
-	local myScroll = B.scroll({ parent = mine, size = UDim2.new(1, 0, 1, -28), position = UDim2.fromOffset(0, 28), gap = 4 })
-	local offerScroll = B.scroll({ parent = offers, size = UDim2.new(1, 0, 1, -28), position = UDim2.fromOffset(0, 28), gap = 4 })
-	local theirScroll = B.scroll({ parent = theirs, size = UDim2.new(1, 0, 1, -28), position = UDim2.fromOffset(0, 28), gap = 4 })
+	local myScroll = B.scroll({
+		parent = mine,
+		size = UDim2.new(1, 0, 1, -28),
+		position = UDim2.fromOffset(0, 28),
+		gap = 4,
+	})
+	local offerScroll = B.scroll({
+		parent = offers,
+		size = UDim2.new(1, 0, 1, -28),
+		position = UDim2.fromOffset(0, 28),
+		gap = 4,
+	})
+	local theirScroll = B.scroll({
+		parent = theirs,
+		size = UDim2.new(1, 0, 1, -28),
+		position = UDim2.fromOffset(0, 28),
+		gap = 4,
+	})
 
 	local footer = B.new("Frame", {
 		Size = UDim2.new(1, 0, 0, 56),
@@ -122,8 +141,12 @@ function Panel.build(parent, app)
 			pad = 6,
 		})
 		B.label(label, {
-			Parent = card, Size = UDim2.new(1, onClick and -40 or 0, 1, 0), TextSize = Theme.tiny,
-			Font = Theme.fontBlack, TextColor3 = colour, TextTruncate = Enum.TextTruncate.AtEnd,
+			Parent = card,
+			Size = UDim2.new(1, onClick and -40 or 0, 1, 0),
+			TextSize = Theme.tiny,
+			Font = Theme.fontBlack,
+			TextColor3 = colour,
+			TextTruncate = Enum.TextTruncate.AtEnd,
 		})
 		if onClick then
 			B.button({
@@ -144,13 +167,20 @@ function Panel.build(parent, app)
 
 	local function petLabel(owned)
 		local pet = Pets.byId[owned.id]
-		return ("%s%s"):format(pet and pet.name or owned.id, owned.stars > 0 and (" " .. owned.stars .. "⭐") or "")
+		return ("%s%s"):format(
+			pet and pet.name or owned.id,
+			owned.stars > 0 and (" " .. owned.stars .. "⭐") or ""
+		)
 	end
 
 	local function cropLabel(crop)
 		local seed = Seeds.byId[crop.seed]
 		local m = Mutations.label(crop.element, crop.aura)
-		return ("%s%s — %s"):format(m ~= "" and (m .. " ") or "", seed and seed.name or crop.seed, Format.short(crop.value or 0))
+		return ("%s%s — %s"):format(
+			m ~= "" and (m .. " ") or "",
+			seed and seed.name or crop.seed,
+			Format.short(crop.value or 0)
+		)
 	end
 
 	function api.refresh()
@@ -183,8 +213,7 @@ function Panel.build(parent, app)
 
 		confirmBtn.Visible = true
 		panel.setSubtitle(("Trocando com %s"):format(trade.partner or "?"))
-		info.Text = (trade.youConfirmed and trade.theyConfirmed)
-			and "Finalizando..."
+		info.Text = (trade.youConfirmed and trade.theyConfirmed) and "Finalizando..."
 			or ("⚠ Qualquer mudança na oferta cancela as duas confirmações.  Você: %s  •  %s: %s"):format(
 				trade.youConfirmed and "✔" or "…",
 				trade.partner or "?",
@@ -197,9 +226,16 @@ function Panel.build(parent, app)
 			if not owned.equipped and not table.find(trade.yourOffer.pets, owned.uid) then
 				order += 1
 				local pet = Pets.byId[owned.id]
-				itemRow(myScroll, petLabel(owned), pet and Rarities.get(pet.rarity).colour or Theme.text, order, function()
-					Net:send("TradeAction", "offer", "pet", owned.uid)
-				end, "+")
+				itemRow(
+					myScroll,
+					petLabel(owned),
+					pet and Rarities.get(pet.rarity).colour or Theme.text,
+					order,
+					function()
+						Net:send("TradeAction", "offer", "pet", owned.uid)
+					end,
+					"+"
+				)
 			end
 		end
 		for index, crop in State.inventory do

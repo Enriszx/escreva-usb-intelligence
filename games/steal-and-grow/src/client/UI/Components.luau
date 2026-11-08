@@ -210,7 +210,12 @@ function C.panel(opts)
 		api.isOpen = true
 		root.Visible = true
 		local target = root.Size
-		root.Size = UDim2.new(target.X.Scale * 0.92, target.X.Offset * 0.92, target.Y.Scale * 0.92, target.Y.Offset * 0.92)
+		root.Size = UDim2.new(
+			target.X.Scale * 0.92,
+			target.X.Offset * 0.92,
+			target.Y.Scale * 0.92,
+			target.Y.Offset * 0.92
+		)
 		root.BackgroundTransparency = 0.4
 		TweenService:Create(root, OPEN_INFO, { Size = target, BackgroundTransparency = 0 }):Play()
 		if opts.onOpen then
@@ -225,7 +230,12 @@ function C.panel(opts)
 		api.isOpen = false
 		local target = root.Size
 		local tween = TweenService:Create(root, CLOSE_INFO, {
-			Size = UDim2.new(target.X.Scale * 0.94, target.X.Offset * 0.94, target.Y.Scale * 0.94, target.Y.Offset * 0.94),
+			Size = UDim2.new(
+				target.X.Scale * 0.94,
+				target.X.Offset * 0.94,
+				target.Y.Scale * 0.94,
+				target.Y.Offset * 0.94
+			),
 			BackgroundTransparency = 0.6,
 		})
 		tween.Completed:Connect(function()

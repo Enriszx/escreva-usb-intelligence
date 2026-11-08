@@ -20,9 +20,30 @@ local LIVE = not RunService:IsStudio()
 local REFRESH = 120
 
 local BOARDS = {
-	{ key = "rebirths", name = "♻️ Mais Renascimentos", store = "LB_Rebirths_v1", stat = function(p) return p.rebirths end },
-	{ key = "earned", name = "💰 Mais Moedas Ganhas", store = "LB_Earned_v1", stat = function(p) return math.min(p.stats.totalEarned, 2 ^ 31 - 1) end },
-	{ key = "stolen", name = "🥷 Maiores Ladrões", store = "LB_Stolen_v1", stat = function(p) return p.stats.stolen end },
+	{
+		key = "rebirths",
+		name = "♻️ Mais Renascimentos",
+		store = "LB_Rebirths_v1",
+		stat = function(p)
+			return p.rebirths
+		end,
+	},
+	{
+		key = "earned",
+		name = "💰 Mais Moedas Ganhas",
+		store = "LB_Earned_v1",
+		stat = function(p)
+			return math.min(p.stats.totalEarned, 2 ^ 31 - 1)
+		end,
+	},
+	{
+		key = "stolen",
+		name = "🥷 Maiores Ladrões",
+		store = "LB_Stolen_v1",
+		stat = function(p)
+			return p.stats.stolen
+		end,
+	},
 }
 
 local stores = {}

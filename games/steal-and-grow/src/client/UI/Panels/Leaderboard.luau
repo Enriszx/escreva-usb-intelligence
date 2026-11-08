@@ -27,7 +27,8 @@ function Panel.build(parent, app)
 	})
 	local api = { panel = panel, mode = 1, data = nil }
 
-	local tabsHolder = B.new("Frame", { Size = UDim2.new(1, 0, 0, 44), BackgroundTransparency = 1, Parent = panel.body })
+	local tabsHolder =
+		B.new("Frame", { Size = UDim2.new(1, 0, 0, 44), BackgroundTransparency = 1, Parent = panel.body })
 	local content = B.new("Frame", {
 		Size = UDim2.new(1, 0, 1, -50),
 		Position = UDim2.fromOffset(0, 50),
@@ -37,10 +38,14 @@ function Panel.build(parent, app)
 	local list = B.scroll({ parent = content, gap = 5 })
 
 	local KEYS = { "server", "rebirths", "earned", "stolen" }
-	local _, select = C.tabs(tabsHolder, { "Servidor", "Renascimentos", "Riqueza", "Ladrões" }, function(index)
-		api.mode = index
-		api.fetch()
-	end)
+	local _, select = C.tabs(
+		tabsHolder,
+		{ "Servidor", "Renascimentos", "Riqueza", "Ladrões" },
+		function(index)
+			api.mode = index
+			api.fetch()
+		end
+	)
 
 	local function row(entry, order, mode)
 		local isMe = entry.userId == Players.LocalPlayer.UserId
@@ -54,20 +59,28 @@ function Panel.build(parent, app)
 			pad = 8,
 		})
 		B.label(MEDALS[order] or ("#" .. order), {
-			Parent = card, Size = UDim2.fromOffset(44, 36), TextSize = order <= 3 and 24 or Theme.small,
-			Font = Theme.fontBlack, TextXAlignment = Enum.TextXAlignment.Center,
+			Parent = card,
+			Size = UDim2.fromOffset(44, 36),
+			TextSize = order <= 3 and 24 or Theme.small,
+			Font = Theme.fontBlack,
+			TextXAlignment = Enum.TextXAlignment.Center,
 			TextColor3 = order <= 3 and Theme.coins or Theme.textDim,
 		})
 		B.label(entry.name or "Jogador", {
-			Parent = card, Size = UDim2.new(1, -230, 0, 20), Position = UDim2.fromOffset(48, 0),
-			Font = Theme.fontBlack, TextSize = Theme.small,
+			Parent = card,
+			Size = UDim2.new(1, -230, 0, 20),
+			Position = UDim2.fromOffset(48, 0),
+			Font = Theme.fontBlack,
+			TextSize = Theme.small,
 			TextColor3 = isMe and Theme.primary or Theme.text,
 		})
 
 		local detail
 		if mode == "server" then
 			detail = ("♻️ %d  •  💰 %s  •  🥷 %s"):format(
-				entry.rebirths or 0, Format.short(entry.coins or 0), Format.short(entry.stolen or 0)
+				entry.rebirths or 0,
+				Format.short(entry.coins or 0),
+				Format.short(entry.stolen or 0)
 			)
 		elseif mode == "rebirths" then
 			detail = ("♻️ %s renascimentos"):format(Format.short(entry.value or 0))
@@ -77,8 +90,12 @@ function Panel.build(parent, app)
 			detail = ("🥷 %s plantas roubadas"):format(Format.short(entry.value or 0))
 		end
 		B.label(detail, {
-			Parent = card, Size = UDim2.new(1, -230, 0, 16), Position = UDim2.fromOffset(48, 19),
-			TextSize = Theme.tiny, TextColor3 = Theme.textDim, Font = Theme.fontBody,
+			Parent = card,
+			Size = UDim2.new(1, -230, 0, 16),
+			Position = UDim2.fromOffset(48, 19),
+			TextSize = Theme.tiny,
+			TextColor3 = Theme.textDim,
+			Font = Theme.fontBody,
 		})
 
 		if mode == "server" and entry.plotId and not isMe then

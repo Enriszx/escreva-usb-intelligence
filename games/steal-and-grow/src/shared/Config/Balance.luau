@@ -96,8 +96,13 @@ return {
 
 	-- Daily --------------------------------------------------------------
 	dailyRewards = {
-		{ gems = 50 }, { minutes = 15 }, { gems = 120 }, { egg = "rare" },
-		{ minutes = 60 }, { gems = 300 }, { egg = "legendary", gems = 500 },
+		{ gems = 50 },
+		{ minutes = 15 },
+		{ gems = 120 },
+		{ egg = "rare" },
+		{ minutes = 60 },
+		{ gems = 300 },
+		{ egg = "legendary", gems = 500 },
 	},
 	dailyResetHour = 0, -- UTC
 
@@ -124,17 +129,57 @@ return {
 	-- Performance --------------------------------------------------------
 	-- Client auto-quality tiers: measured FPS decides which one is applied.
 	qualityTiers = {
-		{ name = "Potato", minFps = 0, maxPlantDetail = 1, particles = false, shadows = false, atmosphere = false, postfx = false, maxVisiblePlants = 90, drawDistance = 180 },
-		{ name = "Low", minFps = 24, maxPlantDetail = 1, particles = false, shadows = false, atmosphere = true, postfx = false, maxVisiblePlants = 160, drawDistance = 260 },
-		{ name = "Medium", minFps = 38, maxPlantDetail = 2, particles = true, shadows = false, atmosphere = true, postfx = true, maxVisiblePlants = 280, drawDistance = 360 },
-		{ name = "High", minFps = 52, maxPlantDetail = 3, particles = true, shadows = true, atmosphere = true, postfx = true, maxVisiblePlants = 480, drawDistance = 520 },
+		{
+			name = "Potato",
+			minFps = 0,
+			maxPlantDetail = 1,
+			particles = false,
+			shadows = false,
+			atmosphere = false,
+			postfx = false,
+			maxVisiblePlants = 90,
+			drawDistance = 180,
+		},
+		{
+			name = "Low",
+			minFps = 24,
+			maxPlantDetail = 1,
+			particles = false,
+			shadows = false,
+			atmosphere = true,
+			postfx = false,
+			maxVisiblePlants = 160,
+			drawDistance = 260,
+		},
+		{
+			name = "Medium",
+			minFps = 38,
+			maxPlantDetail = 2,
+			particles = true,
+			shadows = false,
+			atmosphere = true,
+			postfx = true,
+			maxVisiblePlants = 280,
+			drawDistance = 360,
+		},
+		{
+			name = "High",
+			minFps = 52,
+			maxPlantDetail = 3,
+			particles = true,
+			shadows = true,
+			atmosphere = true,
+			postfx = true,
+			maxVisiblePlants = 480,
+			drawDistance = 520,
+		},
 	},
 	fpsSampleWindow = 4,
 	qualityRecheck = 20,
 
 	-- Dev ----------------------------------------------------------------
 	studioGrantAll = true, -- in Studio, treat every pass as owned
-	admins = { 
+	admins = {
 		-- fill with your own UserId; the owner is resolved automatically too
 	} :: { number },
 	analyticsEnabled = true,

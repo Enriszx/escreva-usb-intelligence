@@ -61,30 +61,46 @@ function Shop.build(parent, app)
 		B.stroke(rarity.colour, 2.5, 0.1).Parent = swatch
 		B.gradient(seed.fruit:Lerp(Color3.new(1, 1, 1), 0.25), seed.fruit, 90).Parent = swatch
 		B.label("T" .. seed.tier, {
-			Parent = swatch, Size = UDim2.fromScale(1, 1), TextSize = Theme.small,
-			Font = Theme.fontBlack, TextXAlignment = Enum.TextXAlignment.Center,
+			Parent = swatch,
+			Size = UDim2.fromScale(1, 1),
+			TextSize = Theme.small,
+			Font = Theme.fontBlack,
+			TextXAlignment = Enum.TextXAlignment.Center,
 			TextColor3 = Color3.fromRGB(16, 20, 28),
 		})
 
 		B.label(seed.name, {
-			Parent = row, Size = UDim2.new(1, -230, 0, 22), Position = UDim2.fromOffset(68, 4),
-			Font = Theme.fontBlack, TextSize = Theme.body,
+			Parent = row,
+			Size = UDim2.new(1, -230, 0, 22),
+			Position = UDim2.fromOffset(68, 4),
+			Font = Theme.fontBlack,
+			TextSize = Theme.body,
 			TextColor3 = locked and Theme.textFaint or Theme.text,
 		})
 		C.rarityChip(seed.rarity, row).Position = UDim2.fromOffset(68, 28)
 
-		B.label(("⏱ %s  •  💰 %s  •  %s/s"):format(
-			Format.time(seed.growTime),
-			Format.short(seed.baseValue),
-			Format.short(Seeds.rate(seed))
-		), {
-			Parent = row, Size = UDim2.new(1, -230, 0, 18), Position = UDim2.fromOffset(68, 52),
-			TextSize = Theme.tiny, TextColor3 = Theme.textDim, Font = Theme.fontBody,
-		})
+		B.label(
+			("⏱ %s  •  💰 %s  •  %s/s"):format(
+				Format.time(seed.growTime),
+				Format.short(seed.baseValue),
+				Format.short(Seeds.rate(seed))
+			),
+			{
+				Parent = row,
+				Size = UDim2.new(1, -230, 0, 18),
+				Position = UDim2.fromOffset(68, 52),
+				TextSize = Theme.tiny,
+				TextColor3 = Theme.textDim,
+				Font = Theme.fontBody,
+			}
+		)
 
 		B.label(("Estoque: %d  •  Você tem: %d"):format(entry.stockLeft, State.seedCount(seed.id)), {
-			Parent = row, Size = UDim2.new(0, 200, 0, 16), Position = UDim2.new(1, -206, 0, 2),
-			TextSize = Theme.tiny, TextColor3 = Theme.textFaint,
+			Parent = row,
+			Size = UDim2.new(0, 200, 0, 16),
+			Position = UDim2.new(1, -206, 0, 2),
+			TextSize = Theme.tiny,
+			TextColor3 = Theme.textFaint,
 			TextXAlignment = Enum.TextXAlignment.Right,
 		})
 
@@ -141,8 +157,12 @@ function Shop.build(parent, app)
 			B.setDisabled(btnMax, out or not afford)
 			if out then
 				B.label("ESGOTADO", {
-					Parent = row, Size = UDim2.fromOffset(196, 42), Position = UDim2.new(1, -196, 0, 24),
-					TextSize = Theme.small, Font = Theme.fontBlack, TextColor3 = Theme.danger,
+					Parent = row,
+					Size = UDim2.fromOffset(196, 42),
+					Position = UDim2.new(1, -196, 0, 24),
+					TextSize = Theme.small,
+					Font = Theme.fontBlack,
+					TextColor3 = Theme.danger,
 					TextXAlignment = Enum.TextXAlignment.Center,
 				})
 			end

@@ -13,6 +13,6 @@ if ! command -v rojo >/dev/null 2>&1; then
 fi
 
 echo "==> rojo build"
-rojo build default.project.json --output "$OUT"
+rojo build . --output "$OUT"
 ls -lh "$OUT"
 echo "==> OK: $OUT"

@@ -27,7 +27,8 @@ function Panel.build(parent, app)
 	})
 	local api = { panel = panel, mode = "seeds" }
 
-	local tabsHolder = B.new("Frame", { Size = UDim2.new(1, 0, 0, 44), BackgroundTransparency = 1, Parent = panel.body })
+	local tabsHolder =
+		B.new("Frame", { Size = UDim2.new(1, 0, 0, 44), BackgroundTransparency = 1, Parent = panel.body })
 	local content = B.new("Frame", {
 		Size = UDim2.new(1, 0, 1, -50),
 		Position = UDim2.fromOffset(0, 50),
@@ -68,20 +69,30 @@ function Panel.build(parent, app)
 		})
 		B.corner(8).Parent = swatch
 		B.label(found and ("x" .. Format.short(count)) or "???", {
-			Parent = swatch, Size = UDim2.fromScale(1, 1), TextSize = Theme.tiny,
-			Font = Theme.fontBlack, TextXAlignment = Enum.TextXAlignment.Center,
+			Parent = swatch,
+			Size = UDim2.fromScale(1, 1),
+			TextSize = Theme.tiny,
+			Font = Theme.fontBlack,
+			TextXAlignment = Enum.TextXAlignment.Center,
 			TextColor3 = found and Color3.fromRGB(16, 20, 28) or Theme.textFaint,
 		})
 		B.label(found and name or "???", {
-			Parent = card, Size = UDim2.new(1, 0, 0, 16), Position = UDim2.fromOffset(0, 31),
-			TextSize = Theme.tiny, Font = Theme.fontBlack,
+			Parent = card,
+			Size = UDim2.new(1, 0, 0, 16),
+			Position = UDim2.fromOffset(0, 31),
+			TextSize = Theme.tiny,
+			Font = Theme.fontBlack,
 			TextXAlignment = Enum.TextXAlignment.Center,
 			TextColor3 = found and rarity.colour or Theme.textFaint,
 		})
 		B.label(rarity.name, {
-			Parent = card, Size = UDim2.new(1, 0, 0, 14), Position = UDim2.fromOffset(0, 47),
-			TextSize = Theme.tiny, TextXAlignment = Enum.TextXAlignment.Center,
-			TextColor3 = Theme.textFaint, Font = Theme.fontBody,
+			Parent = card,
+			Size = UDim2.new(1, 0, 0, 14),
+			Position = UDim2.fromOffset(0, 47),
+			TextSize = Theme.tiny,
+			TextXAlignment = Enum.TextXAlignment.Center,
+			TextColor3 = Theme.textFaint,
+			Font = Theme.fontBody,
 		})
 
 		local btn = B.button({
@@ -116,7 +127,9 @@ function Panel.build(parent, app)
 					found += 1
 				end
 			end
-			panel.setSubtitle(("Plantas: %d/%d (%s)"):format(found, #Seeds.all, Format.percent(found / #Seeds.all, 0)))
+			panel.setSubtitle(
+				("Plantas: %d/%d (%s)"):format(found, #Seeds.all, Format.percent(found / #Seeds.all, 0))
+			)
 			local sorted = table.clone(Seeds.all)
 			table.sort(sorted, function(a, b)
 				if a.tier ~= b.tier then
@@ -134,7 +147,9 @@ function Panel.build(parent, app)
 					found += 1
 				end
 			end
-			panel.setSubtitle(("Pets: %d/%d (%s)"):format(found, #Pets.all, Format.percent(found / #Pets.all, 0)))
+			panel.setSubtitle(
+				("Pets: %d/%d (%s)"):format(found, #Pets.all, Format.percent(found / #Pets.all, 0))
+			)
 			local sorted = table.clone(Pets.all)
 			table.sort(sorted, function(a, b)
 				local oa, ob = Rarities.get(a.rarity).order, Rarities.get(b.rarity).order

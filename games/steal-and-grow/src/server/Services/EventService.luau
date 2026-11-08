@@ -118,8 +118,14 @@ function EventService:schedulePayload()
 	local event, endsAt = self:current()
 	return {
 		active = event and {
-			key = event.key, name = event.name, desc = event.desc, icon = event.icon,
-			colour = event.colour, endsAt = endsAt, mods = event.mods, lighting = event.lighting,
+			key = event.key,
+			name = event.name,
+			desc = event.desc,
+			icon = event.icon,
+			colour = event.colour,
+			endsAt = endsAt,
+			mods = event.mods,
+			lighting = event.lighting,
 		} or nil,
 		nextAt = nextAt,
 	}

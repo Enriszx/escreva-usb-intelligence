@@ -132,7 +132,9 @@ local function buildPlant(seed, plant, detail: number, cf: CFrame)
 	local mutMult = Mutations.multiplier(plant.element, plant.aura)
 	local element = plant.element and Mutations.byId[plant.element]
 	local aura = plant.aura and Mutations.byId[plant.aura]
-	local tint = (aura and aura.mult > 1 and aura.colour) or (element and element.mult > 1 and element.colour) or nil
+	local tint = (aura and aura.mult > 1 and aura.colour)
+		or (element and element.mult > 1 and element.colour)
+		or nil
 
 	local scale = (plant.size or 1) * seed.scale
 	local fruitColour = tint and seed.fruit:Lerp(tint, 0.55) or seed.fruit
@@ -428,7 +430,10 @@ function PlotRenderer:refresh()
 						local pos = Layout.tileWorldPosition(plotId, tileIndex)
 						local d = (pos - origin).Magnitude
 						if d <= tier.drawDistance then
-							table.insert(candidates, { plotId = plotId, tileIndex = tileIndex, plant = plant, d = d })
+							table.insert(
+								candidates,
+								{ plotId = plotId, tileIndex = tileIndex, plant = plant, d = d }
+							)
 						end
 					end
 				end

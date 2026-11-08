@@ -137,11 +137,21 @@ function GraphicsController:applyEventLighting(lighting)
 	end
 	local goal = {}
 	if lighting then
-		if lighting.clockTime then goal.ClockTime = lighting.clockTime end
-		if lighting.ambient then goal.Ambient = lighting.ambient end
-		if lighting.outdoorAmbient then goal.OutdoorAmbient = lighting.outdoorAmbient end
-		if lighting.fogColour then goal.FogColor = lighting.fogColour end
-		if lighting.brightness then goal.Brightness = lighting.brightness end
+		if lighting.clockTime then
+			goal.ClockTime = lighting.clockTime
+		end
+		if lighting.ambient then
+			goal.Ambient = lighting.ambient
+		end
+		if lighting.outdoorAmbient then
+			goal.OutdoorAmbient = lighting.outdoorAmbient
+		end
+		if lighting.fogColour then
+			goal.FogColor = lighting.fogColour
+		end
+		if lighting.brightness then
+			goal.Brightness = lighting.brightness
+		end
 	else
 		goal = {
 			ClockTime = baseLighting.ClockTime,

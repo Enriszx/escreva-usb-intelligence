@@ -39,7 +39,7 @@ local STEPS = {
 	},
 	{
 		title = "2. Espere e colha",
-				body = "A planta cresce em tempo real. Quando ficar pronta, toque nela ou use COLHER TUDO. Mutações raras valem até 2500x!",
+		body = "A planta cresce em tempo real. Quando ficar pronta, toque nela ou use COLHER TUDO. Mutações raras valem até 2500x!",
 		done = function()
 			return (State.stats and State.stats.harvested or 0) >= 1
 		end,
@@ -80,13 +80,23 @@ local function build()
 	B.padding(12).Parent = holder
 
 	B.label("", {
-		Parent = holder, Size = UDim2.new(1, -24, 0, 22), Font = Theme.fontBlack,
-		TextSize = Theme.body, TextColor3 = Theme.primary, Name = "Title",
+		Parent = holder,
+		Size = UDim2.new(1, -24, 0, 22),
+		Font = Theme.fontBlack,
+		TextSize = Theme.body,
+		TextColor3 = Theme.primary,
+		Name = "Title",
 	})
 	B.label("", {
-		Parent = holder, Size = UDim2.new(1, 0, 0, 56), Position = UDim2.fromOffset(0, 24),
-		TextSize = Theme.small, TextColor3 = Theme.textDim, Font = Theme.fontBody,
-		TextWrapped = true, TextYAlignment = Enum.TextYAlignment.Top, Name = "Body",
+		Parent = holder,
+		Size = UDim2.new(1, 0, 0, 56),
+		Position = UDim2.fromOffset(0, 24),
+		TextSize = Theme.small,
+		TextColor3 = Theme.textDim,
+		Font = Theme.fontBody,
+		TextWrapped = true,
+		TextYAlignment = Enum.TextYAlignment.Top,
+		Name = "Body",
 	})
 	B.bar({
 		parent = holder,

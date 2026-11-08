@@ -61,7 +61,7 @@ local function rollStock(tierBias: number?)
 		})
 	end
 	table.sort(out, function(a, b)
-		return (Seeds.byId[a.seed].cost) < (Seeds.byId[b.seed].cost)
+		return Seeds.byId[a.seed].cost < Seeds.byId[b.seed].cost
 	end)
 	return out
 end

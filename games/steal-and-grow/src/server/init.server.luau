@@ -107,9 +107,12 @@ TextChatService.OnIncomingMessage = function(message: TextChatMessage)
 	local profile = require(script.Data.Store).get(player.UserId)
 	local rank = Config.Ranks:for_(profile and profile.rebirths or 0)
 
-	local prefix = ("<font color=\"#%s\">[%s]</font> "):format(rank.colour:ToHex(), rank.icon .. " " .. rank.name)
+	local prefix = ('<font color="#%s">[%s]</font> '):format(
+		rank.colour:ToHex(),
+		rank.icon .. " " .. rank.name
+	)
 	if tag and colour then
-		prefix = ("<font color=\"#%s\">[%s]</font> "):format(colour:ToHex(), tag) .. prefix
+		prefix = ('<font color="#%s">[%s]</font> '):format(colour:ToHex(), tag) .. prefix
 	end
 	props.PrefixText = prefix .. message.PrefixText
 	return props

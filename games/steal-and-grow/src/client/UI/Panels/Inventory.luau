@@ -85,7 +85,9 @@ function Inventory.build(parent, app)
 		local rarity = Rarities.get(seed.rarity)
 		local element = crop.element and Mutations.byId[crop.element]
 		local aura = crop.aura and Mutations.byId[crop.aura]
-		local tint = (aura and aura.mult > 1 and aura.colour) or (element and element.mult > 1 and element.colour) or rarity.colour
+		local tint = (aura and aura.mult > 1 and aura.colour)
+			or (element and element.mult > 1 and element.colour)
+			or rarity.colour
 
 		local row = B.card({
 			parent = list,
@@ -104,22 +106,35 @@ function Inventory.build(parent, app)
 		})
 		B.corner(10).Parent = swatch
 		B.label(crop.giant and "🔥" or "", {
-			Parent = swatch, Size = UDim2.fromScale(1, 1), TextSize = 22,
+			Parent = swatch,
+			Size = UDim2.fromScale(1, 1),
+			TextSize = 22,
 			TextXAlignment = Enum.TextXAlignment.Center,
 		})
 
 		B.label(((label ~= "" and label .. " ") or "") .. seed.name, {
-			Parent = row, Size = UDim2.new(1, -190, 0, 20), Position = UDim2.fromOffset(50, 0),
-			Font = Theme.fontBlack, TextSize = Theme.small, TextColor3 = tint,
+			Parent = row,
+			Size = UDim2.new(1, -190, 0, 20),
+			Position = UDim2.fromOffset(50, 0),
+			Font = Theme.fontBlack,
+			TextSize = Theme.small,
+			TextColor3 = tint,
 		})
-		B.label(("Tam. %.2fx  •  %s%s"):format(
-			crop.size or 1,
-			Format.multiplier(mult),
-			crop.giant and "  •  GIGANTE" or ""
-		), {
-			Parent = row, Size = UDim2.new(1, -190, 0, 16), Position = UDim2.fromOffset(50, 22),
-			TextSize = Theme.tiny, TextColor3 = Theme.textDim, Font = Theme.fontBody,
-		})
+		B.label(
+			("Tam. %.2fx  •  %s%s"):format(
+				crop.size or 1,
+				Format.multiplier(mult),
+				crop.giant and "  •  GIGANTE" or ""
+			),
+			{
+				Parent = row,
+				Size = UDim2.new(1, -190, 0, 16),
+				Position = UDim2.fromOffset(50, 22),
+				TextSize = Theme.tiny,
+				TextColor3 = Theme.textDim,
+				Font = Theme.fontBody,
+			}
+		)
 
 		B.button({
 			parent = row,
@@ -159,19 +174,30 @@ function Inventory.build(parent, app)
 		})
 		B.corner(9).Parent = swatch
 		B.label(("x%d"):format(count), {
-			Parent = swatch, Size = UDim2.fromScale(1, 1), TextSize = Theme.body,
-			Font = Theme.fontBlack, TextXAlignment = Enum.TextXAlignment.Center,
+			Parent = swatch,
+			Size = UDim2.fromScale(1, 1),
+			TextSize = Theme.body,
+			Font = Theme.fontBlack,
+			TextXAlignment = Enum.TextXAlignment.Center,
 			TextColor3 = Color3.fromRGB(16, 20, 28),
 		})
 		B.label(seed.name, {
-			Parent = card, Size = UDim2.new(1, 0, 0, 18), Position = UDim2.fromOffset(0, 37),
-			TextSize = Theme.tiny, Font = Theme.fontBlack,
-			TextXAlignment = Enum.TextXAlignment.Center, TextColor3 = rarity.colour,
+			Parent = card,
+			Size = UDim2.new(1, 0, 0, 18),
+			Position = UDim2.fromOffset(0, 37),
+			TextSize = Theme.tiny,
+			Font = Theme.fontBlack,
+			TextXAlignment = Enum.TextXAlignment.Center,
+			TextColor3 = rarity.colour,
 		})
 		B.label(("⏱%s  💰%s"):format(Format.time(seed.growTime), Format.short(seed.baseValue)), {
-			Parent = card, Size = UDim2.new(1, 0, 0, 14), Position = UDim2.fromOffset(0, 54),
-			TextSize = Theme.tiny, TextColor3 = Theme.textFaint,
-			TextXAlignment = Enum.TextXAlignment.Center, Font = Theme.fontBody,
+			Parent = card,
+			Size = UDim2.new(1, 0, 0, 14),
+			Position = UDim2.fromOffset(0, 54),
+			TextSize = Theme.tiny,
+			TextColor3 = Theme.textFaint,
+			TextXAlignment = Enum.TextXAlignment.Center,
+			Font = Theme.fontBody,
 		})
 		B.button({
 			parent = card,
@@ -221,7 +247,9 @@ function Inventory.build(parent, app)
 			for _, crop in State.inventory do
 				total += crop.value or 0
 			end
-			panel.setSubtitle(("%d/%d  •  Total: %s moedas"):format(#State.inventory, storage, Format.short(total)))
+			panel.setSubtitle(
+				("%d/%d  •  Total: %s moedas"):format(#State.inventory, storage, Format.short(total))
+			)
 			if #State.inventory == 0 then
 				C.empty(list, "🧺", "Nada colhido ainda.\nPlante e espere as plantas ficarem prontas!")
 			else
@@ -253,7 +281,10 @@ function Inventory.build(parent, app)
 					free += 1
 				end
 			end
-			panel.setSubtitle(api.tile and ("Plantando no canteiro %d"):format(api.tile) or ("%d canteiros livres"):format(free))
+			panel.setSubtitle(
+				api.tile and ("Plantando no canteiro %d"):format(api.tile)
+					or ("%d canteiros livres"):format(free)
+			)
 
 			local owned = {}
 			for seedId, count in State.seeds do

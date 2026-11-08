@@ -171,7 +171,9 @@ function GrowthService:ripen(player: Player, tileIndex: number, plant, silent: b
 					seed and seed.name or plant.seed
 				),
 				body = ("Valor: %s moedas  •  %s"):format(Format.short(value), Format.multiplier(mult)),
-				colour = (a and a.mult > (e and e.mult or 1)) and a.colour or (e and e.colour) or rarity.colour,
+				colour = (a and a.mult > (e and e.mult or 1)) and a.colour
+					or (e and e.colour)
+					or rarity.colour,
 			})
 		end
 	end

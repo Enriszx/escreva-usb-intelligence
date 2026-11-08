@@ -38,7 +38,7 @@ local plots = {} :: {
 		online: boolean,
 		heldUntil: number?,
 		model: Model?,
-	}
+	},
 }
 local byUser = {} :: { [number]: number }
 
@@ -105,7 +105,8 @@ local function updatePlotSign(plotId: number)
 		end
 		for _, child in frame:GetChildren() do
 			if child:IsA("TextLabel") and child ~= title then
-				child.Text = plot.online and (rank.name .. " • Renascimentos: " .. (profile and profile.rebirths or 0))
+				child.Text = plot.online
+						and (rank.name .. " • Renascimentos: " .. (profile and profile.rebirths or 0))
 					or "⚠ Fazenda desprotegida — dono saiu"
 				child.TextColor3 = plot.online and Config.Theme.textDim or Config.Theme.warn
 			end

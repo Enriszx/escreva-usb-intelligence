@@ -279,7 +279,8 @@ function B.bar(opts)
 		(opts.colour or Theme.primary):Lerp(Color3.new(1, 1, 1), 0.3),
 		opts.colour or Theme.primary,
 		90
-	).Parent = fill
+	).Parent =
+		fill
 	if opts.text ~= nil then
 		B.label(opts.text, {
 			Parent = holder,
@@ -346,9 +347,11 @@ function B.card(opts): Frame
 		Parent = opts.parent,
 	})
 	B.corner(opts.radius or Theme.radius).Parent = card
-	B.stroke(opts.strokeColour or Theme.stroke, opts.strokeThickness or 1.5, opts.strokeTransparency or 0.2).Parent = card
+	B.stroke(opts.strokeColour or Theme.stroke, opts.strokeThickness or 1.5, opts.strokeTransparency or 0.2).Parent =
+		card
 	if opts.gradient then
-		B.gradient(opts.colour or Theme.panelAlt, (opts.colour or Theme.panelAlt):Lerp(Theme.bg, 0.4), 90).Parent = card
+		B.gradient(opts.colour or Theme.panelAlt, (opts.colour or Theme.panelAlt):Lerp(Theme.bg, 0.4), 90).Parent =
+			card
 	end
 	if opts.pad ~= false then
 		B.padding(opts.pad or 10).Parent = card

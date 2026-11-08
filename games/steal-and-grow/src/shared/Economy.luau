@@ -82,15 +82,33 @@ function Economy.multipliers(ctx: Context): Types.Multipliers
 			local p = Passes.byKey[key]
 			if p then
 				local e = p.effect
-				if e.coinMult then m.coin *= e.coinMult end
-				if e.growMult then m.grow *= e.growMult end
-				if e.luckMult then m.luck *= e.luckMult end
-				if e.extraTiles then m.tiles += e.extraTiles end
-				if e.extraPetSlots then m.petSlots += e.extraPetSlots end
-				if e.stealResist then m.defense += e.stealResist end
-				if e.stealSpeed then m.stealSpeed *= e.stealSpeed end
-				if e.extraStealSlots then m.stealSlots += e.extraStealSlots end
-				if e.offlineHours then m.offlineHours = math.max(m.offlineHours, e.offlineHours) end
+				if e.coinMult then
+					m.coin *= e.coinMult
+				end
+				if e.growMult then
+					m.grow *= e.growMult
+				end
+				if e.luckMult then
+					m.luck *= e.luckMult
+				end
+				if e.extraTiles then
+					m.tiles += e.extraTiles
+				end
+				if e.extraPetSlots then
+					m.petSlots += e.extraPetSlots
+				end
+				if e.stealResist then
+					m.defense += e.stealResist
+				end
+				if e.stealSpeed then
+					m.stealSpeed *= e.stealSpeed
+				end
+				if e.extraStealSlots then
+					m.stealSlots += e.extraStealSlots
+				end
+				if e.offlineHours then
+					m.offlineHours = math.max(m.offlineHours, e.offlineHours)
+				end
 			end
 		end
 	end
@@ -105,12 +123,24 @@ function Economy.multipliers(ctx: Context): Types.Multipliers
 				used += 1
 				local s = Pets.starMultiplier(owned.stars)
 				local b = pet.buff
-				if b.coins then m.coin += (b.coins / 100) * s end
-				if b.grow then m.grow += (b.grow / 100) * s end
-				if b.luck then m.luck += (b.luck / 100) * s end
-				if b.defense then m.defense += (b.defense / 100) * s end
-				if b.thief then m.stealSpeed -= (b.thief / 100) * s end
-				if b.offline then m.offlineHours += (b.offline / 100) * s end
+				if b.coins then
+					m.coin += (b.coins / 100) * s
+				end
+				if b.grow then
+					m.grow += (b.grow / 100) * s
+				end
+				if b.luck then
+					m.luck += (b.luck / 100) * s
+				end
+				if b.defense then
+					m.defense += (b.defense / 100) * s
+				end
+				if b.thief then
+					m.stealSpeed -= (b.thief / 100) * s
+				end
+				if b.offline then
+					m.offlineHours += (b.offline / 100) * s
+				end
 			end
 		end
 	end
@@ -131,10 +161,18 @@ function Economy.multipliers(ctx: Context): Types.Multipliers
 	-- live event + server-wide boost
 	for _, src in { ctx.event, ctx.serverBoost } do
 		if src then
-			if src.coinMult then m.coin *= src.coinMult end
-			if src.growMult then m.grow *= src.growMult end
-			if src.luckMult then m.luck *= src.luckMult end
-			if src.stealSpeed then m.stealSpeed *= src.stealSpeed end
+			if src.coinMult then
+				m.coin *= src.coinMult
+			end
+			if src.growMult then
+				m.grow *= src.growMult
+			end
+			if src.luckMult then
+				m.luck *= src.luckMult
+			end
+			if src.stealSpeed then
+				m.stealSpeed *= src.stealSpeed
+			end
 		end
 	end
 

@@ -37,7 +37,8 @@ function Panel.build(parent, app)
 	})
 	local api = { panel = panel, mode = "passes" }
 
-	local tabsHolder = B.new("Frame", { Size = UDim2.new(1, 0, 0, 44), BackgroundTransparency = 1, Parent = panel.body })
+	local tabsHolder =
+		B.new("Frame", { Size = UDim2.new(1, 0, 0, 44), BackgroundTransparency = 1, Parent = panel.body })
 	local content = B.new("Frame", {
 		Size = UDim2.new(1, 0, 1, -50),
 		Position = UDim2.fromOffset(0, 50),
@@ -73,18 +74,29 @@ function Panel.build(parent, app)
 		end
 
 		B.label(pass.icon, {
-			Parent = card, Size = UDim2.fromOffset(52, 52), Position = UDim2.fromOffset(0, 2),
-			TextSize = isUltimate and 40 or 32, TextXAlignment = Enum.TextXAlignment.Center,
+			Parent = card,
+			Size = UDim2.fromOffset(52, 52),
+			Position = UDim2.fromOffset(0, 2),
+			TextSize = isUltimate and 40 or 32,
+			TextXAlignment = Enum.TextXAlignment.Center,
 		})
 		B.label(pass.name, {
-			Parent = card, Size = UDim2.new(1, -230, 0, 24), Position = UDim2.fromOffset(58, 0),
-			Font = Theme.fontBlack, TextSize = isUltimate and Theme.h3 or Theme.body,
+			Parent = card,
+			Size = UDim2.new(1, -230, 0, 24),
+			Position = UDim2.fromOffset(58, 0),
+			Font = Theme.fontBlack,
+			TextSize = isUltimate and Theme.h3 or Theme.body,
 			TextColor3 = pass.colour,
 		})
 		B.label(pass.desc, {
-			Parent = card, Size = UDim2.new(1, -230, 0, height - 36), Position = UDim2.fromOffset(58, 26),
-			TextSize = Theme.tiny, TextColor3 = Theme.textDim, Font = Theme.fontBody,
-			TextWrapped = true, TextYAlignment = Enum.TextYAlignment.Top,
+			Parent = card,
+			Size = UDim2.new(1, -230, 0, height - 36),
+			Position = UDim2.fromOffset(58, 26),
+			TextSize = Theme.tiny,
+			TextColor3 = Theme.textDim,
+			Font = Theme.fontBody,
+			TextWrapped = true,
+			TextYAlignment = Enum.TextYAlignment.Top,
 		})
 
 		if owned then
@@ -96,8 +108,11 @@ function Panel.build(parent, app)
 			})
 			B.corner(12).Parent = badge
 			B.label("✔  ATIVO", {
-				Parent = badge, Size = UDim2.fromScale(1, 1), Font = Theme.fontBlack,
-				TextSize = Theme.body, TextColor3 = Theme.text,
+				Parent = badge,
+				Size = UDim2.fromScale(1, 1),
+				Font = Theme.fontBlack,
+				TextSize = Theme.body,
+				TextColor3 = Theme.text,
 				TextXAlignment = Enum.TextXAlignment.Center,
 			})
 		else
@@ -150,17 +165,29 @@ function Panel.build(parent, app)
 		end
 
 		B.label(product.icon, {
-			Parent = card, Size = UDim2.fromOffset(50, 50), Position = UDim2.fromOffset(0, 2),
-			TextSize = 32, TextXAlignment = Enum.TextXAlignment.Center,
+			Parent = card,
+			Size = UDim2.fromOffset(50, 50),
+			Position = UDim2.fromOffset(0, 2),
+			TextSize = 32,
+			TextXAlignment = Enum.TextXAlignment.Center,
 		})
 		B.label(product.name .. (product.bestValue and "   ⭐" or ""), {
-			Parent = card, Size = UDim2.new(1, -220, 0, 22), Position = UDim2.fromOffset(56, 0),
-			Font = Theme.fontBlack, TextSize = Theme.body, TextColor3 = product.colour,
+			Parent = card,
+			Size = UDim2.new(1, -220, 0, 22),
+			Position = UDim2.fromOffset(56, 0),
+			Font = Theme.fontBlack,
+			TextSize = Theme.body,
+			TextColor3 = product.colour,
 		})
 		B.label(product.desc, {
-			Parent = card, Size = UDim2.new(1, -220, 0, (isStarter and 86 or 56)), Position = UDim2.fromOffset(56, 24),
-			TextSize = Theme.tiny, TextColor3 = Theme.textDim, Font = Theme.fontBody,
-			TextWrapped = true, TextYAlignment = Enum.TextYAlignment.Top,
+			Parent = card,
+			Size = UDim2.new(1, -220, 0, (isStarter and 86 or 56)),
+			Position = UDim2.fromOffset(56, 24),
+			TextSize = Theme.tiny,
+			TextColor3 = Theme.textDim,
+			Font = Theme.fontBody,
+			TextWrapped = true,
+			TextYAlignment = Enum.TextYAlignment.Top,
 		})
 
 		-- show what a currency pack is actually worth right now
@@ -216,8 +243,12 @@ function Panel.build(parent, app)
 				"Todo passe é permanente e vale para sempre na sua conta. "
 					.. "Nada aqui é obrigatório — o jogo é 100% jogável de graça.",
 				{
-					Parent = note, Size = UDim2.fromScale(1, 1), TextSize = Theme.tiny,
-					TextColor3 = Theme.textDim, Font = Theme.fontBody, TextWrapped = true,
+					Parent = note,
+					Size = UDim2.fromScale(1, 1),
+					TextSize = Theme.tiny,
+					TextColor3 = Theme.textDim,
+					Font = Theme.fontBody,
+					TextWrapped = true,
 					TextXAlignment = Enum.TextXAlignment.Center,
 				}
 			)

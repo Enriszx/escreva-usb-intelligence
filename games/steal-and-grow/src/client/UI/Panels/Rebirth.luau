@@ -61,16 +61,28 @@ function Panel.build(parent, app)
 			pad = 12,
 		})
 		B.label(("%s %s"):format(rank.icon, rank.name), {
-			Parent = header, Size = UDim2.new(1, 0, 0, 28), Font = Theme.fontBlack,
-			TextSize = Theme.h2, TextColor3 = rank.colour,
+			Parent = header,
+			Size = UDim2.new(1, 0, 0, 28),
+			Font = Theme.fontBlack,
+			TextSize = Theme.h2,
+			TextColor3 = rank.colour,
 		})
 		if nextRank then
-			B.label(("Próximo rank: %s %s em %d renascimentos"):format(
-				nextRank.icon, nextRank.name, nextRank.rebirths - State.rebirths
-			), {
-				Parent = header, Size = UDim2.new(1, 0, 0, 20), Position = UDim2.fromOffset(0, 30),
-				TextSize = Theme.small, TextColor3 = Theme.textDim, Font = Theme.fontBody,
-			})
+			B.label(
+				("Próximo rank: %s %s em %d renascimentos"):format(
+					nextRank.icon,
+					nextRank.name,
+					nextRank.rebirths - State.rebirths
+				),
+				{
+					Parent = header,
+					Size = UDim2.new(1, 0, 0, 20),
+					Position = UDim2.fromOffset(0, 30),
+					TextSize = Theme.small,
+					TextColor3 = Theme.textDim,
+					Font = Theme.fontBody,
+				}
+			)
 			B.bar({
 				parent = header,
 				size = UDim2.new(1, 0, 0, 14),
@@ -91,8 +103,11 @@ function Panel.build(parent, app)
 			pad = 12,
 		})
 		B.label("✅ VOCÊ GANHA", {
-			Parent = gains, Size = UDim2.new(1, 0, 0, 20), Font = Theme.fontBlack,
-			TextSize = Theme.small, TextColor3 = Theme.primary,
+			Parent = gains,
+			Size = UDim2.new(1, 0, 0, 20),
+			Font = Theme.fontBlack,
+			TextSize = Theme.small,
+			TextColor3 = Theme.primary,
 		})
 		local unlocked = {}
 		for _, seed in Seeds.all do
@@ -111,9 +126,14 @@ function Panel.build(parent, app)
 			table.insert(gainLines, "• Desbloqueia: " .. table.concat(unlocked, ", "))
 		end
 		B.label(table.concat(gainLines, "\n"), {
-			Parent = gains, Size = UDim2.new(1, 0, 0, 84), Position = UDim2.fromOffset(0, 22),
-			TextSize = Theme.tiny, TextColor3 = Theme.text, Font = Theme.fontBody,
-			TextWrapped = true, TextYAlignment = Enum.TextYAlignment.Top,
+			Parent = gains,
+			Size = UDim2.new(1, 0, 0, 84),
+			Position = UDim2.fromOffset(0, 22),
+			TextSize = Theme.tiny,
+			TextColor3 = Theme.text,
+			Font = Theme.fontBody,
+			TextWrapped = true,
+			TextYAlignment = Enum.TextYAlignment.Top,
 		})
 
 		-- losses
@@ -126,15 +146,23 @@ function Panel.build(parent, app)
 			pad = 12,
 		})
 		B.label("⚠️ VOCÊ PERDE", {
-			Parent = losses, Size = UDim2.new(1, 0, 0, 20), Font = Theme.fontBlack,
-			TextSize = Theme.small, TextColor3 = Theme.danger,
+			Parent = losses,
+			Size = UDim2.new(1, 0, 0, 20),
+			Font = Theme.fontBlack,
+			TextSize = Theme.small,
+			TextColor3 = Theme.danger,
 		})
 		B.label(
 			"• Todas as moedas\n• Todas as plantas e sementes\n• As melhorias (exceto Armazém e Lanternas)",
 			{
-				Parent = losses, Size = UDim2.new(1, 0, 0, 60), Position = UDim2.fromOffset(0, 22),
-				TextSize = Theme.tiny, TextColor3 = Theme.textDim, Font = Theme.fontBody,
-				TextWrapped = true, TextYAlignment = Enum.TextYAlignment.Top,
+				Parent = losses,
+				Size = UDim2.new(1, 0, 0, 60),
+				Position = UDim2.fromOffset(0, 22),
+				TextSize = Theme.tiny,
+				TextColor3 = Theme.textDim,
+				Font = Theme.fontBody,
+				TextWrapped = true,
+				TextYAlignment = Enum.TextYAlignment.Top,
 			}
 		)
 
@@ -144,7 +172,8 @@ function Panel.build(parent, app)
 			size = UDim2.new(1, 0, 0, 64),
 			colour = afford and Theme.steal or Theme.panel,
 			icon = "♻️",
-			text = afford and "RENASCER AGORA" or ("Faltam %s moedas"):format(Format.short(cost - State.coins)),
+			text = afford and "RENASCER AGORA"
+				or ("Faltam %s moedas"):format(Format.short(cost - State.coins)),
 			sub = ("Custo: %s moedas"):format(Format.short(cost)),
 			textSize = Theme.h3,
 			textColour = afford and Theme.text or Theme.textDim,

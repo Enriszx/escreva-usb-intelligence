@@ -118,16 +118,18 @@ function Analytics:start()
 	task.spawn(function()
 		while true do
 			task.wait(300)
-			print(("[Analytics] players=%d joins=%d new=%d harvests=%s steals=%s rebirths=%d purchases=%d robux=%d"):format(
-				#Players:GetPlayers(),
-				session.joins,
-				session.firstTimers,
-				Format.short(session.harvests),
-				Format.short(session.steals),
-				session.rebirths,
-				session.purchases,
-				session.robuxSpent
-			))
+			print(
+				("[Analytics] players=%d joins=%d new=%d harvests=%s steals=%s rebirths=%d purchases=%d robux=%d"):format(
+					#Players:GetPlayers(),
+					session.joins,
+					session.firstTimers,
+					Format.short(session.harvests),
+					Format.short(session.steals),
+					session.rebirths,
+					session.purchases,
+					session.robuxSpent
+				)
+			)
 		end
 	end)
 end

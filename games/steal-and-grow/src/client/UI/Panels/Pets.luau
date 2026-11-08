@@ -54,7 +54,8 @@ function Panel.build(parent, app)
 	})
 	local api = { panel = panel, mode = "eggs" }
 
-	local tabsHolder = B.new("Frame", { Size = UDim2.new(1, 0, 0, 44), BackgroundTransparency = 1, Parent = panel.body })
+	local tabsHolder =
+		B.new("Frame", { Size = UDim2.new(1, 0, 0, 44), BackgroundTransparency = 1, Parent = panel.body })
 	local content = B.new("Frame", {
 		Size = UDim2.new(1, 0, 1, -50),
 		Position = UDim2.fromOffset(0, 50),
@@ -96,12 +97,18 @@ function Panel.build(parent, app)
 		})
 		B.corner(22).Parent = shell
 		B.label("🥚", {
-			Parent = shell, Size = UDim2.fromScale(1, 1), TextSize = 26,
+			Parent = shell,
+			Size = UDim2.fromScale(1, 1),
+			TextSize = 26,
 			TextXAlignment = Enum.TextXAlignment.Center,
 		})
 		B.label(egg.name, {
-			Parent = row, Size = UDim2.new(1, -200, 0, 20), Position = UDim2.fromOffset(56, 0),
-			Font = Theme.fontBlack, TextSize = Theme.small, TextColor3 = egg.colour,
+			Parent = row,
+			Size = UDim2.new(1, -200, 0, 20),
+			Position = UDim2.fromOffset(56, 0),
+			Font = Theme.fontBlack,
+			TextSize = Theme.small,
+			TextColor3 = egg.colour,
 		})
 		local bar = B.bar({
 			parent = row,
@@ -150,8 +157,12 @@ function Panel.build(parent, app)
 		B.gradient(egg.accent, egg.colour, 90).Parent = shell
 
 		B.label(egg.name, {
-			Parent = row, Size = UDim2.new(1, -200, 0, 20), Position = UDim2.fromOffset(56, 0),
-			Font = Theme.fontBlack, TextSize = Theme.small, TextColor3 = egg.colour,
+			Parent = row,
+			Size = UDim2.new(1, -200, 0, 20),
+			Position = UDim2.fromOffset(56, 0),
+			Font = Theme.fontBlack,
+			TextSize = Theme.small,
+			TextColor3 = egg.colour,
 		})
 
 		-- show the real pool with real odds: trust is worth more than mystery
@@ -167,22 +178,31 @@ function Panel.build(parent, app)
 				best, bestOrder = pet, o
 			end
 		end
-		B.label(("%d pets  •  ⏱ %s  •  Melhor: %s (%s)"):format(
-			#pool,
-			Format.time(egg.hatchTime),
-			best and best.name or "?",
-			best and Format.odds(best.weight / math.max(total, 1)) or "—"
-		), {
-			Parent = row, Size = UDim2.new(1, -200, 0, 32), Position = UDim2.fromOffset(56, 22),
-			TextSize = Theme.tiny, TextColor3 = Theme.textDim, Font = Theme.fontBody, TextWrapped = true,
-			TextYAlignment = Enum.TextYAlignment.Top,
-		})
+		B.label(
+			("%d pets  •  ⏱ %s  •  Melhor: %s (%s)"):format(
+				#pool,
+				Format.time(egg.hatchTime),
+				best and best.name or "?",
+				best and Format.odds(best.weight / math.max(total, 1)) or "—"
+			),
+			{
+				Parent = row,
+				Size = UDim2.new(1, -200, 0, 32),
+				Position = UDim2.fromOffset(56, 22),
+				TextSize = Theme.tiny,
+				TextColor3 = Theme.textDim,
+				Font = Theme.fontBody,
+				TextWrapped = true,
+				TextYAlignment = Enum.TextYAlignment.Top,
+			}
+		)
 
 		local btn = B.button({
 			parent = row,
 			size = UDim2.fromOffset(140, 46),
 			position = UDim2.new(1, -140, 0, 5),
-			colour = locked and Theme.panel or (afford and (egg.currency == "gems" and Theme.gems or Theme.coins) or Theme.panel),
+			colour = locked and Theme.panel
+				or (afford and (egg.currency == "gems" and Theme.gems or Theme.coins) or Theme.panel),
 			icon = locked and "🔒" or (egg.currency == "gems" and "💎" or "💰"),
 			text = locked and ("RB " .. egg.unlockRebirth) or Format.short(egg.cost),
 			textSize = Theme.small,
@@ -227,13 +247,22 @@ function Panel.build(parent, app)
 
 		local stars = owned.stars > 0 and (" " .. string.rep("⭐", owned.stars)) or ""
 		B.label(pet.name .. stars, {
-			Parent = row, Size = UDim2.new(1, -230, 0, 20), Position = UDim2.fromOffset(54, 2),
-			Font = Theme.fontBlack, TextSize = Theme.small, TextColor3 = rarity.colour,
+			Parent = row,
+			Size = UDim2.new(1, -230, 0, 20),
+			Position = UDim2.fromOffset(54, 2),
+			Font = Theme.fontBlack,
+			TextSize = Theme.small,
+			TextColor3 = rarity.colour,
 		})
 		B.label(buffText(pet, owned.stars), {
-			Parent = row, Size = UDim2.new(1, -230, 0, 34), Position = UDim2.fromOffset(54, 22),
-			TextSize = Theme.tiny, TextColor3 = Theme.textDim, Font = Theme.fontBody,
-			TextWrapped = true, TextYAlignment = Enum.TextYAlignment.Top,
+			Parent = row,
+			Size = UDim2.new(1, -230, 0, 34),
+			Position = UDim2.fromOffset(54, 22),
+			TextSize = Theme.tiny,
+			TextColor3 = Theme.textDim,
+			Font = Theme.fontBody,
+			TextWrapped = true,
+			TextYAlignment = Enum.TextYAlignment.Top,
 		})
 
 		B.button({

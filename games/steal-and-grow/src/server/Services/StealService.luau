@@ -102,7 +102,10 @@ function StealService:validate(thief: Player, plotId: number, tileIndex: number)
 	end
 
 	-- new-player protection
-	if victimProfile.firstJoin and (os.time() - victimProfile.firstJoin) < Balance.stealProtectionAfterJoin then
+	if
+		victimProfile.firstJoin
+		and (os.time() - victimProfile.firstJoin) < Balance.stealProtectionAfterJoin
+	then
 		local left = Balance.stealProtectionAfterJoin - (os.time() - victimProfile.firstJoin)
 		return false, ("Jogador novo protegido por %s"):format(Format.time(left))
 	end
@@ -121,7 +124,8 @@ function StealService:validate(thief: Player, plotId: number, tileIndex: number)
 	-- cooldowns
 	local now = os.time()
 	if (globalCooldown[thief.UserId] or 0) > now then
-		return false, ("Espere %s para roubar de novo"):format(Format.time(globalCooldown[thief.UserId] - now))
+		return false,
+			("Espere %s para roubar de novo"):format(Format.time(globalCooldown[thief.UserId] - now))
 	end
 	local pk = pairKey(thief.UserId, plot.owner)
 	if (pairCooldown[pk] or 0) > now then
@@ -144,13 +148,15 @@ function StealService:validate(thief: Player, plotId: number, tileIndex: number)
 		return false, "Chegue mais perto da planta"
 	end
 
-	return true, nil, {
-		plot = plot,
-		victimProfile = victimProfile,
-		plant = plant,
-		tilePos = tilePos,
-		thiefMult = m,
-	}
+	return true,
+		nil,
+		{
+			plot = plot,
+			victimProfile = victimProfile,
+			plant = plant,
+			tilePos = tilePos,
+			thiefMult = m,
+		}
 end
 
 -- Channelling ------------------------------------------------------------
@@ -232,7 +238,8 @@ function StealService:begin(thief: Player, plotId: number, tileIndex: number)
 				kind = "start",
 				tile = tileIndex,
 				duration = duration,
-				thief = app.MonetizationService:has(thief, "masterThief") and "Um ladrão desconhecido" or thief.DisplayName,
+				thief = app.MonetizationService:has(thief, "masterThief") and "Um ladrão desconhecido"
+					or thief.DisplayName,
 				position = ctx.tilePos,
 				seed = plant.seed,
 			})
@@ -394,7 +401,8 @@ function StealService:complete(channel)
 		Net:fire(victim, "StealAlarm", {
 			kind = "stolen",
 			tile = channel.tileIndex,
-			thief = app.MonetizationService:has(thief, "masterThief") and "Um ladrão desconhecido" or thief.DisplayName,
+			thief = app.MonetizationService:has(thief, "masterThief") and "Um ladrão desconhecido"
+				or thief.DisplayName,
 			thiefId = app.MonetizationService:has(thief, "masterThief") and 0 or thief.UserId,
 			name = cropName,
 			value = value,
@@ -448,7 +456,8 @@ function StealService:revenge(player: Player): (boolean, string?)
 	local tm = target and app.PlayerService:multipliers(target)
 	for index, plant in targetProfile.tiles do
 		if plant and plant.element then
-			local v = Economy.cropValue(plant.seed, plant.element, plant.aura, plant.size or 1, tm and tm.coin or 1)
+			local v =
+				Economy.cropValue(plant.seed, plant.element, plant.aura, plant.size or 1, tm and tm.coin or 1)
 			if v > bestValue then
 				bestIndex, bestValue, bestPlant = index, v, plant
 			end

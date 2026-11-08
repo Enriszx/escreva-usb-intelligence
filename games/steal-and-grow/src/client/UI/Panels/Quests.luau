@@ -25,7 +25,8 @@ function Panel.build(parent, app)
 	})
 	local api = { panel = panel, mode = "quests" }
 
-	local tabsHolder = B.new("Frame", { Size = UDim2.new(1, 0, 0, 44), BackgroundTransparency = 1, Parent = panel.body })
+	local tabsHolder =
+		B.new("Frame", { Size = UDim2.new(1, 0, 0, 44), BackgroundTransparency = 1, Parent = panel.body })
 	local content = B.new("Frame", {
 		Size = UDim2.new(1, 0, 1, -50),
 		Position = UDim2.fromOffset(0, 50),
@@ -51,23 +52,34 @@ function Panel.build(parent, app)
 			parent = questList,
 			size = UDim2.new(1, 0, 0, 82),
 			colour = Theme.panelAlt,
-			strokeColour = quest.claimed and Theme.stroke or (done and Theme.primary or (quest.weekly and Theme.steal or Theme.warn)),
+			strokeColour = quest.claimed and Theme.stroke
+				or (done and Theme.primary or (quest.weekly and Theme.steal or Theme.warn)),
 			strokeTransparency = quest.claimed and 0.6 or 0,
 			order = order,
 			pad = 10,
 		})
 		B.label(quest.icon, {
-			Parent = row, Size = UDim2.fromOffset(42, 42), Position = UDim2.fromOffset(0, 2),
-			TextSize = 26, TextXAlignment = Enum.TextXAlignment.Center,
+			Parent = row,
+			Size = UDim2.fromOffset(42, 42),
+			Position = UDim2.fromOffset(0, 2),
+			TextSize = 26,
+			TextXAlignment = Enum.TextXAlignment.Center,
 		})
 		B.label(quest.name .. (quest.weekly and "  [SEMANAL]" or ""), {
-			Parent = row, Size = UDim2.new(1, -190, 0, 20), Position = UDim2.fromOffset(46, 0),
-			Font = Theme.fontBlack, TextSize = Theme.small,
+			Parent = row,
+			Size = UDim2.new(1, -190, 0, 20),
+			Position = UDim2.fromOffset(46, 0),
+			Font = Theme.fontBlack,
+			TextSize = Theme.small,
 			TextColor3 = quest.weekly and Theme.steal or Theme.text,
 		})
 		B.label(quest.desc, {
-			Parent = row, Size = UDim2.new(1, -190, 0, 18), Position = UDim2.fromOffset(46, 20),
-			TextSize = Theme.tiny, TextColor3 = Theme.textDim, Font = Theme.fontBody,
+			Parent = row,
+			Size = UDim2.new(1, -190, 0, 18),
+			Position = UDim2.fromOffset(46, 20),
+			TextSize = Theme.tiny,
+			TextColor3 = Theme.textDim,
+			Font = Theme.fontBody,
 		})
 		B.bar({
 			parent = row,
@@ -86,7 +98,8 @@ function Panel.build(parent, app)
 			table.insert(rewardText, "💰 " .. Format.short(quest.reward.coins))
 		end
 		if quest.reward.egg then
-			table.insert(rewardText, "🥚 " .. (Config.Eggs.byId[quest.reward.egg] and Config.Eggs.byId[quest.reward.egg].name or "ovo"))
+			local egg = Config.Eggs.byId[quest.reward.egg]
+			table.insert(rewardText, "🥚 " .. (egg and egg.name or "ovo"))
 		end
 
 		local btn = B.button({
@@ -130,14 +143,22 @@ function Panel.build(parent, app)
 			pad = 12,
 		})
 		B.label(("🔥 Sequência: %d dia(s)"):format(streak), {
-			Parent = header, Size = UDim2.new(1, 0, 0, 24), Font = Theme.fontBlack,
-			TextSize = Theme.h3, TextColor3 = Theme.warn,
+			Parent = header,
+			Size = UDim2.new(1, 0, 0, 24),
+			Font = Theme.fontBlack,
+			TextSize = Theme.h3,
+			TextColor3 = Theme.warn,
 		})
 		B.label(
-			canClaim and "Seu prêmio de hoje está disponível!" or "Volte amanhã para continuar a sequência.",
+			canClaim and "Seu prêmio de hoje está disponível!"
+				or "Volte amanhã para continuar a sequência.",
 			{
-				Parent = header, Size = UDim2.new(1, 0, 0, 22), Position = UDim2.fromOffset(0, 26),
-				TextSize = Theme.small, TextColor3 = Theme.textDim, Font = Theme.fontBody,
+				Parent = header,
+				Size = UDim2.new(1, 0, 0, 22),
+				Position = UDim2.fromOffset(0, 26),
+				TextSize = Theme.small,
+				TextColor3 = Theme.textDim,
+				Font = Theme.fontBody,
 			}
 		)
 
@@ -163,27 +184,42 @@ function Panel.build(parent, app)
 				pad = 6,
 			})
 			B.label("Dia " .. day, {
-				Parent = card, Size = UDim2.new(1, 0, 0, 16), TextSize = Theme.tiny,
-				TextXAlignment = Enum.TextXAlignment.Center, Font = Theme.fontBlack,
+				Parent = card,
+				Size = UDim2.new(1, 0, 0, 16),
+				TextSize = Theme.tiny,
+				TextXAlignment = Enum.TextXAlignment.Center,
+				Font = Theme.fontBlack,
 				TextColor3 = isToday and Theme.warn or Theme.textDim,
 			})
 			local icon = reward.egg and "🥚" or (reward.gems and "💎" or "💰")
 			B.label(icon, {
-				Parent = card, Size = UDim2.new(1, 0, 0, 36), Position = UDim2.fromOffset(0, 18),
-				TextSize = 28, TextXAlignment = Enum.TextXAlignment.Center,
+				Parent = card,
+				Size = UDim2.new(1, 0, 0, 36),
+				Position = UDim2.fromOffset(0, 18),
+				TextSize = 28,
+				TextXAlignment = Enum.TextXAlignment.Center,
 			})
-			local text = reward.egg and (Config.Eggs.byId[reward.egg] and Config.Eggs.byId[reward.egg].name or "Ovo")
+			local text = reward.egg
+					and (Config.Eggs.byId[reward.egg] and Config.Eggs.byId[reward.egg].name or "Ovo")
 				or (reward.gems and Format.short(reward.gems) .. " gemas")
 				or (Format.time((reward.minutes or 0) * 60) .. " de moedas")
 			B.label(text, {
-				Parent = card, Size = UDim2.new(1, 0, 0, 30), Position = UDim2.fromOffset(0, 54),
-				TextSize = Theme.tiny, TextXAlignment = Enum.TextXAlignment.Center,
-				TextColor3 = Theme.textDim, Font = Theme.fontBody, TextWrapped = true,
+				Parent = card,
+				Size = UDim2.new(1, 0, 0, 30),
+				Position = UDim2.fromOffset(0, 54),
+				TextSize = Theme.tiny,
+				TextXAlignment = Enum.TextXAlignment.Center,
+				TextColor3 = Theme.textDim,
+				Font = Theme.fontBody,
+				TextWrapped = true,
 			})
 			if claimedDay then
 				B.label("✔", {
-					Parent = card, Size = UDim2.new(1, 0, 0, 20), Position = UDim2.new(0, 0, 1, -20),
-					TextSize = Theme.body, TextXAlignment = Enum.TextXAlignment.Center,
+					Parent = card,
+					Size = UDim2.new(1, 0, 0, 20),
+					Position = UDim2.new(0, 0, 1, -20),
+					TextSize = Theme.body,
+					TextXAlignment = Enum.TextXAlignment.Center,
 					TextColor3 = Theme.primary,
 				})
 			end
@@ -224,8 +260,11 @@ function Panel.build(parent, app)
 			pad = 12,
 		})
 		B.label("Digite um código", {
-			Parent = card, Size = UDim2.new(1, 0, 0, 22), Font = Theme.fontBlack,
-			TextSize = Theme.body, TextColor3 = Theme.gems,
+			Parent = card,
+			Size = UDim2.new(1, 0, 0, 22),
+			Font = Theme.fontBlack,
+			TextSize = Theme.body,
+			TextColor3 = Theme.gems,
 		})
 		local box = B.new("TextBox", {
 			Size = UDim2.new(1, 0, 0, 48),
@@ -267,15 +306,23 @@ function Panel.build(parent, app)
 			pad = 12,
 		})
 		B.label("Onde conseguir códigos?", {
-			Parent = info, Size = UDim2.new(1, 0, 0, 20), Font = Theme.fontBlack, TextSize = Theme.small,
+			Parent = info,
+			Size = UDim2.new(1, 0, 0, 20),
+			Font = Theme.fontBlack,
+			TextSize = Theme.small,
 		})
 		B.label(
 			"Códigos novos saem a cada atualização e em marcos de visitas. "
 				.. "Entre no grupo do jogo e siga as redes sociais para não perder nenhum.",
 			{
-				Parent = info, Size = UDim2.new(1, 0, 0, 60), Position = UDim2.fromOffset(0, 22),
-				TextSize = Theme.tiny, TextColor3 = Theme.textDim, Font = Theme.fontBody,
-				TextWrapped = true, TextYAlignment = Enum.TextYAlignment.Top,
+				Parent = info,
+				Size = UDim2.new(1, 0, 0, 60),
+				Position = UDim2.fromOffset(0, 22),
+				TextSize = Theme.tiny,
+				TextColor3 = Theme.textDim,
+				Font = Theme.fontBody,
+				TextWrapped = true,
+				TextYAlignment = Enum.TextYAlignment.Top,
 			}
 		)
 	end

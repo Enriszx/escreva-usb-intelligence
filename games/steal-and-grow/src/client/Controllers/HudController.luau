@@ -50,7 +50,13 @@ local MENU_BUTTONS = {
 	{ panel = "rebirth", icon = "♻️", label = "Renascer", colour = Color3.fromRGB(176, 118, 255) },
 	{ panel = "index", icon = "📖", label = "Índice", colour = Color3.fromRGB(96, 226, 255) },
 	{ panel = "leaderboard", icon = "🏆", label = "Ranking", colour = Color3.fromRGB(255, 215, 64) },
-	{ panel = "shopvip", icon = "👑", label = "VIP", colour = Color3.fromRGB(255, 179, 0), highlight = true },
+	{
+		panel = "shopvip",
+		icon = "👑",
+		label = "VIP",
+		colour = Color3.fromRGB(255, 179, 0),
+		highlight = true,
+	},
 	{ panel = "settings", icon = "⚙️", label = "Opções", colour = Color3.fromRGB(150, 160, 184) },
 }
 
@@ -66,12 +72,22 @@ local function buildCurrency(parent)
 	layout.Parent = holder
 
 	local _, coinsValue = C.pill({
-		parent = holder, name = "Coins", icon = "💰", value = "0",
-		colour = Theme.coins, order = 1, size = UDim2.fromOffset(176, 44),
+		parent = holder,
+		name = "Coins",
+		icon = "💰",
+		value = "0",
+		colour = Theme.coins,
+		order = 1,
+		size = UDim2.fromOffset(176, 44),
 	})
 	local _, gemsValue = C.pill({
-		parent = holder, name = "Gems", icon = "💎", value = "0",
-		colour = Theme.gems, order = 2, size = UDim2.fromOffset(150, 38),
+		parent = holder,
+		name = "Gems",
+		icon = "💎",
+		value = "0",
+		colour = Theme.gems,
+		order = 2,
+		size = UDim2.fromOffset(150, 38),
 	})
 
 	local rankPill = B.new("Frame", {
@@ -129,17 +145,30 @@ local function buildEventPanel(parent)
 	})
 	banner.Visible = false
 	local eventTitle = B.label("", {
-		Parent = banner, Size = UDim2.new(1, 0, 0, 20), Font = Theme.fontBlack,
-		TextSize = Theme.small, Name = "EventTitle",
+		Parent = banner,
+		Size = UDim2.new(1, 0, 0, 20),
+		Font = Theme.fontBlack,
+		TextSize = Theme.small,
+		Name = "EventTitle",
 	})
 	local eventDesc = B.label("", {
-		Parent = banner, Size = UDim2.new(1, 0, 0, 26), Position = UDim2.fromOffset(0, 19),
-		TextSize = Theme.tiny, TextColor3 = Theme.textDim, Font = Theme.fontBody,
-		TextWrapped = true, TextYAlignment = Enum.TextYAlignment.Top, Name = "EventDesc",
+		Parent = banner,
+		Size = UDim2.new(1, 0, 0, 26),
+		Position = UDim2.fromOffset(0, 19),
+		TextSize = Theme.tiny,
+		TextColor3 = Theme.textDim,
+		Font = Theme.fontBody,
+		TextWrapped = true,
+		TextYAlignment = Enum.TextYAlignment.Top,
+		Name = "EventDesc",
 	})
 	local eventTimer = B.bar({
-		parent = banner, size = UDim2.new(1, 0, 0, 12), position = UDim2.fromOffset(0, 48),
-		colour = Theme.warn, value = 1, text = "",
+		parent = banner,
+		size = UDim2.new(1, 0, 0, 12),
+		position = UDim2.fromOffset(0, 48),
+		colour = Theme.warn,
+		value = 1,
+		text = "",
 	})
 
 	local boosts = B.new("Frame", {
@@ -209,9 +238,17 @@ local function buildDock(parent)
 				local stroke = btn:FindFirstChildWhichIsA("UIStroke")
 				while btn.Parent do
 					if stroke then
-						TweenService:Create(stroke, TweenInfo.new(0.9), { Transparency = 0.1, Color = Color3.fromRGB(255, 255, 255) }):Play()
+						TweenService:Create(
+							stroke,
+							TweenInfo.new(0.9),
+							{ Transparency = 0.1, Color = Color3.fromRGB(255, 255, 255) }
+						):Play()
 						task.wait(0.95)
-						TweenService:Create(stroke, TweenInfo.new(0.9), { Transparency = 0.72, Color = Color3.new(0, 0, 0) }):Play()
+						TweenService:Create(
+							stroke,
+							TweenInfo.new(0.9),
+							{ Transparency = 0.72, Color = Color3.new(0, 0, 0) }
+						):Play()
 						task.wait(0.95)
 					else
 						task.wait(1)
@@ -246,24 +283,39 @@ local function buildAction(parent)
 	btn.Visible = false
 	local content = btn:FindFirstChild("Content")
 	local icon = B.label("", {
-		Parent = content, Size = UDim2.new(0, 48, 1, 0), TextSize = 34,
-		TextXAlignment = Enum.TextXAlignment.Center, Name = "Icon",
+		Parent = content,
+		Size = UDim2.new(0, 48, 1, 0),
+		TextSize = 34,
+		TextXAlignment = Enum.TextXAlignment.Center,
+		Name = "Icon",
 	})
 	local label = B.label("", {
-		Parent = content, Size = UDim2.new(1, -54, 0.54, 0), Position = UDim2.fromOffset(52, 2),
-		Font = Theme.fontBlack, TextSize = Theme.h3,
-		TextColor3 = Color3.fromRGB(16, 20, 28), Name = "Main",
+		Parent = content,
+		Size = UDim2.new(1, -54, 0.54, 0),
+		Position = UDim2.fromOffset(52, 2),
+		Font = Theme.fontBlack,
+		TextSize = Theme.h3,
+		TextColor3 = Color3.fromRGB(16, 20, 28),
+		Name = "Main",
 		TextYAlignment = Enum.TextYAlignment.Bottom,
 	})
 	local detail = B.label("", {
-		Parent = content, Size = UDim2.new(1, -54, 0.44, 0), Position = UDim2.new(0, 52, 0.54, 0),
-		Font = Theme.fontBody, TextSize = Theme.small,
-		TextColor3 = Color3.fromRGB(32, 42, 56), Name = "Detail",
+		Parent = content,
+		Size = UDim2.new(1, -54, 0.44, 0),
+		Position = UDim2.new(0, 52, 0.54, 0),
+		Font = Theme.fontBody,
+		TextSize = Theme.small,
+		TextColor3 = Color3.fromRGB(32, 42, 56),
+		Name = "Detail",
 		TextYAlignment = Enum.TextYAlignment.Top,
 	})
 	local hint = B.label("[E]", {
-		Parent = holder, Size = UDim2.new(0, 40, 0, 18), Position = UDim2.new(1, -4, 0, -16),
-		TextSize = Theme.tiny, TextColor3 = Theme.textFaint, TextXAlignment = Enum.TextXAlignment.Right,
+		Parent = holder,
+		Size = UDim2.new(0, 40, 0, 18),
+		Position = UDim2.new(1, -4, 0, -16),
+		TextSize = Theme.tiny,
+		TextColor3 = Theme.textFaint,
+		TextXAlignment = Enum.TextXAlignment.Right,
 	})
 	hint.Visible = not C.isPhone()
 
@@ -328,22 +380,40 @@ local function buildStealBar(parent)
 	B.padding(10).Parent = holder
 
 	B.label("🥷 ROUBANDO...", {
-		Parent = holder, Size = UDim2.new(1, 0, 0, 24), Font = Theme.fontBlack,
-		TextSize = Theme.h3, TextColor3 = Theme.steal, TextXAlignment = Enum.TextXAlignment.Center,
+		Parent = holder,
+		Size = UDim2.new(1, 0, 0, 24),
+		Font = Theme.fontBlack,
+		TextSize = Theme.h3,
+		TextColor3 = Theme.steal,
+		TextXAlignment = Enum.TextXAlignment.Center,
 		Name = "Title",
 	})
 	local sub = B.label("", {
-		Parent = holder, Size = UDim2.new(1, 0, 0, 18), Position = UDim2.fromOffset(0, 24),
-		TextSize = Theme.small, TextColor3 = Theme.textDim, Font = Theme.fontBody,
-		TextXAlignment = Enum.TextXAlignment.Center, Name = "Sub",
+		Parent = holder,
+		Size = UDim2.new(1, 0, 0, 18),
+		Position = UDim2.fromOffset(0, 24),
+		TextSize = Theme.small,
+		TextColor3 = Theme.textDim,
+		Font = Theme.fontBody,
+		TextXAlignment = Enum.TextXAlignment.Center,
+		Name = "Sub",
 	})
 	local bar = B.bar({
-		parent = holder, size = UDim2.new(1, 0, 0, 22), position = UDim2.fromOffset(0, 46),
-		colour = Theme.steal, value = 0, text = "", textSize = Theme.small,
+		parent = holder,
+		size = UDim2.new(1, 0, 0, 22),
+		position = UDim2.fromOffset(0, 46),
+		colour = Theme.steal,
+		value = 0,
+		text = "",
+		textSize = Theme.small,
 	})
 	B.label("NÃO SE AFASTE", {
-		Parent = holder, Size = UDim2.new(1, -96, 0, 14), Position = UDim2.fromOffset(0, 70),
-		TextSize = Theme.tiny, TextColor3 = Theme.warn, Font = Theme.fontBody,
+		Parent = holder,
+		Size = UDim2.new(1, -96, 0, 14),
+		Position = UDim2.fromOffset(0, 70),
+		TextSize = Theme.tiny,
+		TextColor3 = Theme.warn,
+		Font = Theme.fontBody,
 		TextXAlignment = Enum.TextXAlignment.Center,
 	})
 
@@ -390,11 +460,15 @@ local function updateCurrency()
 	end
 	if refs.xpBar then
 		local need = math.max(State.xpNeed or 1, 1)
-		B.setBar(refs.xpBar, (State.xpInto or 0) / need, ("Nv. %d  •  %s/%s"):format(
-			State.level or 1,
-			Format.short(State.xpInto or 0),
-			Format.short(need)
-		))
+		B.setBar(
+			refs.xpBar,
+			(State.xpInto or 0) / need,
+			("Nv. %d  •  %s/%s"):format(
+				State.level or 1,
+				Format.short(State.xpInto or 0),
+				Format.short(need)
+			)
+		)
 	end
 end
 
@@ -423,7 +497,8 @@ local function updateQuick()
 		end
 		local text = refs.sellAll.Content:FindFirstChild("Text")
 		if text then
-			text.Text = #State.inventory > 0 and ("💰  Vender %s"):format(Format.short(value)) or "💰  Vender Tudo"
+			text.Text = #State.inventory > 0 and ("💰  Vender %s"):format(Format.short(value))
+				or "💰  Vender Tudo"
 		end
 		refs.sellAll.BackgroundColor3 = #State.inventory > 0 and Theme.coins or Theme.panelAlt
 		local storage = State.mult and State.mult.storage or 40
@@ -460,11 +535,18 @@ local function updateBoosts()
 				pad = 6,
 			})
 			B.label(("%s %s"):format(names[boost.stat] or boost.stat, Format.multiplier(boost.value)), {
-				Parent = chip, Size = UDim2.new(1, -56, 1, 0), TextSize = Theme.tiny, Font = Theme.fontBlack,
+				Parent = chip,
+				Size = UDim2.new(1, -56, 1, 0),
+				TextSize = Theme.tiny,
+				Font = Theme.fontBlack,
 			})
 			B.label(Format.clock(boost.expires - now), {
-				Parent = chip, Size = UDim2.fromOffset(52, 18), Position = UDim2.new(1, -52, 0.5, -9),
-				TextSize = Theme.tiny, TextColor3 = Theme.warn, TextXAlignment = Enum.TextXAlignment.Right,
+				Parent = chip,
+				Size = UDim2.fromOffset(52, 18),
+				Position = UDim2.new(1, -52, 0.5, -9),
+				TextSize = Theme.tiny,
+				TextColor3 = Theme.warn,
+				TextXAlignment = Enum.TextXAlignment.Right,
 			})
 		end
 	end
@@ -479,15 +561,17 @@ local function updateBoosts()
 			order = 99,
 			pad = 6,
 		})
-		B.label(("💰%s  ⚡%s  🍀%.0f"):format(
-			Format.multiplier(m.coin),
-			Format.multiplier(m.grow),
-			m.luck
-		), {
-			Parent = chip, Size = UDim2.fromScale(1, 1), TextSize = Theme.tiny,
-			Font = Theme.fontBlack, TextXAlignment = Enum.TextXAlignment.Center,
-			TextColor3 = Theme.primary,
-		})
+		B.label(
+			("💰%s  ⚡%s  🍀%.0f"):format(Format.multiplier(m.coin), Format.multiplier(m.grow), m.luck),
+			{
+				Parent = chip,
+				Size = UDim2.fromScale(1, 1),
+				TextSize = Theme.tiny,
+				Font = Theme.fontBlack,
+				TextXAlignment = Enum.TextXAlignment.Center,
+				TextColor3 = Theme.primary,
+			}
+		)
 	end
 end
 

@@ -70,7 +70,10 @@ function CodeService:redeem(player: Player, input: string): (boolean, string)
 	end
 	if r.boost then
 		app.PlayerService:addBoost(player, r.boost.stat, r.boost.value, r.boost.seconds, "code")
-		table.insert(lines, ("%s por %s"):format(Format.multiplier(r.boost.value), Format.time(r.boost.seconds)))
+		table.insert(
+			lines,
+			("%s por %s"):format(Format.multiplier(r.boost.value), Format.time(r.boost.seconds))
+		)
 	end
 
 	app.PlayerService:sync(player)

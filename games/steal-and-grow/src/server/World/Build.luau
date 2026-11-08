@@ -335,14 +335,62 @@ function Build.hub(parent: Instance)
 
 	-- the eight stations
 	local stations = {
-		{ station = "seedShop", label = "LOJA DE SEMENTES", icon = "🌱", tint = col(96, 220, 140), hint = "Compre sementes • estoque novo a cada 5 min" },
-		{ station = "market", label = "MERCADO", icon = "💰", tint = PALETTE.gold, hint = "Venda sua colheita" },
-		{ station = "petShop", label = "OVOS E PETS", icon = "🥚", tint = col(236, 64, 122), hint = "Choque ovos • equipe pets" },
-		{ station = "upgrades", label = "MELHORIAS", icon = "⚒️", tint = col(124, 170, 255), hint = "Expanda a fazenda" },
-		{ station = "rebirth", label = "RENASCIMENTO", icon = "♻️", tint = col(176, 118, 255), hint = "Reinicie e fique mais forte" },
-		{ station = "passShop", label = "LOJA VIP", icon = "👑", tint = col(255, 179, 0), hint = "Passes e pacotes" },
-		{ station = "leaderboard", label = "RANKING GLOBAL", icon = "🏆", tint = col(0, 229, 255), hint = "Os maiores do servidor" },
-		{ station = "eventAltar", label = "ALTAR DE EVENTOS", icon = "🌀", tint = col(255, 92, 104), hint = "Próximo evento global" },
+		{
+			station = "seedShop",
+			label = "LOJA DE SEMENTES",
+			icon = "🌱",
+			tint = col(96, 220, 140),
+			hint = "Compre sementes • estoque novo a cada 5 min",
+		},
+		{
+			station = "market",
+			label = "MERCADO",
+			icon = "💰",
+			tint = PALETTE.gold,
+			hint = "Venda sua colheita",
+		},
+		{
+			station = "petShop",
+			label = "OVOS E PETS",
+			icon = "🥚",
+			tint = col(236, 64, 122),
+			hint = "Choque ovos • equipe pets",
+		},
+		{
+			station = "upgrades",
+			label = "MELHORIAS",
+			icon = "⚒️",
+			tint = col(124, 170, 255),
+			hint = "Expanda a fazenda",
+		},
+		{
+			station = "rebirth",
+			label = "RENASCIMENTO",
+			icon = "♻️",
+			tint = col(176, 118, 255),
+			hint = "Reinicie e fique mais forte",
+		},
+		{
+			station = "passShop",
+			label = "LOJA VIP",
+			icon = "👑",
+			tint = col(255, 179, 0),
+			hint = "Passes e pacotes",
+		},
+		{
+			station = "leaderboard",
+			label = "RANKING GLOBAL",
+			icon = "🏆",
+			tint = col(0, 229, 255),
+			hint = "Os maiores do servidor",
+		},
+		{
+			station = "eventAltar",
+			label = "ALTAR DE EVENTOS",
+			icon = "🌀",
+			tint = col(255, 92, 104),
+			hint = "Próximo evento global",
+		},
 	}
 	for _, s in stations do
 		kiosk(hub, Layout.hubSpot(s.station), {
@@ -532,7 +580,13 @@ function Build.plot(parent: Instance, plotId: number)
 	end
 
 	-- owner sign + teleport pad
-	sign(model, origin * CFrame.new(0, 10, -size / 2 + 4), "FAZENDA LIVRE", "Pise no painel para reivindicar", Theme.textDim)
+	sign(
+		model,
+		origin * CFrame.new(0, 10, -size / 2 + 4),
+		"FAZENDA LIVRE",
+		"Pise no painel para reivindicar",
+		Theme.textDim
+	)
 
 	local pad = part({
 		parent = model,
@@ -567,7 +621,8 @@ function Build.horizon(parent: Instance)
 		part({
 			parent = folder,
 			size = Vector3.new(w, h, w),
-			cframe = CFrame.new(math.cos(a) * r, h / 2 - 30, math.sin(a) * r) * CFrame.Angles(0, rng:NextNumber(0, 6), 0),
+			cframe = CFrame.new(math.cos(a) * r, h / 2 - 30, math.sin(a) * r)
+				* CFrame.Angles(0, rng:NextNumber(0, 6), 0),
 			color = i % 3 == 0 and PALETTE.stoneDark or PALETTE.grassDark,
 			material = Enum.Material.Slate,
 			collide = false,

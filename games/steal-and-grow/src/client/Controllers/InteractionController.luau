@@ -65,8 +65,11 @@ local function ownTileAction(tileIndex: number)
 				icon = "🧺",
 				label = "Colher",
 				detail = ("%s — 💰 %s"):format(
-					(Mutations.label(plant.element, plant.aura) ~= "" and Mutations.label(plant.element, plant.aura) .. " " or "")
-						.. (Seeds.byId[plant.seed] and Seeds.byId[plant.seed].name or plant.seed),
+					(
+						Mutations.label(plant.element, plant.aura) ~= ""
+							and Mutations.label(plant.element, plant.aura) .. " "
+						or ""
+					) .. (Seeds.byId[plant.seed] and Seeds.byId[plant.seed].name or plant.seed),
 					Format.short(Economy.plantValue(plant, State.mult and State.mult.coin or 1, State.now()))
 				),
 				run = function()
@@ -129,14 +132,16 @@ local function foreignTileAction(plotId: number, tileIndex: number)
 
 	local mult = State.mult
 	local stealTime = Economy.stealTime(plant, mult and mult.stealSpeed or 1, snap.defense or 0)
-	local value = math.floor(Economy.plantValue(plant, mult and mult.coin or 1, State.now()) * Balance.stealValueCut)
+	local value =
+		math.floor(Economy.plantValue(plant, mult and mult.coin or 1, State.now()) * Balance.stealValueCut)
 	local label = Mutations.label(plant.element, plant.aura)
 	return {
 		kind = "steal",
 		icon = "🥷",
 		label = "ROUBAR",
 		detail = ("%s • %ss • 💰 %s%s"):format(
-			(label ~= "" and label .. " " or "") .. (Seeds.byId[plant.seed] and Seeds.byId[plant.seed].name or plant.seed),
+			(label ~= "" and label .. " " or "")
+				.. (Seeds.byId[plant.seed] and Seeds.byId[plant.seed].name or plant.seed),
 			string.format("%.1f", stealTime),
 			Format.short(value),
 			(snap.shielded and "  🛡️" or "")
@@ -269,7 +274,9 @@ local function pickAt(screenPos: Vector2)
 			app.FeedbackController:toast({ kind = "info", title = "Chegue mais perto desse canteiro" })
 			return
 		end
-		local action = if plotId == State.plotId then ownTileAction(tileIndex) else foreignTileAction(plotId, tileIndex)
+		local action = if plotId == State.plotId
+			then ownTileAction(tileIndex)
+			else foreignTileAction(plotId, tileIndex)
 		if action and action.run then
 			action.run()
 		end
@@ -277,7 +284,8 @@ local function pickAt(screenPos: Vector2)
 	end
 
 	-- station?
-	local stationPart = hit:GetAttribute("Station") and hit or hit.Parent and hit.Parent:FindFirstChild("Interact")
+	local stationPart = hit:GetAttribute("Station") and hit
+		or hit.Parent and hit.Parent:FindFirstChild("Interact")
 	if stationPart then
 		local action = stationAction(stationPart)
 		if action and action.run then
@@ -312,7 +320,15 @@ function InteractionController:start()
 		acc = 0
 		local next_ = self:resolveContext()
 		local changed = (next_ == nil) ~= (context == nil)
-			or (next_ and context and (next_.kind ~= context.kind or next_.label ~= context.label or next_.detail ~= context.detail))
+			or (
+				next_
+				and context
+				and (
+					next_.kind ~= context.kind
+					or next_.label ~= context.label
+					or next_.detail ~= context.detail
+				)
+			)
 		context = next_
 		if changed then
 			self.onContextChanged:Fire(context)
@@ -324,7 +340,10 @@ function InteractionController:start()
 		if processed then
 			return
 		end
-		if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+		if
+			input.UserInputType == Enum.UserInputType.Touch
+			or input.UserInputType == Enum.UserInputType.MouseButton1
+		then
 			pickAt(Vector2.new(input.Position.X, input.Position.Y))
 		end
 	end)
