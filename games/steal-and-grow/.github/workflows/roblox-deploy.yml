@@ -6,9 +6,10 @@ name: Deploy to Roblox
 # either) — see docs/PUBLISHING.md.
 #
 # Repository secrets required:
-#   ROBLOX_API_KEY        Open Cloud key with universe-places:write
-#   ROBLOX_UNIVERSE_ID
-#   ROBLOX_PLACE_ID
+#   ROBLOX_API_KEY   Open Cloud key with the `assets` API system and
+#                    Read + Write operations on this experience
+#   ROBLOX_PLACE_ID  no Universe ID is needed: the Assets API addresses the
+#                    place directly, and a place's asset id IS its Place ID
 
 on:
   push:
@@ -19,12 +20,12 @@ on:
       - ".github/workflows/roblox-deploy.yml"
   workflow_dispatch:
     inputs:
-      version_type:
-        description: "Published (live) ou Saved (rascunho)"
+      publish:
+        description: "Publicar ao vivo? (false = sobe sem publicar)"
         required: true
-        default: "Published"
+        default: "true"
         type: choice
-        options: [Published, Saved]
+        options: ["true", "false"]
 
 jobs:
   deploy:
@@ -61,23 +62,21 @@ jobs:
           path: games/steal-and-grow/build/StealAndGrow.rbxl
           retention-days: 14
 
+      # Reuses scripts/publish.sh so the CI path and the local path cannot
+      # drift apart. The script polls the async operation, so a green step
+      # means the place really published, not just that the upload was accepted.
       - name: Publish to Roblox
         if: ${{ env.ROBLOX_API_KEY != '' }}
         env:
           ROBLOX_API_KEY: ${{ secrets.ROBLOX_API_KEY }}
-          ROBLOX_UNIVERSE_ID: ${{ secrets.ROBLOX_UNIVERSE_ID }}
           ROBLOX_PLACE_ID: ${{ secrets.ROBLOX_PLACE_ID }}
-          VERSION_TYPE: ${{ github.event.inputs.version_type || 'Published' }}
+          PUBLISH: ${{ github.event.inputs.publish || 'true' }}
         run: |
-          code=$(curl -sS -X POST \
-            "https://apis.roblox.com/universes/v1/${ROBLOX_UNIVERSE_ID}/places/${ROBLOX_PLACE_ID}/versions?versionType=${VERSION_TYPE}" \
-            -H "x-api-key: ${ROBLOX_API_KEY}" \
-            -H "Content-Type: application/octet-stream" \
-            --data-binary @build/StealAndGrow.rbxl \
-            -o response.json -w "%{http_code}")
-          echo "HTTP $code"
-          cat response.json
-          test "$code" = "200" || test "$code" = "201"
+          if [ "$PUBLISH" = "false" ]; then
+            ./scripts/publish.sh --saved
+          else
+            ./scripts/publish.sh
+          fi
 
       - name: Skipped publish notice
         if: ${{ env.ROBLOX_API_KEY == '' }}
