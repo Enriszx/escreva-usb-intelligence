@@ -8,7 +8,6 @@
 -- gets resized, and on a tablet.
 
 local TweenService = game:GetService("TweenService")
-local GuiService = game:GetService("GuiService")
 
 local Shared = game:GetService("ReplicatedStorage").Shared
 local Config = require(Shared.Config)
@@ -82,7 +81,7 @@ function C.pill(opts): (Frame, TextLabel)
 	B.stroke(opts.colour or Theme.stroke, 2, 0.25).Parent = pill
 	B.gradient(Theme.panelAlt, Theme.panel, 90).Parent = pill
 
-	local icon = B.label(opts.icon or "", {
+	B.label(opts.icon or "", {
 		Parent = pill,
 		Size = UDim2.new(0, 34, 1, 0),
 		Position = UDim2.fromOffset(6, 0),

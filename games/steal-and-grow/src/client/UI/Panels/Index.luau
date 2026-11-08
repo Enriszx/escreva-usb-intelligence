@@ -17,7 +17,7 @@ local Rarities = Config.Rarities
 
 local Panel = {}
 
-function Panel.build(parent, app)
+function Panel.build(parent, _app)
 	local panel = C.panel({
 		parent = parent,
 		name = "Index",
@@ -41,7 +41,7 @@ function Panel.build(parent, app)
 		gridGap = UDim2.fromOffset(8, 8),
 	})
 
-	local _, select = C.tabs(tabsHolder, { "Plantas", "Pets" }, function(index)
+	C.tabs(tabsHolder, { "Plantas", "Pets" }, function(index)
 		api.mode = index == 1 and "seeds" or "pets"
 		api.refresh()
 	end)

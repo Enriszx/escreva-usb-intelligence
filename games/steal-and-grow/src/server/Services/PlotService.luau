@@ -13,7 +13,6 @@ local Players = game:GetService("Players")
 local Shared = game:GetService("ReplicatedStorage").Shared
 local Config = require(Shared.Config)
 local Layout = require(Shared.Layout)
-local Economy = require(Shared.Economy)
 local Net = require(Shared.Util.Net)
 local Signal = require(Shared.Util.Signal)
 local Store = require(script.Parent.Parent.Data.Store)

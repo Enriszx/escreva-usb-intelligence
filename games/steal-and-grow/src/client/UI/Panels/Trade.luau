@@ -2,7 +2,6 @@
 -- Trading UI. Mirrors the server's anti-scam rule visibly: any change to
 -- either offer clears both confirmations, and the UI says so out loud.
 
-local Players = game:GetService("Players")
 local Shared = game:GetService("ReplicatedStorage").Shared
 local Config = require(Shared.Config)
 local Net = require(Shared.Util.Net)
@@ -19,7 +18,7 @@ local Rarities = Config.Rarities
 
 local Panel = {}
 
-function Panel.build(parent, app)
+function Panel.build(parent, _app)
 	local panel = C.panel({
 		parent = parent,
 		name = "Trade",
@@ -173,6 +172,29 @@ function Panel.build(parent, app)
 		)
 	end
 
+	-- items the server already resolved; works for either side of the table
+	local function offeredPetLabel(entry)
+		return ("%s%s"):format(entry.name, entry.stars > 0 and (" " .. entry.stars .. "⭐") or "")
+	end
+
+	local function offeredCropLabel(entry)
+		local m = Mutations.label(entry.element, entry.aura)
+		return ("%s%s — %s"):format(
+			m ~= "" and (m .. " ") or "",
+			entry.name,
+			Format.short(entry.value or 0)
+		)
+	end
+
+	local function isOffered(list, field, value)
+		for _, entry in list do
+			if entry[field] == value then
+				return true
+			end
+		end
+		return false
+	end
+
 	local function cropLabel(crop)
 		local seed = Seeds.byId[crop.seed]
 		local m = Mutations.label(crop.element, crop.aura)
@@ -223,61 +245,55 @@ function Panel.build(parent, app)
 		-- my items (not offered yet)
 		local order = 0
 		for _, owned in State.pets do
-			if not owned.equipped and not table.find(trade.yourOffer.pets, owned.uid) then
+			if not owned.equipped and not isOffered(trade.yourOffer.pets, "uid", owned.uid) then
 				order += 1
 				local pet = Pets.byId[owned.id]
-				itemRow(
-					myScroll,
-					petLabel(owned),
-					pet and Rarities.get(pet.rarity).colour or Theme.text,
-					order,
-					function()
-						Net:send("TradeAction", "offer", "pet", owned.uid)
-					end,
-					"+"
-				)
+				local colour = pet and Rarities.get(pet.rarity).colour or Theme.text
+				itemRow(myScroll, petLabel(owned), colour, order, function()
+					Net:send("TradeAction", "offer", "pet", owned.uid)
+				end, "+")
 			end
 		end
 		for index, crop in State.inventory do
-			if not table.find(trade.yourOffer.crops, index) then
+			if not isOffered(trade.yourOffer.crops, "index", index) then
 				order += 1
 				itemRow(myScroll, cropLabel(crop), Theme.coins, order, function()
 					Net:send("TradeAction", "offer", "crop", index)
 				end, "+")
 			end
 		end
-
-		-- on the table (mine, removable)
-		order = 0
-		for _, uid in trade.yourOffer.pets do
-			for _, owned in State.pets do
-				if owned.uid == uid then
-					order += 1
-					itemRow(offerScroll, petLabel(owned), Theme.secondary, order, function()
-						Net:send("TradeAction", "offer", "pet", uid)
-					end, "−")
-				end
-			end
-		end
-		for _, index in trade.yourOffer.crops do
-			local crop = State.inventory[index]
-			if crop then
-				order += 1
-				itemRow(offerScroll, cropLabel(crop), Theme.secondary, order, function()
-					Net:send("TradeAction", "offer", "crop", index)
-				end, "−")
-			end
+		if order == 0 then
+			C.empty(myScroll, "📦", "Nada para oferecer.\nPets equipados não podem ser trocados.")
 		end
 
-		-- theirs (read-only)
+		-- on the table: mine, removable
 		order = 0
-		for _, uid in trade.theirOffer.pets do
+		for _, entry in trade.yourOffer.pets do
 			order += 1
-			itemRow(theirScroll, "Pet oferecido", Theme.steal, order)
+			itemRow(offerScroll, "➡ " .. offeredPetLabel(entry), Theme.secondary, order, function()
+				Net:send("TradeAction", "offer", "pet", entry.uid)
+			end, "−")
 		end
-		for _, index in trade.theirOffer.crops do
+		for _, entry in trade.yourOffer.crops do
 			order += 1
-			itemRow(theirScroll, "Colheita oferecida", Theme.steal, order)
+			itemRow(offerScroll, "➡ " .. offeredCropLabel(entry), Theme.secondary, order, function()
+				Net:send("TradeAction", "offer", "crop", entry.index)
+			end, "−")
+		end
+		if order == 0 then
+			C.empty(offerScroll, "🤝", "Toque em + nos seus itens\npara colocá-los na mesa")
+		end
+
+		-- theirs: read-only, but fully identified. You must be able to see
+		-- exactly what you are receiving before confirming.
+		order = 0
+		for _, entry in trade.theirOffer.pets do
+			order += 1
+			itemRow(theirScroll, offeredPetLabel(entry), Rarities.get(entry.rarity).colour, order)
+		end
+		for _, entry in trade.theirOffer.crops do
+			order += 1
+			itemRow(theirScroll, offeredCropLabel(entry), Rarities.get(entry.rarity).colour, order)
 		end
 		if order == 0 then
 			C.empty(theirScroll, "📦", "Nada oferecido ainda")

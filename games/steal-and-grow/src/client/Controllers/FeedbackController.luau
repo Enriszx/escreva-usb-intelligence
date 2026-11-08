@@ -9,11 +9,8 @@
 --     (no uploaded assets needed to ship) and respects the sfx setting
 --   * particle bursts are skipped entirely on the Potato/Low tiers
 
-local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local SoundService = game:GetService("SoundService")
-local RunService = game:GetService("RunService")
-local Lighting = game:GetService("Lighting")
 
 local Shared = game:GetService("ReplicatedStorage").Shared
 local Config = require(Shared.Config)

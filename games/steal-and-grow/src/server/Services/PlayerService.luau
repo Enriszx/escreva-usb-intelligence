@@ -7,7 +7,6 @@
 -- times a second total instead of thousands of times.
 
 local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
 
 local Shared = game:GetService("ReplicatedStorage").Shared
 local Config = require(Shared.Config)

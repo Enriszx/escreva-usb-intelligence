@@ -17,7 +17,6 @@
 
 local RunService = game:GetService("RunService")
 local Lighting = game:GetService("Lighting")
-local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 
 local Shared = game:GetService("ReplicatedStorage").Shared
@@ -89,9 +88,10 @@ local function applyTier(tier)
 		Lighting.EnvironmentDiffuseScale = 0.55
 	end
 
-	pcall(function()
-		settings().Rendering.QualityLevel = Enum.QualityLevel.Automatic
-	end)
+	-- NOTE: a game script cannot set the client's engine quality level; that
+	-- is the player's own setting. Everything that a game *can* control is
+	-- handled above: shadows, atmosphere, post-processing, fog distance, and
+	-- (via PlotRenderer) plant detail and visible-plant budget.
 
 	GraphicsController.onTierChanged:Fire(tier)
 end

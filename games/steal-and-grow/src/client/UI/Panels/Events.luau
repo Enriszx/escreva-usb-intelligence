@@ -24,7 +24,7 @@ local MOD_LABELS = {
 	stealSpeed = "🥷 Tempo de roubo",
 }
 
-function Panel.build(parent, app)
+function Panel.build(parent, _app)
 	local panel = C.panel({
 		parent = parent,
 		name = "Events",

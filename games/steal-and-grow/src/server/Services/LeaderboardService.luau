@@ -9,7 +9,6 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
 local Shared = game:GetService("ReplicatedStorage").Shared
-local Config = require(Shared.Config)
 local Net = require(Shared.Util.Net)
 local Store = require(script.Parent.Parent.Data.Store)
 

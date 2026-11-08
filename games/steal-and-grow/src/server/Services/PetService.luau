@@ -3,7 +3,6 @@
 -- and the main non-coin multiplier source, which is why fusion exists: it gives
 -- duplicate pets a purpose instead of making a rare drop feel like a dud.
 
-local Players = game:GetService("Players")
 local HttpService = game:GetService("HttpService")
 
 local Shared = game:GetService("ReplicatedStorage").Shared

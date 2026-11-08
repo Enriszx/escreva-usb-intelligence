@@ -95,6 +95,31 @@ python3 scripts/set-ids.py --check      # o que falta configurar
 No Studio, `Config.Balance.studioGrantAll = true` libera todos os passes para
 teste, e `F2` abre o console de admin (`help` lista os comandos).
 
+## Verificação
+
+O que foi efetivamente checado neste repositório:
+
+| Checagem | Ferramenta | Resultado |
+|---|---|---|
+| Sintaxe Luau dos 70 módulos | StyLua 0.20 (feature `luau`) | **0 erros de parse** |
+| Análise estática | selene 0.27 | **0 erros, 0 avisos** |
+| Build do place | Rojo 7.4.4 | **`.rbxl` de 194 KB gerado** |
+| Árvore de instâncias | inspeção do `.rbxlx` | 68 ModuleScripts + Script do servidor + LocalScript do cliente + 5 efeitos de Lighting |
+| `require`, nomes de remote, referências entre serviços, chaves de config | verificador próprio | todos resolvem |
+| Economia (lucro por ciclo, monotonia de coins/s, teto do rebirth) | validador numérico | consistente |
+
+**O que ainda não foi verificado:** o jogo não foi executado dentro do Roblox
+(não há engine aqui). Parse limpo e build válido não provam comportamento em
+runtime. O primeiro passo depois de publicar é `rojo serve` + F5 no Studio.
+
+Para reproduzir:
+
+```bash
+stylua --check src        # sintaxe + formatação
+selene src                # análise estática (precisa de: selene generate-roblox-std)
+./scripts/build.sh        # gera o .rbxl
+```
+
 ## Documentação
 
 - **[docs/PUBLISHING.md](docs/PUBLISHING.md)** — passo a passo do lançamento.

@@ -248,7 +248,6 @@ function StealService:begin(thief: Player, plotId: number, tileIndex: number)
 
 	-- the channel watcher
 	task.spawn(function()
-		local origin = rootOf(thief) and rootOf(thief).Position or ctx.tilePos
 		while true do
 			task.wait(0.15)
 			if channel.cancelled then

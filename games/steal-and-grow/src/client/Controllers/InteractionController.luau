@@ -212,7 +212,7 @@ function InteractionController:resolveContext()
 
 	-- otherwise, the nearest actionable tile
 	local myPlot = State.plotId
-	local best, bestDist, bestPlot, bestTile = nil, math.huge, nil, nil
+	local bestDist, bestPlot, bestTile = math.huge, nil, nil
 	for plotId, snap in State.plots do
 		if snap and snap.owner and snap.owner ~= 0 then
 			local plotPos = Layout.plotOrigin(plotId).Position
@@ -222,7 +222,7 @@ function InteractionController:resolveContext()
 					local tilePos = Layout.tileWorldPosition(plotId, tileIndex)
 					local d = (tilePos - pos).Magnitude
 					if d < 11 and d < bestDist then
-						best, bestDist, bestPlot, bestTile = snap, d, plotId, tileIndex
+						bestDist, bestPlot, bestTile = d, plotId, tileIndex
 					end
 				end
 			end

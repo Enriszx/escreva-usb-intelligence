@@ -14,7 +14,6 @@
 	be swapped or stubbed for a test.
 ]]
 
-local ServerScriptService = game:GetService("ServerScriptService")
 local Players = game:GetService("Players")
 
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")

@@ -100,7 +100,7 @@ function Analytics:start()
 		end
 	end)
 
-	app.GrowthService.onHarvest:Connect(function(player, plant, value)
+	app.GrowthService.onHarvest:Connect(function(player, _plant, _value)
 		session.harvests += 1
 		local profile = Store.get(player.UserId)
 		if profile and profile.stats.harvested == 1 then

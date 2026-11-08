@@ -57,7 +57,7 @@ function Inventory.build(parent, app)
 	})
 	seedGrid.Visible = false
 
-	local _, select = C.tabs(tabsHolder, { "Colheita", "Sementes" }, function(index)
+	local _, selectTab = C.tabs(tabsHolder, { "Colheita", "Sementes" }, function(index)
 		api.mode = index == 1 and "crops" or "seeds"
 		api.refresh()
 	end)
@@ -75,7 +75,7 @@ function Inventory.build(parent, app)
 
 	-- Crops --------------------------------------------------------------
 
-	local function cropRow(crop, index)
+	local function cropRow(crop, index, order)
 		local seed = Seeds.byId[crop.seed]
 		if not seed then
 			return
@@ -95,7 +95,7 @@ function Inventory.build(parent, app)
 			colour = Theme.panelAlt,
 			strokeColour = tint,
 			strokeTransparency = mult > 1 and 0 or 0.4,
-			order = index,
+			order = order,
 			pad = 8,
 		})
 		local swatch = B.new("Frame", {
@@ -262,7 +262,7 @@ function Inventory.build(parent, app)
 					return (a.crop.value or 0) > (b.crop.value or 0)
 				end)
 				for order, entry in sorted do
-					cropRow(entry.crop, entry.index)
+					cropRow(entry.crop, entry.index, order)
 				end
 			end
 			local text = sellAll.Content:FindFirstChild("Text")
@@ -308,7 +308,7 @@ function Inventory.build(parent, app)
 	function api.openPlanting(tileIndex)
 		api.tile = tileIndex
 		api.mode = "seeds"
-		select(2)
+		selectTab(2)
 		panel.open()
 		api.refresh()
 	end

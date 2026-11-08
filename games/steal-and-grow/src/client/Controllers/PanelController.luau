@@ -7,10 +7,8 @@
 -- screen is the only layout that works.
 
 local Shared = game:GetService("ReplicatedStorage").Shared
-local Config = require(Shared.Config)
 local Net = require(Shared.Util.Net)
 local State = require(script.Parent.Parent.State)
-local Theme = Config.Theme
 local PanelController = { name = "PanelController" }
 
 local app

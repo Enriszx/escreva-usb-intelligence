@@ -66,7 +66,7 @@ function Panel.build(parent, app)
 	local petList = B.scroll({ parent = content, gap = 6 })
 	petList.Visible = false
 
-	local _, select = C.tabs(tabsHolder, { "Ovos", "Meus Pets" }, function(index)
+	C.tabs(tabsHolder, { "Ovos", "Meus Pets" }, function(index)
 		api.mode = index == 1 and "eggs" or "pets"
 		api.refresh()
 	end)
@@ -110,7 +110,7 @@ function Panel.build(parent, app)
 			TextSize = Theme.small,
 			TextColor3 = egg.colour,
 		})
-		local bar = B.bar({
+		B.bar({
 			parent = row,
 			size = UDim2.new(1, -200, 0, 18),
 			position = UDim2.fromOffset(56, 26),

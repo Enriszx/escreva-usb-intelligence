@@ -433,7 +433,7 @@ function Build.hub(parent: Instance)
 	end
 
 	-- spawn pad
-	local pad = part({
+	part({
 		parent = hub,
 		size = Vector3.new(16, 0.6, 16),
 		cframe = CFrame.new(0, 1.9, 0),

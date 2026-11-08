@@ -15,7 +15,7 @@ local Balance = Config.Balance
 
 local Panel = {}
 
-function Panel.build(parent, app)
+function Panel.build(parent, _app)
 	local panel = C.panel({
 		parent = parent,
 		name = "Quests",
@@ -39,7 +39,7 @@ function Panel.build(parent, app)
 	local codeList = B.scroll({ parent = content, gap = 8 })
 	codeList.Visible = false
 
-	local _, select = C.tabs(tabsHolder, { "Missões", "Login Diário", "Códigos" }, function(index)
+	C.tabs(tabsHolder, { "Missões", "Login Diário", "Códigos" }, function(index)
 		api.mode = ({ "quests", "daily", "codes" })[index]
 		api.refresh()
 	end)

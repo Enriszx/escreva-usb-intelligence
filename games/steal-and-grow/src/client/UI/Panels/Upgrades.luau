@@ -16,7 +16,7 @@ local Upgrades = Config.Upgrades
 
 local Panel = {}
 
-function Panel.build(parent, app)
+function Panel.build(parent, _app)
 	local panel = C.panel({
 		parent = parent,
 		name = "Upgrades",

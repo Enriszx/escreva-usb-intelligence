@@ -6,13 +6,8 @@
 -- understood that plants become money. So the tutorial is three steps, it is
 -- non-blocking, and it disappears forever once completed.
 
-local Players = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
-
 local Shared = game:GetService("ReplicatedStorage").Shared
 local Config = require(Shared.Config)
-local Economy = require(Shared.Economy)
-local Net = require(Shared.Util.Net)
 local State = require(script.Parent.Parent.State)
 local B = require(script.Parent.Parent.UI.Builder)
 

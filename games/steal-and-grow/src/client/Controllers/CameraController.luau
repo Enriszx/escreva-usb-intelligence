@@ -9,13 +9,10 @@
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local TweenService = game:GetService("TweenService")
-local StarterPlayer = game:GetService("StarterPlayer")
 
 local Shared = game:GetService("ReplicatedStorage").Shared
 local Net = require(Shared.Util.Net)
 local Spring = require(Shared.Util.Spring)
-local State = require(script.Parent.Parent.State)
 
 local CameraController = { name = "CameraController" }
 
@@ -33,7 +30,9 @@ function CameraController:start()
 
 	-- start pulled back so a new player can see their whole farm
 	task.defer(function()
-		local char = player.Character or player.CharacterAdded:Wait()
+		if not player.Character then
+			player.CharacterAdded:Wait()
+		end
 		task.wait(0.4)
 		if camera then
 			camera.FieldOfView = 70

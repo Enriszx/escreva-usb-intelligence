@@ -4,7 +4,6 @@
 
 local Shared = game:GetService("ReplicatedStorage").Shared
 local Config = require(Shared.Config)
-local Economy = require(Shared.Economy)
 local Net = require(Shared.Util.Net)
 local Format = require(Shared.Util.Format)
 local State = require(script.Parent.Parent.Parent.State)
@@ -110,7 +109,7 @@ function Shop.build(parent, app)
 		end
 
 		if locked then
-			local btn = B.button({
+			B.button({
 				parent = row,
 				size = UDim2.fromOffset(196, 42),
 				position = UDim2.new(1, -196, 0, 24),
@@ -190,7 +189,7 @@ function Shop.build(parent, app)
 		-- the paid reroll lives at the bottom of the list, after the player has
 		-- already seen (and been disappointed by) the current stock
 		local reroll = Config.Products.byKey.shopReroll
-		local btn = B.button({
+		B.button({
 			parent = list,
 			size = UDim2.new(1, 0, 0, 52),
 			colour = Theme.steal,

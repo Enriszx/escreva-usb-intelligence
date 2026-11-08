@@ -27,7 +27,7 @@ local Products = Config.Products
 
 local Panel = {}
 
-function Panel.build(parent, app)
+function Panel.build(parent, _app)
 	local panel = C.panel({
 		parent = parent,
 		name = "VipShop",
@@ -49,7 +49,7 @@ function Panel.build(parent, app)
 	local productList = B.scroll({ parent = content, gap = 8 })
 	productList.Visible = false
 
-	local _, select = C.tabs(tabsHolder, { "Passes (permanentes)", "Itens e Moedas" }, function(index)
+	C.tabs(tabsHolder, { "Passes (permanentes)", "Itens e Moedas" }, function(index)
 		api.mode = index == 1 and "passes" or "products"
 		api.refresh()
 	end)
@@ -143,7 +143,6 @@ function Panel.build(parent, app)
 		-- the starter pack is time-gated client-side too, so it does not tease
 		local isStarter = product.key == "starterPack"
 		if isStarter then
-			local firstJoin = State.stats and State.stats.firstJoin
 			-- the server is the authority; we only hide it when clearly expired
 			if State.rebirths and State.rebirths > 0 then
 				return

@@ -8,7 +8,6 @@ local Shared = game:GetService("ReplicatedStorage").Shared
 local Config = require(Shared.Config)
 local Net = require(Shared.Util.Net)
 local Format = require(Shared.Util.Format)
-local State = require(script.Parent.Parent.Parent.State)
 local B = require(script.Parent.Parent.Builder)
 local C = require(script.Parent.Parent.Components)
 
@@ -17,7 +16,7 @@ local Panel = {}
 
 local MEDALS = { "🥇", "🥈", "🥉" }
 
-function Panel.build(parent, app)
+function Panel.build(parent, _app)
 	local panel = C.panel({
 		parent = parent,
 		name = "Leaderboard",
@@ -38,14 +37,10 @@ function Panel.build(parent, app)
 	local list = B.scroll({ parent = content, gap = 5 })
 
 	local KEYS = { "server", "rebirths", "earned", "stolen" }
-	local _, select = C.tabs(
-		tabsHolder,
-		{ "Servidor", "Renascimentos", "Riqueza", "Ladrões" },
-		function(index)
-			api.mode = index
-			api.fetch()
-		end
-	)
+	C.tabs(tabsHolder, { "Servidor", "Renascimentos", "Riqueza", "Ladrões" }, function(index)
+		api.mode = index
+		api.fetch()
+	end)
 
 	local function row(entry, order, mode)
 		local isMe = entry.userId == Players.LocalPlayer.UserId

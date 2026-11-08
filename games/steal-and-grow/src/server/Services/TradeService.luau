@@ -14,8 +14,10 @@ local Players = game:GetService("Players")
 local Shared = game:GetService("ReplicatedStorage").Shared
 local Config = require(Shared.Config)
 local Net = require(Shared.Util.Net)
-local Format = require(Shared.Util.Format)
 local Store = require(script.Parent.Parent.Data.Store)
+
+local Pets = Config.Pets
+local Seeds = Config.Seeds
 
 local TradeService = { name = "TradeService", priority = 13 }
 local app
@@ -44,6 +46,51 @@ local function inRange(a: Player, b: Player): boolean
 	return (ra.Position - rb.Position).Magnitude <= RANGE
 end
 
+--- Turn a raw offer (uids + inventory indices) into self-describing items.
+--- Those raw references live in one player's profile, so the partner's client
+--- cannot resolve them on its own; without this the other half of the table
+--- is opaque and the trade cannot be judged.
+local function resolve(side)
+	local profile = Store.get(side.player.UserId)
+	local pets, crops = {}, {}
+	if not profile then
+		return { pets = pets, crops = crops }
+	end
+	for _, uid in side.offer.pets do
+		for _, owned in profile.pets do
+			if owned.uid == uid then
+				local pet = Pets.byId[owned.id]
+				table.insert(pets, {
+					uid = uid,
+					id = owned.id,
+					name = pet and pet.name or owned.id,
+					rarity = pet and pet.rarity or "Common",
+					stars = owned.stars,
+				})
+				break
+			end
+		end
+	end
+	for _, index in side.offer.crops do
+		local crop = profile.inventory[index]
+		if crop then
+			local seed = Seeds.byId[crop.seed]
+			table.insert(crops, {
+				index = index,
+				seed = crop.seed,
+				name = seed and seed.name or crop.seed,
+				rarity = seed and seed.rarity or "Common",
+				element = crop.element,
+				aura = crop.aura,
+				size = crop.size,
+				giant = crop.giant,
+				value = crop.value,
+			})
+		end
+	end
+	return { pets = pets, crops = crops }
+end
+
 local function push(trade)
 	for _, side in { "a", "b" } do
 		local player = trade[side].player
@@ -53,8 +100,8 @@ local function push(trade)
 				state = trade.state,
 				partner = other.player.DisplayName,
 				partnerId = other.player.UserId,
-				yourOffer = trade[side].offer,
-				theirOffer = other.offer,
+				yourOffer = resolve(trade[side]),
+				theirOffer = resolve(other),
 				youConfirmed = trade[side].confirmed,
 				theyConfirmed = other.confirmed,
 				expiresAt = trade.expiresAt,

@@ -53,7 +53,7 @@ end
 
 local COMMANDS = {}
 
-COMMANDS.help = function(player)
+COMMANDS.help = function(_player)
 	local names = {}
 	for key in COMMANDS do
 		table.insert(names, key)
@@ -118,7 +118,7 @@ COMMANDS.pet = function(player, args)
 	return "Pet entregue"
 end
 
-COMMANDS.event = function(player, args)
+COMMANDS.event = function(_player, args)
 	local key = args[1]
 	if not key or not Config.Events.byKey[key] then
 		local keys = {}
@@ -175,7 +175,7 @@ COMMANDS.tiles = function(player, args)
 	return "Canteiros: " .. profile.tileCount
 end
 
-COMMANDS.reset = function(player, args)
+COMMANDS.reset = function(_player, args)
 	local target = resolve(args[1] or "")
 	if not target then
 		return "Especifique o jogador (isso apaga tudo dele)"
@@ -214,7 +214,7 @@ COMMANDS.stats = function(player, args)
 	)
 end
 
-COMMANDS.announce = function(player, args)
+COMMANDS.announce = function(_player, args)
 	local message = table.concat(args, " ")
 	if message == "" then
 		return "Escreva a mensagem"

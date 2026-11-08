@@ -50,8 +50,7 @@ function Panel.build(parent, app)
 			Font = Theme.fontBody,
 			TextWrapped = true,
 		})
-		local btn
-		btn = B.button({
+		B.button({
 			parent = card,
 			size = UDim2.fromOffset(96, 42),
 			position = UDim2.new(1, -96, 0, 1),
