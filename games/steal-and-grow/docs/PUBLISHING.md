@@ -48,7 +48,7 @@ Preencha exatamente assim:
 |---|---|
 | **Name** | `STEAL_AND_GROW_DEPLOY` |
 | **Access Permissions** → *Select API System* | **`assets`** |
-| **Restrict by Experience** | deixe **ligado** e selecione a sua experiência |
+| **Restrict by Creator** (restringir por criador) | **ligado**, e selecione o dono do jogo: sua conta, ou o grupo |
 | *Select Operations* | marque **`Read`** e **`Write`** (as duas) |
 | **Security** → *Restrict IP addresses* | deixe **desligado** |
 | Expiração | opcional — ver a nota abaixo |
@@ -60,6 +60,23 @@ A chave aparece **uma única vez**. Copie na hora.
 publishing instrui a adicionar `assets` em *Access Permissions* com as
 operações *Read* e *Write*. O endpoint de publicação hoje é a Assets API; o
 antigo `universes/v1/.../places/.../versions` é legado.
+
+**Por que "restringir por criador" e não "por experiência":** cada escopo do
+Open Cloud tem um *target type*, e o do escopo `asset` é **creator** — seus
+identificadores de recurso são `userIds` e `groupIds`, não `universeIds`. É por
+isso que a opção que aparece é por criador: o sistema `assets` não é delimitável
+por experiência. O toggle *Restrict by Experience* só aparece para escopos de
+target `universe` (DataStores, Messaging, etc.).
+
+Deixar desligado resulta em `userIds: ["*"]` e `groupIds: ["*"]` — a chave passa
+a poder escrever assets da sua conta **e** de todo grupo onde você tem
+permissão. Ligado e com um criador selecionado, fica restrito a esse criador.
+
+**Atenção ao alcance real:** mesmo restrita por criador, uma chave com
+`asset:write` pode sobrescrever **qualquer asset daquele criador**, não só este
+place — o Open Cloud não oferece restrição por asset individual. Trate a chave
+como uma credencial de alto privilégio: uma por aplicação, e rotacione se
+houver qualquer suspeita de exposição.
 
 **Por que o IP desligado:** o campo é opcional, e a própria documentação avisa
 para **não** usar restrição de IP quando a chave é usada em places da Roblox.
@@ -163,7 +180,7 @@ para subir sem ir ao ar.
 
 | Sintoma | Causa | Correção |
 |---|---|---|
-| `401 Unauthorized` | falta `assets`, falta operação `Read` ou `Write`, experiência não marcada, chave expirada (inclusive por 60 dias sem uso), ou restrição de IP ativa | recrie a chave conforme o §2 |
+| `401 Unauthorized` | falta `assets`, falta operação `Read` ou `Write`, criador errado em *Restrict by Creator*, chave expirada (inclusive por 60 dias sem uso), ou restrição de IP ativa | recrie a chave conforme o §2 |
 | `403` | Team Create ligado no place | desligue |
 | `400` | Place ID inválido ou arquivo não é um place | confira o ID |
 | `404` | Place ID não existe | confira o ID |
