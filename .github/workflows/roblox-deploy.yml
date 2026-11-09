@@ -30,6 +30,9 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      ROBLOX_API_KEY: ${{ secrets.ROBLOX_API_KEY }}
+      ROBLOX_PLACE_ID: ${{ secrets.ROBLOX_PLACE_ID }}
     defaults:
       run:
         working-directory: games/steal-and-grow
@@ -66,10 +69,8 @@ jobs:
       # drift apart. The script polls the async operation, so a green step
       # means the place really published, not just that the upload was accepted.
       - name: Publish to Roblox
-        if: ${{ env.ROBLOX_API_KEY != '' }}
+        if: ${{ env.ROBLOX_API_KEY != '' && env.ROBLOX_PLACE_ID != '' }}
         env:
-          ROBLOX_API_KEY: ${{ secrets.ROBLOX_API_KEY }}
-          ROBLOX_PLACE_ID: ${{ secrets.ROBLOX_PLACE_ID }}
           PUBLISH: ${{ github.event.inputs.publish || 'true' }}
         run: |
           if [ "$PUBLISH" = "false" ]; then
@@ -79,7 +80,7 @@ jobs:
           fi
 
       - name: Skipped publish notice
-        if: ${{ env.ROBLOX_API_KEY == '' }}
+        if: ${{ env.ROBLOX_API_KEY == '' || env.ROBLOX_PLACE_ID == '' }}
         run: |
-          echo "::warning::ROBLOX_API_KEY não configurado — o place foi construído"
+          echo "::warning::ROBLOX_API_KEY ou ROBLOX_PLACE_ID não configurado — o place foi construído"
           echo "::warning::e salvo como artifact, mas não publicado."

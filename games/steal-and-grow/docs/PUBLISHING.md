@@ -6,7 +6,7 @@ Leitura honesta primeiro: **o que é automatizável e o que não é.**
 |---|---|---|
 | Construir o arquivo `.rbxl` | ✅ sim | `scripts/build.sh` |
 | Publicar/atualizar o place | ✅ sim | `scripts/publish.sh` (Assets API) |
-| Atualizar a cada push | ✅ sim | `.github/workflows/roblox-deploy.yml` |
+| Atualizar a cada push | ✅ sim | `.github/workflows/roblox-deploy.yml` (na raiz do repositório) |
 | **Criar a experiência** | ❌ não | Open Cloud não cria experiências |
 | **Criar gamepasses/produtos** | ❌ não | não existe endpoint público |
 | Ligar os IDs no código | ✅ sim | `scripts/set-ids.py` |
