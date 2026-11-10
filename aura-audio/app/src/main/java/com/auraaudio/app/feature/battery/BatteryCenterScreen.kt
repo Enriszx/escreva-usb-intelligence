@@ -1,12 +1,12 @@
 package com.auraaudio.app.feature.battery
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
@@ -24,6 +24,7 @@ import com.auraaudio.app.AppContainer
 import com.auraaudio.app.data.AuraSettings
 import com.auraaudio.app.designsystem.AuraCard
 import com.auraaudio.app.designsystem.BatteryRing
+import com.auraaudio.app.designsystem.Hairline
 import com.auraaudio.app.designsystem.SectionLabel
 import com.auraaudio.app.feature.common.AuraScaffold
 import kotlinx.coroutines.launch
@@ -36,56 +37,52 @@ fun BatteryCenterScreen(nav: NavController, container: AppContainer) {
     val state by container.tw982.state.collectAsState()
     val settings by container.settings.settings.collectAsState(initial = AuraSettings())
     val scope = rememberCoroutineScope()
-    val fmt = SimpleDateFormat("dd/MM HH:mm:ss", Locale.getDefault())
+    val fmt = SimpleDateFormat("dd/MM 'às' HH:mm", Locale.getDefault())
 
     AuraScaffold(nav, "Battery Center") {
-        Spacer(Modifier.height(10.dp))
+        Spacer(Modifier.height(14.dp))
+
+        // Leitura principal — o valor que o TW982 realmente transmite
         AuraCard {
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-                Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()) {
-                    BatteryRing("Esquerdo", null)
-                    BatteryRing("Fones", if (state.batteryLevel >= 0) state.batteryLevel else null, size = 112.dp)
-                    BatteryRing("Direito", null)
-                }
-                Spacer(Modifier.height(10.dp))
-                Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
-                    BatteryRing("Estojo", null, size = 76.dp)
-                }
-            }
-        }
-
-        AuraCard(modifier = Modifier.padding(top = 12.dp)) {
-            Column {
-                Text("O que é real aqui", style = MaterialTheme.typography.titleMedium)
-                Spacer(Modifier.height(6.dp))
+                BatteryRing("Fones", if (state.batteryLevel >= 0) state.batteryLevel else null, size = 148.dp)
+                Spacer(Modifier.height(14.dp))
                 Text(
-                    buildString {
-                        if (state.batteryLevel >= 0) {
-                            append("• FONES: ${state.batteryLevel}% — valor reportado pelo próprio TW982 via ")
-                            append(state.batterySource ?: "telemetria")
-                            append(", atualizado em ${fmt.format(Date(state.batteryUpdatedAt))}.\n\n")
-                        } else {
-                            append("• FONES: ainda não reportado. O TW982 envia o nível pelo perfil HFP quando conectado.\n\n")
-                        }
-                        append("• ESQUERDO/DIREITO: o TW982 reporta ao Android um único nível (normalmente o menor dos dois fones). ")
-                        append("Níveis individuais só existiriam via protocolo proprietário — rode o Diagnostics para verificar no seu exemplar.\n\n")
-                        append("• ESTOJO: o firmware do TW982 não transmite a carga do estojo ao telefone por nenhum protocolo conhecido. ")
-                        append("O AURA AUDIO não inventa estimativas — o LED físico do estojo é o indicador oficial.")
-                    },
-                    style = MaterialTheme.typography.bodyMedium,
+                    if (state.batteryLevel >= 0)
+                        "Atualizado ${fmt.format(Date(state.batteryUpdatedAt))} · ${state.batterySource}"
+                    else "Aguardando o TW982 reportar o nível (acontece ao conectar)",
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
 
-        SectionLabel("Alertas", Modifier.padding(top = 14.dp))
+        SectionLabel("Leituras individuais", Modifier.padding(top = 18.dp))
+        AuraCard {
+            Column {
+                BatteryDetailRow("Fone esquerdo", "O firmware transmite um único nível combinado")
+                Hairline()
+                BatteryDetailRow("Fone direito", "O firmware transmite um único nível combinado")
+                Hairline()
+                BatteryDetailRow("Estojo (400 mAh)", "Não transmitido ao telefone — o LED físico é o indicador oficial")
+                Spacer(Modifier.height(10.dp))
+                Text(
+                    "Verificado por diagnóstico neste exemplar: o TW982 opera em Bluetooth Classic puro, sem servidor " +
+                        "GATT acessível — não há canal público para níveis separados. O AURA AUDIO mostra apenas o real.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+        SectionLabel("Alertas", Modifier.padding(top = 18.dp))
         AuraCard {
             Column {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text("Alerta de bateria baixa", style = MaterialTheme.typography.titleMedium)
                         Text(
-                            "Notificação quando os fones atingirem ${settings.batteryAlertThreshold}%",
+                            "Notificação ao atingir ${settings.batteryAlertThreshold}%",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -102,17 +99,29 @@ fun BatteryCenterScreen(nav: NavController, container: AppContainer) {
                     enabled = settings.batteryAlertEnabled
                 )
                 Text(
-                    "Os alertas exigem o monitoramento ativo (Settings → Monitorar em segundo plano).",
+                    "Exige o monitoramento em segundo plano (Settings).",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
 
-        Spacer(Modifier.height(12.dp))
-        Button(onClick = { container.tw982.readBattery() }, modifier = Modifier.fillMaxWidth().height(50.dp)) {
+        Spacer(Modifier.height(14.dp))
+        Button(onClick = { container.tw982.readBattery() }, modifier = Modifier.fillMaxWidth().height(52.dp)) {
             Text("Atualizar leitura agora")
         }
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(26.dp))
+    }
+}
+
+@Composable
+private fun BatteryDetailRow(title: String, reason: String) {
+    Row(Modifier.fillMaxWidth().padding(vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+        Column(Modifier.weight(1f)) {
+            Text(title, style = MaterialTheme.typography.titleMedium)
+            Text(reason, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Spacer(Modifier.width(12.dp))
+        Text("—", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }

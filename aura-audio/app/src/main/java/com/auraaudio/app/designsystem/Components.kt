@@ -3,7 +3,9 @@ package com.auraaudio.app.designsystem
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,8 +21,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -31,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -40,115 +41,119 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.Canvas as FCanvas
 
-/** Cartão padrão do design system, com profundidade sutil. */
+/** Cartão AURA: superfície tonal com hairline — profundidade por luz, não por sombra. */
 @Composable
 fun AuraCard(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
     content: @Composable () -> Unit
 ) {
-    val m = if (onClick != null) modifier.clip(RoundedCornerShape(20.dp)).clickable { onClick() } else modifier
-    Card(
-        modifier = m.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = if (LocalDarkTheme.current) 0.dp else 1.dp)
-    ) {
-        Box(Modifier.padding(18.dp)) { content() }
-    }
+    val shape = RoundedCornerShape(24.dp)
+    val base = modifier
+        .fillMaxWidth()
+        .clip(shape)
+        .background(MaterialTheme.colorScheme.surface)
+        .border(BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)), shape)
+    val m = if (onClick != null) base.clickable { onClick() } else base
+    Box(m.padding(20.dp)) { content() }
 }
 
-/** Rótulo de seção em caixa alta, estilo editorial. */
+/** Rótulo de seção editorial. */
 @Composable
 fun SectionLabel(text: String, modifier: Modifier = Modifier) {
     Text(
         text.uppercase(),
         style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = modifier.padding(start = 4.dp, bottom = 8.dp, top = 6.dp)
+        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.9f),
+        modifier = modifier.padding(start = 6.dp, bottom = 10.dp, top = 8.dp)
     )
 }
 
-/** Chip de estado com ponto colorido (Conectado / Desconectado / etc.). */
+/** Chip de estado com ponto. */
 @Composable
 fun StatusChip(text: String, color: Color, modifier: Modifier = Modifier) {
     Surface(
         shape = RoundedCornerShape(50),
-        color = color.copy(alpha = 0.12f),
+        color = color.copy(alpha = 0.10f),
+        border = BorderStroke(1.dp, color.copy(alpha = 0.25f)),
         modifier = modifier
     ) {
         Row(
-            Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+            Modifier.padding(horizontal = 13.dp, vertical = 7.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(Modifier.size(7.dp).clip(CircleShape).background(color))
-            Spacer(Modifier.width(7.dp))
+            Box(Modifier.size(6.dp).clip(CircleShape).background(color))
+            Spacer(Modifier.width(8.dp))
             Text(text, style = MaterialTheme.typography.labelLarge, color = color)
         }
     }
 }
 
-/** Indicador circular de bateria com animação. value = 0..100, null = indisponível. */
+/** Anel de bateria com arco em gradiente champanhe. value = 0..100, null = indisponível. */
 @Composable
 fun BatteryRing(label: String, value: Int?, size: Dp = 92.dp, modifier: Modifier = Modifier) {
     val target = (value ?: 0).coerceIn(0, 100) / 100f
-    val sweep by animateFloatAsState(if (value == null) 0f else target, tween(900), label = "bat")
-    val color by animateColorAsState(
+    val sweep by animateFloatAsState(if (value == null) 0f else target, tween(1100), label = "bat")
+    val arcColor by animateColorAsState(
         when {
             value == null -> MaterialTheme.colorScheme.outline
             value <= 20 -> AuraColors.Danger
             value <= 40 -> AuraColors.Warning
-            else -> AuraColors.Success
+            else -> MaterialTheme.colorScheme.primary
         }, label = "batcolor"
     )
     val track = MaterialTheme.colorScheme.surfaceVariant
     Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         Box(contentAlignment = Alignment.Center) {
             FCanvas(Modifier.size(size)) {
-                val stroke = Stroke(width = size.toPx() * 0.085f, cap = StrokeCap.Round)
-                val inset = stroke.width / 2
-                drawArc(
-                    color = track, startAngle = -90f, sweepAngle = 360f, useCenter = false,
-                    topLeft = Offset(inset, inset),
-                    size = androidx.compose.ui.geometry.Size(this.size.width - stroke.width, this.size.height - stroke.width),
-                    style = stroke
-                )
+                val strokeW = size.toPx() * 0.062f
+                val stroke = Stroke(width = strokeW, cap = StrokeCap.Round)
+                val inset = strokeW / 2
+                val arcSize = androidx.compose.ui.geometry.Size(this.size.width - strokeW, this.size.height - strokeW)
+                drawArc(track, -90f, 360f, false, Offset(inset, inset), arcSize, style = stroke)
                 if (sweep > 0f) drawArc(
-                    color = color, startAngle = -90f, sweepAngle = 360f * sweep, useCenter = false,
-                    topLeft = Offset(inset, inset),
-                    size = androidx.compose.ui.geometry.Size(this.size.width - stroke.width, this.size.height - stroke.width),
-                    style = stroke
+                    Brush.sweepGradient(
+                        0f to arcColor.copy(alpha = 0.55f), 0.5f to arcColor, 1f to arcColor.copy(alpha = 0.55f),
+                        center = Offset(this.size.width / 2, this.size.height / 2)
+                    ),
+                    -90f, 360f * sweep, false, Offset(inset, inset), arcSize, style = stroke
                 )
             }
-            Text(
-                if (value == null) "—" else "$value%",
-                style = MaterialTheme.typography.titleLarge,
-                color = if (value == null) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface
-            )
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    if (value == null) "—" else "$value",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = if (value == null) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface
+                )
+                if (value != null) Text("%", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
         }
-        Spacer(Modifier.height(8.dp))
-        Text(label.uppercase(), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Spacer(Modifier.height(10.dp))
+        Text(label.uppercase(), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
-/** Linha de navegação dentro de cartões. */
+/** Linha de navegação. */
 @Composable
 fun NavRow(icon: ImageVector, title: String, subtitle: String?, onClick: () -> Unit) {
     Row(
         Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
+            .clip(RoundedCornerShape(16.dp))
             .clickable { onClick() }
-            .padding(horizontal = 4.dp, vertical = 12.dp),
+            .padding(horizontal = 4.dp, vertical = 13.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Surface(
-            shape = RoundedCornerShape(12.dp),
-            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
+        Box(
+            Modifier
+                .size(40.dp)
+                .clip(RoundedCornerShape(13.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant),
+            contentAlignment = Alignment.Center
         ) {
-            Icon(icon, null, Modifier.padding(9.dp).size(22.dp), tint = MaterialTheme.colorScheme.primary)
+            Icon(icon, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.primary)
         }
-        Spacer(Modifier.width(14.dp))
+        Spacer(Modifier.width(15.dp))
         Column(Modifier.weight(1f)) {
             Text(title, style = MaterialTheme.typography.titleMedium)
             if (subtitle != null) Text(
@@ -158,12 +163,23 @@ fun NavRow(icon: ImageVector, title: String, subtitle: String?, onClick: () -> U
         }
         Icon(
             Icons.AutoMirrored.Filled.ArrowForwardIos, null,
-            Modifier.size(13.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant
+            Modifier.size(12.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
         )
     }
 }
 
-/** Estado vazio elegante. */
+/** Divisor fino entre linhas de um mesmo cartão. */
+@Composable
+fun Hairline() {
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .height(1.dp)
+            .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
+    )
+}
+
+/** Estado vazio. */
 @Composable
 fun EmptyState(title: String, message: String, modifier: Modifier = Modifier) {
     Column(modifier.fillMaxWidth().padding(28.dp), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -176,10 +192,10 @@ fun EmptyState(title: String, message: String, modifier: Modifier = Modifier) {
     }
 }
 
-/** Par rótulo/valor para fichas técnicas. */
+/** Par rótulo/valor. */
 @Composable
 fun InfoRow(label: String, value: String) {
-    Row(Modifier.fillMaxWidth().padding(vertical = 6.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+    Row(Modifier.fillMaxWidth().padding(vertical = 7.dp), horizontalArrangement = Arrangement.SpaceBetween) {
         Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.width(16.dp))
         Text(value, style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.End, modifier = Modifier.weight(1f, fill = false))

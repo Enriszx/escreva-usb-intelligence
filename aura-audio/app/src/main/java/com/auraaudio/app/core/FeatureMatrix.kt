@@ -51,18 +51,25 @@ object FeatureMatrix {
             "Normalmente é um único valor (o menor dos dois fones). Valores por fone dependem do que o firmware expõe."
         ),
         FeatureEntry(
-            "Bateria esquerda/direita separadas", SupportClass.E,
-            "Só é possível se o firmware expor GATT Battery Service com instâncias múltiplas ou protocolo proprietário.",
-            "BLE GATT 0x180F ou proprietário",
-            "BluetoothGatt",
-            "O diagnóstico verifica no seu aparelho. Sem essa exposição, o app mostra claramente 'indisponível'."
+            "Bateria esquerda/direita separadas", SupportClass.D,
+            "Confirmado por diagnóstico em exemplar real (10/11/2026): o TW982 é Bluetooth Classic puro, sem anúncio BLE nem servidor GATT — não existe canal público para níveis individuais.",
+            "Inexistente neste firmware (verificado)",
+            "BluetoothGatt (sem servidor para conectar)",
+            "O fone transmite um único nível combinado via HFP. O app exibe exatamente isso."
         ),
         FeatureEntry(
-            "Bateria do estojo", SupportClass.E,
-            "O estojo só seria visível se os fones retransmitissem o nível por protocolo proprietário.",
-            "Proprietário (não documentado)",
+            "Bateria do estojo", SupportClass.D,
+            "Confirmado por diagnóstico: sem BLE/GATT e sem retransmissão pelo canal HFP — o estojo não informa carga ao telefone.",
+            "Inexistente neste firmware (verificado)",
             "—",
-            "Nenhum protocolo público conhecido para o AB5656 neste produto. O app nunca estima esse valor."
+            "O LED físico do estojo é o indicador oficial. O app nunca estima esse valor."
+        ),
+        FeatureEntry(
+            "Canal proprietário SPP", SupportClass.E,
+            "O diagnóstico revelou que o TW982 anuncia um canal Serial Port Profile (0x1101) — provavelmente o canal de comunicação do app do fabricante.",
+            "RFCOMM/SPP (protocolo não documentado)",
+            "BluetoothSocket",
+            "Sem documentação do protocolo Bluetrum, o AURA AUDIO não envia comandos às cegas nesse canal — escrita aleatória poderia travar o firmware."
         ),
         FeatureEntry(
             "Play/Pause/Faixas/Volume", SupportClass.B,
@@ -80,10 +87,10 @@ object FeatureMatrix {
         ),
         FeatureEntry(
             "Remapeamento de gestos", SupportClass.E,
-            "Exigiria comando proprietário Bluetrum; não há protocolo público documentado para o AB5656.",
-            "Proprietário (não documentado)",
+            "Exigiria comando proprietário Bluetrum pelo canal SPP identificado no diagnóstico; o protocolo não é documentado publicamente.",
+            "Proprietário via SPP (não documentado)",
             "—",
-            "O diagnóstico procura características graváveis candidatas, mas o app não escreve em características desconhecidas."
+            "Sem especificação do protocolo, o app não escreve comandos desconhecidos no fone."
         ),
         FeatureEntry(
             "Modo jogo (ativação pelo app)", SupportClass.E,

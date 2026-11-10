@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
@@ -68,15 +69,24 @@ fun SplashScreen(nav: NavController, container: AppContainer) {
 
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.alpha(alpha)) {
-            Text("AURA", style = MaterialTheme.typography.displaySmall, color = MaterialTheme.colorScheme.onBackground)
+            Text("AURA", style = MaterialTheme.typography.displayLarge, color = MaterialTheme.colorScheme.onBackground)
+            Spacer(Modifier.height(10.dp))
+            Box(
+                Modifier
+                    .width(44.dp)
+                    .height(1.dp)
+                    .background(MaterialTheme.colorScheme.primary)
+            )
+            Spacer(Modifier.height(10.dp))
             Text(
-                "AUDIO", style = MaterialTheme.typography.displaySmall,
+                "A U D I O",
+                style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.primary
             )
-            Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.height(26.dp))
             Text(
                 "HAVIT TW982 · LIFE 01T",
-                style = MaterialTheme.typography.labelMedium,
+                style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }

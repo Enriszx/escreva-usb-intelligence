@@ -10,75 +10,102 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import com.auraaudio.app.R
 import com.auraaudio.app.data.ThemeMode
 
-// ------- Paleta AURA: sofisticada, sem neon -------
+/**
+ * Identidade visual AURA: estética de áudio premium — neutros quentes,
+ * grafite profundo e um acento champanhe discreto. Sem neon, sem "tech".
+ */
 object AuraColors {
-    // Escuro
-    val InkBlack = Color(0xFF0B0C0F)
-    val Graphite = Color(0xFF14161C)
-    val GraphiteHigh = Color(0xFF1C1F27)
-    val Mist = Color(0xFFE8EAEE)
-    val MistDim = Color(0xFF9AA0AC)
-    val AccentBlue = Color(0xFF8AB4F8)
-    val AccentBlueDeep = Color(0xFF4F76C5)
-    // Claro
-    val Porcelain = Color(0xFFF7F8FA)
-    val CardLight = Color(0xFFFFFFFF)
-    val InkText = Color(0xFF17191E)
-    val InkTextDim = Color(0xFF5B616C)
-    val AccentLight = Color(0xFF3B66B0)
+    // Escuro — grafite quente
+    val Night = Color(0xFF0D0D0F)
+    val Charcoal = Color(0xFF17171B)
+    val CharcoalHigh = Color(0xFF212126)
+    val WarmWhite = Color(0xFFF3F1EC)
+    val WarmGrey = Color(0xFFA3A099)
+    val HairlineDark = Color(0xFF2B2B31)
 
-    val Success = Color(0xFF5BB97E)
-    val Warning = Color(0xFFE0A84E)
-    val Danger = Color(0xFFD96A6A)
+    // Claro — porcelana quente
+    val Porcelain = Color(0xFFFAF8F4)
+    val Paper = Color(0xFFFFFFFF)
+    val PaperTone = Color(0xFFF1EEE8)
+    val Ink = Color(0xFF1C1B18)
+    val InkSoft = Color(0xFF6E6A63)
+    val HairlineLight = Color(0xFFE6E2DA)
+
+    // Acento champanhe (escuro) / bronze (claro)
+    val Champagne = Color(0xFFD3B077)
+    val ChampagneDeep = Color(0xFFB08D55)
+    val Bronze = Color(0xFF8E7244)
+
+    // Semânticas sóbrias
+    val Success = Color(0xFF7CA98A)
+    val Warning = Color(0xFFCfA560)
+    val Danger = Color(0xFFC47B74)
 }
 
 private val DarkScheme: ColorScheme = darkColorScheme(
-    primary = AuraColors.AccentBlue,
-    onPrimary = Color(0xFF0B1018),
-    secondary = AuraColors.AccentBlueDeep,
-    onSecondary = AuraColors.Mist,
-    background = AuraColors.InkBlack,
-    onBackground = AuraColors.Mist,
-    surface = AuraColors.Graphite,
-    onSurface = AuraColors.Mist,
-    surfaceVariant = AuraColors.GraphiteHigh,
-    onSurfaceVariant = AuraColors.MistDim,
-    outline = Color(0xFF2A2E38),
+    primary = AuraColors.Champagne,
+    onPrimary = Color(0xFF17130C),
+    secondary = AuraColors.ChampagneDeep,
+    onSecondary = AuraColors.WarmWhite,
+    background = AuraColors.Night,
+    onBackground = AuraColors.WarmWhite,
+    surface = AuraColors.Charcoal,
+    onSurface = AuraColors.WarmWhite,
+    surfaceVariant = AuraColors.CharcoalHigh,
+    onSurfaceVariant = AuraColors.WarmGrey,
+    outline = AuraColors.HairlineDark,
     error = AuraColors.Danger
 )
 
 private val LightScheme: ColorScheme = lightColorScheme(
-    primary = AuraColors.AccentLight,
+    primary = AuraColors.Bronze,
     onPrimary = Color.White,
-    secondary = AuraColors.AccentBlueDeep,
+    secondary = AuraColors.ChampagneDeep,
     onSecondary = Color.White,
     background = AuraColors.Porcelain,
-    onBackground = AuraColors.InkText,
-    surface = AuraColors.CardLight,
-    onSurface = AuraColors.InkText,
-    surfaceVariant = Color(0xFFEEF0F4),
-    onSurfaceVariant = AuraColors.InkTextDim,
-    outline = Color(0xFFDDE1E8),
+    onBackground = AuraColors.Ink,
+    surface = AuraColors.Paper,
+    onSurface = AuraColors.Ink,
+    surfaceVariant = AuraColors.PaperTone,
+    onSurfaceVariant = AuraColors.InkSoft,
+    outline = AuraColors.HairlineLight,
     error = AuraColors.Danger
 )
 
+/** Manrope variável — a mesma família em todos os pesos. */
+@OptIn(androidx.compose.ui.text.ExperimentalTextApi::class)
+private fun manrope(weight: Int) = Font(
+    R.font.manrope,
+    weight = FontWeight(weight),
+    variationSettings = FontVariation.Settings(FontVariation.weight(weight))
+)
+
+val Manrope = FontFamily(
+    manrope(300), manrope(400), manrope(500), manrope(600), manrope(700), manrope(800)
+)
+
 private val AuraTypography = Typography(
-    displaySmall = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 34.sp, letterSpacing = (-0.5).sp),
-    headlineMedium = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 26.sp, letterSpacing = (-0.3).sp),
-    headlineSmall = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 22.sp),
-    titleLarge = TextStyle(fontWeight = FontWeight.Medium, fontSize = 19.sp),
-    titleMedium = TextStyle(fontWeight = FontWeight.Medium, fontSize = 16.sp, letterSpacing = 0.1.sp),
-    titleSmall = TextStyle(fontWeight = FontWeight.Medium, fontSize = 14.sp, letterSpacing = 0.8.sp),
-    bodyLarge = TextStyle(fontSize = 16.sp, lineHeight = 23.sp),
-    bodyMedium = TextStyle(fontSize = 14.sp, lineHeight = 20.sp),
-    bodySmall = TextStyle(fontSize = 12.sp, lineHeight = 17.sp),
-    labelLarge = TextStyle(fontWeight = FontWeight.Medium, fontSize = 14.sp, letterSpacing = 0.4.sp),
-    labelMedium = TextStyle(fontWeight = FontWeight.Medium, fontSize = 12.sp, letterSpacing = 1.2.sp),
-    labelSmall = TextStyle(fontWeight = FontWeight.Medium, fontSize = 10.sp, letterSpacing = 1.4.sp)
+    displayLarge = TextStyle(fontFamily = Manrope, fontWeight = FontWeight.W300, fontSize = 52.sp, letterSpacing = 6.sp),
+    displaySmall = TextStyle(fontFamily = Manrope, fontWeight = FontWeight.W700, fontSize = 34.sp, letterSpacing = (-0.5).sp),
+    headlineMedium = TextStyle(fontFamily = Manrope, fontWeight = FontWeight.W700, fontSize = 27.sp, letterSpacing = (-0.4).sp),
+    headlineSmall = TextStyle(fontFamily = Manrope, fontWeight = FontWeight.W700, fontSize = 22.sp, letterSpacing = (-0.2).sp),
+    titleLarge = TextStyle(fontFamily = Manrope, fontWeight = FontWeight.W600, fontSize = 19.sp),
+    titleMedium = TextStyle(fontFamily = Manrope, fontWeight = FontWeight.W600, fontSize = 16.sp, letterSpacing = 0.1.sp),
+    titleSmall = TextStyle(fontFamily = Manrope, fontWeight = FontWeight.W600, fontSize = 14.sp, letterSpacing = 0.6.sp),
+    bodyLarge = TextStyle(fontFamily = Manrope, fontWeight = FontWeight.W400, fontSize = 16.sp, lineHeight = 24.sp),
+    bodyMedium = TextStyle(fontFamily = Manrope, fontWeight = FontWeight.W400, fontSize = 14.sp, lineHeight = 21.sp),
+    bodySmall = TextStyle(fontFamily = Manrope, fontWeight = FontWeight.W400, fontSize = 12.sp, lineHeight = 18.sp),
+    labelLarge = TextStyle(fontFamily = Manrope, fontWeight = FontWeight.W600, fontSize = 14.sp, letterSpacing = 0.3.sp),
+    labelMedium = TextStyle(fontFamily = Manrope, fontWeight = FontWeight.W600, fontSize = 11.sp, letterSpacing = 2.2.sp),
+    labelSmall = TextStyle(fontFamily = Manrope, fontWeight = FontWeight.W600, fontSize = 10.sp, letterSpacing = 1.6.sp)
 )
 
 val LocalDarkTheme = staticCompositionLocalOf { true }

@@ -299,7 +299,7 @@ class DiagnosticEngine(private val context: Context, private val scope: Coroutin
 
     fun toJson(rep: Report): String {
         val o = JSONObject()
-        o.put("app", "AURA AUDIO 1.0.0")
+        o.put("app", "AURA AUDIO 1.1.0")
         o.put("device_target", "HAVIT TW982 / LIFE 01T")
         o.put("android_sdk", Build.VERSION.SDK_INT)
         o.put("phone", "${Build.MANUFACTURER} ${Build.MODEL}")

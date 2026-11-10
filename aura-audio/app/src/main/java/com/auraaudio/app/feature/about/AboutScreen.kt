@@ -35,7 +35,7 @@ fun AboutScreen(nav: NavController) {
         SectionLabel("Versão", Modifier.padding(top = 16.dp))
         AuraCard {
             Column {
-                InfoRow("Versão", "1.0.0")
+                InfoRow("Versão", "1.1.0")
                 InfoRow("Dispositivo suportado", "HAVIT TW982 (exclusivo)")
                 InfoRow("Plataforma", "Android 8.0+ · Jetpack Compose")
             }

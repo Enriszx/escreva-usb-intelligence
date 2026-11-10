@@ -60,7 +60,7 @@ fun FeatureMatrixScreen(nav: NavController) {
 
 private fun colorFor(s: SupportClass): Color = when (s) {
     SupportClass.A -> AuraColors.Success
-    SupportClass.B -> AuraColors.AccentBlueDeep
+    SupportClass.B -> AuraColors.ChampagneDeep
     SupportClass.C -> AuraColors.Warning
     SupportClass.D -> AuraColors.Danger
     SupportClass.E -> Color(0xFF9A86C8)
