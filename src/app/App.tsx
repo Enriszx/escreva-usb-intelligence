@@ -49,7 +49,7 @@ function Shell() {
     if (pathname !== '/') document.getElementById('conteudo')?.focus({ preventScroll: true });
   }, [pathname]);
   return (
-    <div className={`app ${pathname === '/' ? 'is-home' : ''}`} data-tone={tone}>
+    <div className={`app ${pathname === '/' ? 'is-home is-home2' : ''}`} data-tone={tone}>
       <a className="skip" href="#conteudo" onClick={(e) => { e.preventDefault(); document.getElementById('conteudo')?.focus(); }}>
         Pular para o conteúdo
       </a>
