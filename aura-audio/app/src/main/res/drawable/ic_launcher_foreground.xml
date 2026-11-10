@@ -1,0 +1,28 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Anel "aura" -->
+    <path
+        android:pathData="M54,30 a24,24 0 1,0 0.001,0 Z M54,38 a16,16 0 1,1 -0.001,0 Z"
+        android:fillColor="#8AB4F8"
+        android:fillType="evenOdd" />
+    <!-- Núcleo -->
+    <path
+        android:pathData="M54,49 a5,5 0 1,0 0.001,0 Z"
+        android:fillColor="#E8EAED" />
+    <!-- Ondas laterais -->
+    <path
+        android:pathData="M24,47 a30,30 0 0,1 0,14"
+        android:strokeColor="#5F7FBF"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000" />
+    <path
+        android:pathData="M84,47 a30,30 0 0,0 0,14"
+        android:strokeColor="#5F7FBF"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000" />
+</vector>
