@@ -6,7 +6,7 @@ const API = 'https://api.github.com/repos/Enriszx/escreva-usb-intelligence/issue
 
 interface Issue { number: number; title: string; state: 'open' | 'closed'; html_url: string; comments: number; updated_at: string }
 
-/** Pedidos de mudança no código: vão para o Claude no GitHub do projeto. */
+/** Pedidos de mudança no código: vão para a equipe do projeto no GitHub. */
 export function ChangeRequests() {
   const [title, setTitle] = useState('');
   const [desc, setDesc] = useState('');
@@ -38,20 +38,20 @@ export function ChangeRequests() {
     <section id="pedidos" className="set-sec set-wide" aria-labelledby="st-ped">
       <h2 id="st-ped" className="h3">Pedidos de mudança no site</h2>
       <p className="hint">
-        Para mudanças que precisam mexer no código (uma página nova, um recurso novo). O pedido vai para o Claude no GitHub do projeto:
-        ele faz, testa e responde no próprio pedido com o link. O assistente também cria pedidos: “quero uma página de contato”.
+        Para mudanças que precisam mexer no código (uma página nova, um recurso novo). O pedido vai para a equipe do projeto no GitHub:
+        a mudança é feita, testada e respondida no próprio pedido com o link. O assistente também cria pedidos: “quero uma página de contato”.
       </p>
       <label className="field" htmlFor="ped-titulo"><span>Título</span><input id="ped-titulo" className="input" value={title} maxLength={120} onChange={(e) => setTitle(e.target.value)} placeholder="Ex.: Página de contato" /></label>
       <label className="field" htmlFor="ped-desc"><span>O que mudar</span><textarea id="ped-desc" className="textarea" value={desc} maxLength={4000} onChange={(e) => setDesc(e.target.value)} placeholder="Descreva onde, o que e como deve ficar." /></label>
       <div className="btn-row">
         {desc.trim() ? (
-          <a className="btn btn-primary btn-sm" href={link} target="_blank" rel="noopener noreferrer"><Send aria-hidden /> Enviar pedido ao Claude</a>
+          <a className="btn btn-primary btn-sm" href={link} target="_blank" rel="noopener noreferrer"><Send aria-hidden /> Enviar pedido à equipe</a>
         ) : (
-          <button className="btn btn-primary btn-sm" disabled title="Descreva o pedido primeiro"><Send aria-hidden /> Enviar pedido ao Claude</button>
+          <button className="btn btn-primary btn-sm" disabled title="Descreva o pedido primeiro"><Send aria-hidden /> Enviar pedido à equipe</button>
         )}
         <button className="btn btn-ghost btn-sm" onClick={load} disabled={loading}><RefreshCw aria-hidden /> {loading ? 'Consultando…' : 'Ver andamento'}</button>
       </div>
-      <p className="hint">No GitHub, toque em “Submit new issue”. Precisa estar logado na conta dona do projeto. Para o Claude responder, o segredo CLAUDE_CODE_OAUTH_TOKEN deve estar configurado (veja o README).</p>
+      <p className="hint">No GitHub, toque em “Submit new issue”. Precisa estar logado na conta dona do projeto. A resposta automática depende da configuração do projeto (veja o README).</p>
       {err && <p className="error-text" role="alert">{err}</p>}
       {list && (list.length ? (
         <ul className="ped-list">

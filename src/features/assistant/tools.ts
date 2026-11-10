@@ -614,7 +614,7 @@ export const TOOLS: AssistantTool[] = [
       const titulo = str(input.titulo).slice(0, 120) || 'Pedido de mudança no site';
       const body = `@claude ${str(input.descricao).slice(0, 4000)}\n\n---\nInstruções: faça a mudança no código deste repositório seguindo o CONTINUIDADE.md, rode \`npm test\`, \`npm run build\` e \`npm run audit\`, abra um pull request e responda aqui com o link. Pedido criado pelo assistente do site.`;
       const url = `${REPO_URL}/issues/new?${new URLSearchParams({ title: `[Pedido] ${titulo}`, body, labels: 'pedido-site' }).toString()}`;
-      return { link: url, instrucao: 'Mostre este link ao usuário como um link Markdown chamado "Enviar pedido ao Claude". Explique: abrir, tocar em "Submit new issue"; o andamento aparece em Configurações → Pedidos de mudança.' };
+      return { link: url, instrucao: 'Mostre este link ao usuário como um link Markdown chamado "Enviar pedido à equipe". Explique: abrir, tocar em "Submit new issue"; o andamento aparece em Configurações → Pedidos de mudança.' };
     },
   },
 ];

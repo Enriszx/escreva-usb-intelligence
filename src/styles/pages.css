@@ -1,5 +1,12 @@
 /* ==================== Abertura ==================== */
-.hero { position: relative; padding: clamp(32px, 6vw, 72px) 0 clamp(24px, 4vw, 48px); }
+.hero { position: relative; padding: clamp(32px, 6vw, 72px) 0 clamp(24px, 4vw, 48px); isolation: isolate; }
+.hero::before {
+  content: ''; position: absolute; inset: -12% -6% 30% -6%; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(50% 58% at 14% 18%, color-mix(in srgb, var(--br-verde) 20%, transparent), transparent 72%),
+    radial-gradient(42% 46% at 86% 8%, color-mix(in srgb, var(--c-sol) 12%, transparent), transparent 72%);
+}
+.hero > .wrap { position: relative; }
 
 /* Avatar do personagem — canto superior esquerdo do hero */
 .home-avatar {
@@ -142,16 +149,21 @@
 }
 .cta .lead { margin-top: 8px; }
 
-.install-cta { padding: 0 var(--page-gutter); margin-top: -8px; }
+.install-cta { padding: 0 var(--gutter); margin-top: -8px; }
 .install-cta-inner {
   display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px;
-  padding: 16px 24px; border-radius: var(--r-3);
-  background: var(--bg-2); border: 1px solid var(--border);
+  max-width: var(--max); margin: 0 auto;
+  padding: 16px 20px; border-radius: var(--r-3);
+  background:
+    radial-gradient(80% 160% at 100% 0%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 60%),
+    var(--bg-2);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-1);
 }
-.install-cta-inner strong { font-size: var(--t-sm); }
-.install-cta-inner p { margin: 2px 0 0; font-size: var(--t-xs); color: var(--muted); }
+.install-cta-inner strong { font-size: var(--t-body); font-family: var(--f-display); font-weight: 700; }
+.install-cta-inner p { margin: 2px 0 0; font-size: var(--t-small); color: var(--fg-2); }
 .install-cta-inner > div { flex: 1 1 220px; }
-.install-cta-inner > small { flex: 0 1 auto; font-size: var(--t-xs); }
+.install-cta-inner > small { flex: 0 1 auto; font-size: var(--t-micro); color: var(--fg-2); }
 @media (max-width: 760px) {
   .install-cta-inner { padding: 14px 16px; }
 }
