@@ -35,6 +35,8 @@ main:focus, main:focus-visible { outline: none; }
 .bb-vignette {
   position: absolute; inset: 0;
   background:
+    radial-gradient(65% 42% at 74% 0%, color-mix(in srgb, #0c3d26 50%, transparent), transparent 60%),
+    radial-gradient(50% 36% at 12% 6%, color-mix(in srgb, #0a2b66 38%, transparent), transparent 62%),
     radial-gradient(120% 85% at 50% 40%, transparent 45%, color-mix(in srgb, var(--bb-vig) 78%, transparent) 100%),
     linear-gradient(180deg, color-mix(in srgb, var(--bb-vig) 20%, transparent) 0%, transparent 18%, transparent 70%, color-mix(in srgb, var(--bb-vig) 70%, transparent) 100%);
 }
@@ -208,15 +210,25 @@ html[data-theme='light'] .bb {
 .page { padding-top: clamp(28px, 5vw, 64px); padding-bottom: var(--s-9); }
 .page-head {
   display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr); gap: 16px 48px; align-items: end;
-  padding: clamp(22px, 3.4vw, 36px); margin-bottom: 28px; position: relative; overflow: hidden;
-  background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--r-4); box-shadow: var(--shadow-1);
-  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  padding: clamp(26px, 3.6vw, 46px); margin-bottom: 28px; position: relative; overflow: hidden; isolation: isolate;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface-solid) 60%, transparent), var(--bg-2));
+  border: 1px solid var(--line); border-radius: var(--r-4); box-shadow: var(--shadow-1);
 }
+/* Aura viva nas cores do Brasil atrás do cabeçalho de cada página. */
 .page-head::before {
-  content: ''; position: absolute; right: -60px; top: -80px; width: 280px; height: 280px; pointer-events: none;
-  background: radial-gradient(closest-side, var(--glow-y), transparent 70%); opacity: 0.6;
+  content: ''; position: absolute; z-index: -1; pointer-events: none;
+  right: -8%; top: -40%; width: 68%; height: 190%;
+  background:
+    radial-gradient(42% 42% at 78% 32%, color-mix(in srgb, #00e676 44%, transparent), transparent 70%),
+    radial-gradient(30% 28% at 96% 6%, color-mix(in srgb, #ffdf00 30%, transparent), transparent 72%),
+    radial-gradient(40% 44% at 68% 88%, color-mix(in srgb, #2b6bff 36%, transparent), transparent 72%);
+  filter: blur(22px); opacity: 0.58; animation: ph-aura 18s var(--ease-io) infinite alternate;
 }
-.page-head .page-n { position: absolute; right: 24px; top: 14px; font-size: clamp(3rem, 2rem + 4vw, 6rem); pointer-events: none; opacity: 0.55; }
+@keyframes ph-aura {
+  from { transform: translate3d(0, 0, 0) scale(1); opacity: 0.48; }
+  to { transform: translate3d(-3%, 2%, 0) scale(1.08); opacity: 0.68; }
+}
+.page-head .page-n { position: absolute; right: 24px; top: 10px; font-size: clamp(3.4rem, 2rem + 4.6vw, 6.6rem); pointer-events: none; opacity: 0.5; }
 .page-head h1 { position: relative; }
 .page-head .lead { position: relative; }
 .page-head .label { position: relative; }
