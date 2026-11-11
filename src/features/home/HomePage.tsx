@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import {
@@ -15,6 +15,8 @@ import { HashPlayground } from './HashPlayground';
 import { formatBytes, pct } from '../../lib/format';
 import { CATEGORY_LABEL, type Category } from '../../lib/analysis/types';
 import '../../styles/home-v2.css';
+
+const HeroMonolith = lazy(() => import('./HeroMonolith'));
 
 /* Amostra FICTÍCIA para a demonstração. Nunca se mistura com os dados do usuário. */
 const DEMO: Record<Category, { bytes: number; count: number }> = {
@@ -61,12 +63,17 @@ export default function HomePage() {
   const rise = (i: number) => (intro
     ? { initial: { opacity: 0, y: 14 }, animate: { opacity: 1, y: 0 }, transition: { delay: 0.04 + i * 0.07, duration: 0.5, ease: [0.16, 1, 0.3, 1] as const } }
     : { initial: false as const });
+  // Tipografia cinética: cada linha do título sobe de dentro de uma máscara.
+  const lineIn = (i: number) => (intro
+    ? { initial: { y: '115%' }, animate: { y: 0 }, transition: { delay: 0.1 + i * 0.1, duration: 0.7, ease: [0.16, 1, 0.3, 1] as const } }
+    : { initial: false as const });
+  const inView = (d = 0) => (reducedMotion
+    ? {}
+    : { initial: { opacity: 0, y: 22 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true, margin: '-80px' }, transition: { duration: 0.6, delay: d, ease: [0.16, 1, 0.3, 1] as const } });
 
   const demoRows = (Object.keys(DEMO) as Category[])
     .map((c) => ({ c, ...DEMO[c] }))
     .sort((a, b) => (view === 'bytes' ? b.bytes - a.bytes : b.count - a.count));
-  const topThree = demoRows.slice(0, 3);
-  const maxBytes = topThree[0]?.bytes ?? 1;
 
   return (
     <div className="home2">
@@ -75,46 +82,36 @@ export default function HomePage() {
         <div className="wrap h2-hero-grid">
           <div className="h2-hero-copy">
             <motion.span className="h2-eyebrow" {...rise(0)}>USB Intelligence · inteligência de arquivos <span>local</span></motion.span>
-            <motion.h1 id="h2-title" className="h2-title" {...rise(1)}>
-              Arquivos sob controle,<br /><em>sem sair do aparelho.</em>
-            </motion.h1>
-            <motion.p className="h2-sub" {...rise(2)}>
+            <h1 id="h2-title" className="h2-title">
+              <span className="h2-line"><motion.span {...lineIn(0)}>Arquivos sob</motion.span></span>
+              <span className="h2-line"><motion.span {...lineIn(1)}>controle,</motion.span></span>
+              <span className="h2-line"><motion.em {...lineIn(2)}>sem sair do aparelho.</motion.em></span>
+            </h1>
+            <motion.p className="h2-sub" {...rise(4)}>
               Leitura, verificação por SHA-256, detecção de cópias e organização do conteúdo de
               qualquer pendrive — com o processamento inteiro no seu dispositivo.
             </motion.p>
-            <motion.div className="h2-actions" {...rise(3)}>
+            <motion.div className="h2-actions" {...rise(5)}>
               <Link to="/automatico" className="h2-btn h2-btn-primary">Começar <ArrowRight aria-hidden /></Link>
               <Link to="/arquivos" className="h2-btn h2-btn-ghost">Abrir a central de arquivos</Link>
             </motion.div>
-            <motion.dl className="h2-facts" {...rise(4)}>
+            <motion.dl className="h2-facts" {...rise(6)}>
               <div className="h2-fact"><dt>Processamento</dt><dd>No aparelho</dd></div>
               <div className="h2-fact"><dt>Verificação</dt><dd>SHA-256</dd></div>
               <div className="h2-fact"><dt>Cofre</dt><dd>AES-256</dd></div>
             </motion.dl>
           </div>
 
-          <motion.div className="h2-panel" {...rise(2)} aria-hidden>
-            <div className="h2-panel-bar">
-              <span className="dot" />
-              <strong>Resultado da análise</strong>
-              <span className="tail">demonstração</span>
-            </div>
-            <div className="h2-panel-body">
-              <div className="h2-readout">
-                <div><span>Arquivos</span><b>{DEMO_TOTAL.count.toLocaleString('pt-BR')}</b></div>
-                <div><span>Recuperável</span><b className="accent">{formatBytes(2_340_000_000)}</b></div>
-              </div>
-              <div className="h2-bars">
-                {topThree.map((d) => (
-                  <div className="h2-bars-row" key={d.c}>
-                    <span className="lbl">{CATEGORY_LABEL[d.c]}</span>
-                    <span className="track"><i style={{ width: `${Math.max(10, (d.bytes / maxBytes) * 100)}%` }} /></span>
-                    <span className="val">{formatBytes(d.bytes)}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="h2-panel-foot"><Fingerprint aria-hidden /> 100% verificado · dados de exemplo, não são seus arquivos</div>
+          <motion.div className="h2-stage" {...rise(3)}>
+            {reducedMotion ? (
+              <div className="h2-stage-fallback" aria-hidden><span /></div>
+            ) : (
+              <Suspense fallback={<div className="h2-stage-fallback" aria-hidden><span /></div>}>
+                <HeroMonolith />
+              </Suspense>
+            )}
+            <div className="h2-stage-chip" aria-hidden><span className="dot" /> Núcleo verificado</div>
+            <span className="h2-stage-hint mono" aria-hidden>mova o cursor</span>
           </motion.div>
         </div>
       </section>
@@ -143,7 +140,7 @@ export default function HomePage() {
             <span className="h2-kicker"><b>01</b> Como funciona</span>
             <h2 id="h2-fluxo" className="h2-h">Do encaixe ao relatório, em seis passos — executados sozinho.</h2>
           </div>
-          <div className="h2-steps">
+          <motion.div className="h2-steps" {...inView()}>
             {FLOW.map((s, i) => (
               <div className="h2-step" key={s.title}>
                 <span className="h2-step-n">{String(i + 1).padStart(2, '0')}</span>
@@ -151,7 +148,7 @@ export default function HomePage() {
                 <span className="h2-step-d">{s.text}</span>
               </div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -214,7 +211,7 @@ export default function HomePage() {
             <span className="h2-kicker"><b>04</b> Plataforma</span>
             <h2 id="h2-areas" className="h2-h">Onde o trabalho acontece.</h2>
           </div>
-          <div className="h2-areas">
+          <motion.div className="h2-areas" {...inView()}>
             {ROUTES.filter((r) => r.path !== '/').map((r) => (
               <Link key={r.path} to={r.path} className="h2-area">
                 <span className="h2-area-n">{r.n}</span>
@@ -223,7 +220,7 @@ export default function HomePage() {
                 <span className="h2-area-d">{r.blurb}</span>
               </Link>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -234,7 +231,7 @@ export default function HomePage() {
             <span className="h2-kicker"><b>05</b> Segurança</span>
             <h2 id="h2-seg" className="h2-h">Feito para dados que importam.</h2>
           </div>
-          <div className="h2-pillars">
+          <motion.div className="h2-pillars" {...inView()}>
             {PILLARS.map((p) => (
               <div className="h2-pillar" key={p.title}>
                 <p.Icon aria-hidden />
@@ -242,7 +239,7 @@ export default function HomePage() {
                 <p>{p.text}</p>
               </div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 

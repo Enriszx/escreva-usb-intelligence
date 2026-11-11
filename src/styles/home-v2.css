@@ -75,6 +75,32 @@
 .h2-sub { font-size: clamp(1rem, 0.96rem + 0.3vw, 1.18rem); line-height: 1.55; color: var(--ink-2); max-width: 44ch; }
 .h2-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
 
+/* Tipografia cinética: cada linha sobe de dentro de uma máscara. */
+.h2-line { display: block; overflow: hidden; padding-bottom: 0.08em; }
+.h2-line > span, .h2-line > em { display: inline-block; will-change: transform; }
+
+/* Palco 3D do hero */
+.h2-stage { position: relative; aspect-ratio: 1 / 1.05; min-height: 340px; }
+.h2-canvas { position: absolute; inset: 0; touch-action: pan-y; }
+.h2-stage-fallback { position: absolute; inset: 0; display: grid; place-items: center; }
+.h2-stage-fallback span {
+  position: relative; width: 86px; height: 200px; border-radius: 18px;
+  background: linear-gradient(160deg, #161d19, #0a0f0d); border: 1px solid var(--edge-2);
+  box-shadow: inset 0 0 44px rgba(53, 217, 138, 0.16), 0 34px 70px -30px #000;
+}
+.h2-stage-fallback span::after {
+  content: ''; position: absolute; left: 50%; top: 16%; width: 5px; height: 68%; transform: translateX(-50%);
+  border-radius: 3px; background: linear-gradient(#0c3d26, #39e38f); box-shadow: 0 0 20px #39e38f;
+}
+.h2-stage-chip {
+  position: absolute; left: 6px; bottom: 12px; display: inline-flex; align-items: center; gap: 8px;
+  padding: 7px 12px; border: 1px solid var(--edge); border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 78%, transparent); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2);
+}
+.h2-stage-chip .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 4px color-mix(in srgb, var(--green) 22%, transparent); }
+.h2-stage-hint { position: absolute; right: 8px; bottom: 16px; font-size: 0.62rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); }
+
 /* Botões v2: sólidos, precisos, sem brilho de "IA". */
 .h2-btn {
   display: inline-flex; align-items: center; gap: 9px; min-height: 48px; padding: 0 22px;
