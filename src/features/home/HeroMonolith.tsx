@@ -1,6 +1,7 @@
 import { Suspense, useMemo, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Environment, Lightformer, Float, Sparkles, RoundedBox, ContactShadows } from '@react-three/drei';
+import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import * as THREE from 'three';
 
 /** Textura radial (glow) desenhada no canvas — brilho aditivo sem postprocessing. */
@@ -84,6 +85,30 @@ function HaloRing() {
   );
 }
 
+/** Fragmentos orbitando nas cores do Brasil — dão vida e profundidade à cena. */
+function Shards() {
+  const ref = useRef<THREE.Group>(null);
+  useFrame((_, dt) => { if (ref.current) ref.current.rotation.y += dt * 0.45; });
+  const items: { pos: [number, number, number]; s: number; c: string }[] = [
+    { pos: [2.3, 0.9, 0.3], s: 0.26, c: '#39e38f' },
+    { pos: [-2.2, -0.5, -0.3], s: 0.2, c: '#ffd23a' },
+    { pos: [1.9, -1.2, -0.7], s: 0.17, c: '#5f86ff' },
+    { pos: [-1.8, 1.3, 0.6], s: 0.14, c: '#5cffab' },
+  ];
+  return (
+    <group ref={ref}>
+      {items.map((it, i) => (
+        <Float key={i} speed={2.2} floatIntensity={1.4} rotationIntensity={1.2}>
+          <mesh position={it.pos}>
+            <octahedronGeometry args={[it.s, 0]} />
+            <meshStandardMaterial color={it.c} emissive={it.c} emissiveIntensity={1.8} metalness={0.4} roughness={0.2} toneMapped={false} />
+          </mesh>
+        </Float>
+      ))}
+    </group>
+  );
+}
+
 function Scene() {
   return (
     <>
@@ -93,14 +118,19 @@ function Scene() {
       <pointLight position={[3, 4, -2]} intensity={24} color="#ffd23a" />
       <Monolith />
       <HaloRing />
-      <Sparkles count={60} scale={[8, 8, 5]} size={1.8} speed={0.3} opacity={0.55} color="#9affd0" />
+      <Shards />
+      <Sparkles count={90} scale={[9, 9, 6]} size={2} speed={0.35} opacity={0.6} color="#9affd0" />
+      <Sparkles count={30} scale={[9, 9, 6]} size={2.4} speed={0.5} opacity={0.5} color="#ffe58a" />
       <ContactShadows position={[0, -2, 0]} opacity={0.6} scale={11} blur={2.8} far={3.2} color="#000000" />
       {/* Reflexos nas cores do Brasil (sem HDR remoto). */}
       <Environment resolution={256}>
-        <Lightformer intensity={3.2} position={[0, 3, 4]} scale={[7, 7, 1]} color="#aaffd6" />
-        <Lightformer intensity={1.6} position={[-4, -1, 2]} scale={[5, 5, 1]} color="#5f86ff" />
-        <Lightformer intensity={1.3} position={[4, 2, -1]} scale={[4, 4, 1]} color="#ffe58a" />
+        <Lightformer intensity={3.4} position={[0, 3, 4]} scale={[7, 7, 1]} color="#aaffd6" />
+        <Lightformer intensity={1.8} position={[-4, -1, 2]} scale={[5, 5, 1]} color="#5f86ff" />
+        <Lightformer intensity={1.5} position={[4, 2, -1]} scale={[4, 4, 1]} color="#ffe58a" />
       </Environment>
+      <EffectComposer multisampling={2}>
+        <Bloom mipmapBlur luminanceThreshold={0.9} luminanceSmoothing={0.3} intensity={1.15} radius={0.72} />
+      </EffectComposer>
     </>
   );
 }
