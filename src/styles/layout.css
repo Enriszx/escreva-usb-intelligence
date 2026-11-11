@@ -229,6 +229,16 @@ html[data-theme='light'] .bb {
   to { transform: translate3d(-3%, 2%, 0) scale(1.08); opacity: 0.68; }
 }
 .page-head .page-n { position: absolute; right: 24px; top: 10px; font-size: clamp(3.4rem, 2rem + 4.6vw, 6.6rem); pointer-events: none; opacity: 0.5; }
+
+/* Momento 3D no cabeçalho (ex.: cristal da Segurança) */
+.page-head-crystal .ph-crystal {
+  position: absolute; z-index: 0; pointer-events: none;
+  right: clamp(-40px, -1vw, 8px); top: 50%; transform: translateY(-50%);
+  width: clamp(190px, 24vw, 330px); aspect-ratio: 1;
+}
+.page-head-crystal > div, .page-head-crystal > .lead { position: relative; z-index: 1; }
+.page-head-crystal .page-n { z-index: 1; }
+@media (max-width: 760px) { .page-head-crystal .ph-crystal { right: -70px; opacity: 0.5; } }
 .page-head h1 { position: relative; }
 .page-head .lead { position: relative; }
 .page-head .label { position: relative; }

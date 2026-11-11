@@ -1,16 +1,20 @@
-import { useCallback, useEffect, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { HashTool } from './HashTool';
 import { IntegrityRefs } from './IntegrityRefs';
 import { VaultTool } from './VaultTool';
 import { listIntegrityRefs, type IntegrityRef } from '../../lib/storage/repos';
 import { useDocumentTitle } from '../../app/hooks';
+import { useSettings } from '../../app/settings';
 import { Topo } from '../../components/ui/Topo';
 import { StorageInfo } from '../settings/StorageInfo';
 import './security.css';
 
+const SecurityCrystal = lazy(() => import('./SecurityCrystal'));
+
 export default function SecurityPage() {
   useDocumentTitle('Segurança');
+  const { reducedMotion } = useSettings();
   const [refs, setRefs] = useState<IntegrityRef[]>([]);
   const [error, setError] = useState<string | null>(null);
   const reload = useCallback(() => {
@@ -23,7 +27,12 @@ export default function SecurityPage() {
     <div className="page sec-page">
       <Topo seed={44} levels={9} className="sec-topo" />
       <div className="wrap">
-        <header className="page-head">
+        <header className="page-head page-head-crystal">
+          {!reducedMotion && (
+            <div className="ph-crystal" aria-hidden>
+              <Suspense fallback={null}><SecurityCrystal /></Suspense>
+            </div>
+          )}
           <span className="page-n outline-num" aria-hidden>05</span>
           <div>
             <span className="label">Segurança e integridade</span>
