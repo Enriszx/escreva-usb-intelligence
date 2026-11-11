@@ -233,12 +233,14 @@ html[data-theme='light'] .bb {
 /* Momento 3D no cabeçalho (ex.: cristal da Segurança) */
 .page-head-crystal .ph-crystal {
   position: absolute; z-index: 0; pointer-events: none;
-  right: clamp(-40px, -1vw, 8px); top: 50%; transform: translateY(-50%);
-  width: clamp(190px, 24vw, 330px); aspect-ratio: 1;
+  right: clamp(-40px, -1vw, 8px); top: 40%; transform: translateY(-50%);
+  width: clamp(185px, 23vw, 320px); aspect-ratio: 1;
 }
 .page-head-crystal > div, .page-head-crystal > .lead { position: relative; z-index: 1; }
 .page-head-crystal .page-n { z-index: 1; }
-@media (max-width: 760px) { .page-head-crystal .ph-crystal { right: -70px; opacity: 0.5; } }
+@media (max-width: 760px) {
+  .page-head-crystal .ph-crystal { top: 2px; right: -46px; transform: none; width: 172px; opacity: 0.38; }
+}
 .page-head h1 { position: relative; }
 .page-head .lead { position: relative; }
 .page-head .label { position: relative; }
