@@ -32,7 +32,7 @@
   --c-rede-claro: #7aa7ff;  /* azul legível sobre escuro */
 
   /* Tipografia */
-  --f-display: 'Plus Jakarta Sans Variable', 'Inter Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --f-display: 'Bricolage Grotesque Variable', 'Plus Jakarta Sans Variable', 'Inter Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --f-text: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --f-mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Mono', monospace;
 
@@ -52,12 +52,12 @@
   --gutter: clamp(16px, 4vw, 48px);
   --max: 1280px;
 
-  /* Bordas arredondadas, modernas */
+  /* Bordas: cantos contidos, precisos (direção editorial) */
   --r-0: 0;
-  --r-1: 8px;
-  --r-2: 12px;
-  --r-3: 18px;
-  --r-4: 26px;
+  --r-1: 6px;
+  --r-2: 8px;
+  --r-3: 11px;
+  --r-4: 15px;
   --r-pill: 999px;
   --hair: 1px;
 
@@ -76,26 +76,26 @@
   --tab-h: 64px;
 }
 
-/* ---------- Tema escuro (padrão): verde-mata profundo ---------- */
+/* ---------- Tema escuro (padrão): near-black editorial, base do Brasil ---------- */
 [data-tone] {
-  --bg: var(--c-grafite);
-  --bg-2: rgba(12, 34, 25, 0.72);      /* cartão (vidro) */
-  --bg-3: rgba(255, 255, 255, 0.07);   /* poço, trilho, campo */
-  --surface-solid: #0b1f16;
-  --fg: #f2f7f3;
-  --fg-2: var(--c-cinza);
-  --accent: var(--c-sol); --accent-fg: #0b1a00;
-  --signal: var(--c-sinal);
-  --line: rgba(255, 255, 255, 0.09); --line-strong: rgba(255, 255, 255, 0.22);
-  --topo: rgba(47, 213, 127, 0.08);
-  --glow-y: rgba(255, 223, 0, 0.28);
-  --glow-g: rgba(0, 156, 59, 0.35);
-  --glow-b: rgba(29, 78, 216, 0.35);
-  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px -12px rgba(0, 0, 0, 0.55);
-  --shadow-2: 0 2px 6px rgba(0, 0, 0, 0.3), 0 24px 60px -24px rgba(0, 0, 0, 0.7);
+  --bg: #090b0a;
+  --bg-2: #0f1211;                     /* cartão (superfície sólida, hairline) */
+  --bg-3: rgba(255, 255, 255, 0.045);  /* poço, trilho, campo */
+  --surface-solid: #0f1211;
+  --fg: #f3f6f3;
+  --fg-2: #99a39b;
+  --accent: #00d264; --accent-fg: #042014;   /* verde Brasil = ação */
+  --signal: #35d98a;
+  --line: rgba(255, 255, 255, 0.08); --line-strong: rgba(255, 255, 255, 0.15);
+  --topo: rgba(53, 217, 138, 0.07);
+  --glow-y: rgba(0, 210, 100, 0.30);          /* brilho do botão primário: verde */
+  --glow-g: rgba(0, 200, 90, 0.35);
+  --glow-b: rgba(43, 107, 255, 0.32);
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 28px -14px rgba(0, 0, 0, 0.7);
+  --shadow-2: 0 2px 6px rgba(0, 0, 0, 0.35), 0 30px 70px -28px rgba(0, 0, 0, 0.85);
   --ink-ok: var(--c-sinal); --ink-warn: var(--c-sol); --ink-err: var(--c-erro); --ink-info: var(--c-rede-claro);
-  --cat-1: #3987e5; --cat-2: #d95926; --cat-3: #199e70; --cat-4: #c98500; --cat-5: #d55181; --cat-6: #008300; --cat-7: #9085e9; --cat-0: #7f8a83;
-  --st-ok: #2fd57f; --st-warn: #ffdf00; --st-err: #ff7a66;
+  --cat-1: #3987e5; --cat-2: #d95926; --cat-3: #199e70; --cat-4: #c98500; --cat-5: #d55181; --cat-6: #00a84a; --cat-7: #9085e9; --cat-0: #7f8a83;
+  --st-ok: #35d98a; --st-warn: #ffdf00; --st-err: #ff7a66;
 }
 
 /* ---------- Tema claro: branco e verde ---------- */

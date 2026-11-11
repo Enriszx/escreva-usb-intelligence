@@ -36,7 +36,6 @@
     linear-gradient(180deg, transparent 60%, #090b0a 100%);
 }
 .app.is-home2 .site-header { background: color-mix(in srgb, #090b0a 80%, transparent); border-bottom-color: var(--edge); }
-.app.is-home2 .site-header::after { opacity: 0; }
 
 /* Grão/textura muito sutil por cima de tudo (sem agredir). */
 .home2::before {

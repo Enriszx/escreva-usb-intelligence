@@ -19,9 +19,12 @@ main:focus, main:focus-visible { outline: none; }
 .bb-mid { transform: translate3d(calc(var(--mx) * -14px), calc(var(--my) * -10px + var(--sy) * -50px), 0) scale(calc(1 + var(--sy) * 0.04)); }
 .bb-front { transform: translate3d(calc(var(--mx) * -26px), calc(var(--my) * -18px + var(--sy) * -90px), 0) rotate(calc(var(--sy) * 8deg)); }
 .bb-rh-fill { fill-opacity: var(--bb-rh-op); }
-/* Fora da página inicial o fundo fica mais calmo: o conteúdo é o protagonista. */
-.app:not(.is-home) .bb-front { opacity: 0.45; }
-.app:not(.is-home) .bb-mid { opacity: 0.7; }
+/* Direção editorial: a bandeira agitada sai de cena em todas as páginas.
+   Fica o near-black com uma aura sutil nas cores do Brasil (bb-vignette). */
+.bb-front { display: none; }
+.bb-mid { opacity: 0.22; }
+.bb-back { opacity: 0.4; }
+.app.is-home .bb-mid { opacity: 0.3; }
 .bb-rh-stroke { opacity: var(--bb-rh-line-op); }
 .bb-rh-inner { opacity: 0.22; }
 .bb-globe { opacity: var(--bb-globe-op); }
@@ -63,8 +66,8 @@ html[data-theme='light'] .bb {
   border-bottom: 1px solid var(--line);
 }
 .site-header::after {
-  content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; pointer-events: none;
-  background: linear-gradient(90deg, var(--br-verde) 0 33%, var(--br-amarelo) 33% 66%, #2c5be0 66% 100%); opacity: 0.85;
+  content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; pointer-events: none;
+  background: linear-gradient(90deg, transparent, var(--br-verde) 20%, var(--br-amarelo) 50%, #2c5be0 80%, transparent); opacity: 0.5;
 }
 .brand { text-decoration: none; display: flex; align-items: center; min-height: 44px; border-radius: 10px; }
 .wordmark { display: inline-flex; align-items: center; gap: 10px; }
