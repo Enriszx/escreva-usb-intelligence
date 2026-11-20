@@ -111,7 +111,7 @@ Legenda em minúsculas e sem pontuação (como na referência), sempre batendo c
 |---|---|---|---|---|
 | 37.53 |  |  |  | zoom 1.00 (snap) |
 | 37.80 |  |  |  | plaquinha **Gustavo** |
-| 37.96 | apesar de ? | média branca | peito |  |
+| 37.96 | apesar de | média branca | peito |  |
 | 39.08 | tudo isso | média branca | peito |  |
 | 39.60 | temos | pequena | peito |  |
 | 39.60 |  |  |  | card `importer` entra (dir), sai 44.6 |
@@ -184,5 +184,5 @@ Legenda em minúsculas e sem pontuação (como na referência), sempre batendo c
 | 61.10 |  |  |  | zoom 1.25 (punch) |
 | 61.42 | maneira | pequena | peito |  |
 | 61.70 | clara / *e visual* | **DESTAQUE** | peito |  |
-| 62.60 |  |  |  | card `logo` entra (centro), sai 63.53 |
+| 62.60 |  |  |  | card `logo` entra (centro), sai 65.53 |
 | 62.60 |  |  |  | zoom 1.00 (punch) |

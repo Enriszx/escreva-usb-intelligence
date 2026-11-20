@@ -5,7 +5,7 @@ import json
 # cena: (início, fim, pessoa, cor de destaque, altura da legenda no peito 0-1)
 CENAS = [
     (0.00, 4.50, "Fábio (bike)", "#C9D65A", 0.62),
-    (4.50, 13.23, "Fábio (deitado)", "#C9D65A", 0.30),
+    (4.50, 13.23, "Fábio (deitado)", "#C9D65A", 0.34),
     (13.23, 18.07, "Higor (plano A)", "#4FB3E8", 0.76),
     (18.07, 22.47, "Higor (plano B)", "#4FB3E8", 0.70),
     (22.47, 37.53, "Marielly", "#F2C38B", 0.80),
@@ -49,7 +49,7 @@ L = [
     ("para o", 35.08, "P"),
     ("computador|em breve", 35.36, "K", {"t2": 35.6, "fim": 36.8}),
     # Gustavo
-    ("apesar de", 37.96, "M", {"flag": "?"}), ("tudo isso", 39.08, "M"), ("temos", 39.60, "P"),
+    ("apesar de", 37.96, "M"), ("tudo isso", 39.08, "M"), ("temos", 39.60, "P"),
     ("aplicações", 39.78, "P"), ("que podem", 40.26, "P"), ("funcionar", 40.54, "P"),
     ("sem internet", 40.94, "K", {"fica_no_topo_ate": 44.9}),
     ("com acesso", 41.58, "P"), ("para qualquer", 42.42, "P"), ("usuário", 42.96, "P"),
@@ -84,7 +84,7 @@ CARDS = [
     ("library", 33.2, 36.4, "esq"),              # "mesma experiência para computador" (tela de computador)
     ("importer", 39.6, 44.6, "dir"),             # "funcionar sem internet" (selo Offline)
     ("ai", 46.0, 50.4, "dir"),                   # "inteligência artificial ... opcional"
-    ("logo", 62.6, 63.53, "centro"),             # encerramento, fundo desfocado
+    ("logo", 62.6, 65.53, "centro"),             # encerramento, fundo desfocado (+2 s de quadro congelado)
 ]
 
 # Zoom de câmera: (tempo, nível, tipo) tipo: snap = 1,3 -> nível em 7 quadros; punch = seco em 4 quadros
@@ -111,11 +111,12 @@ leg = []
 for i, it in enumerate(L):
     txt, t0, tipo = it[:3]; o = it[3] if len(it) > 3 else {}
     nxt = L[i + 1][1] if i + 1 < len(L) else t0 + 1.0
-    t1 = o.get("fim", nxt if nxt - t0 < 1.6 else t0 + 1.2)
+    lim, dur = (2.6, 1.8) if tipo in "KC" else (1.6, 1.2)
+    t1 = o.get("fim", nxt if nxt - t0 < lim else t0 + dur)
     c = cena(t0)
     leg.append({"txt": txt, "t0": t0, "t1": round(t1, 2), "tipo": tipo, "cor": c[3], "y": c[4], **o})
 
-json.dump({"cenas": CENAS, "legenda": leg, "nomes": NOMES, "cards": CARDS, "zoom": ZOOM},
+json.dump({"fim_video": 63.53, "congela": 2.0, "cenas": CENAS, "legenda": leg, "nomes": NOMES, "cards": CARDS, "zoom": ZOOM},
           open("mapa.json", "w"), ensure_ascii=False, indent=1)
 
 TIPO = {"P": "pequena", "M": "média branca", "K": "**DESTAQUE**", "C": "**colorida palavra a palavra**"}

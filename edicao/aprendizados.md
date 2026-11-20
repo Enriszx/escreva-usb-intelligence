@@ -13,4 +13,7 @@ Cada feedback do Enrique fica anotado aqui. Ele marca o que vira **regra fixa**.
 | 7 | Destaques | Todos os destaques sugeridos aprovados; palavra-chave fixa no topo liberada; cor palavra a palavra com moderação. | a decidir |
 | 8 | Abertura | Não precisa de título escrito na abertura. | a decidir |
 | 9 | Nomes | Plaquinha com o nome de cada pessoa: sim. Logo junto de "USB Intelligence": sim. | a decidir |
-| 10 | Cards | Números ilustrativos dos cards: não ficam (confirmar o que entra no lugar). | a decidir |
+| 10 | Cards | (corrigido no item 12) | — |
+| 11 | Transcrição | Gustavo fala "Apesar de tudo isso" (vale o áudio). | — |
+| 12 | Cards | Números ilustrativos dos cards podem ficar. | a decidir |
+| 13 | Final | Congelar o último quadro +2 s para o logo final respirar. | a decidir |
