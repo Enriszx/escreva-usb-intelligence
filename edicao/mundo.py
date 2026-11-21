@@ -31,6 +31,55 @@ def person_mask(i, t):
 
 def clampf(x, a, b): return max(a, min(b, x))
 
+class Layer:
+    """camada do mundo: cor pré-multiplicada P, alfa A e escurecimento D (sombras)."""
+    def __init__(self, h, w):
+        self.P = np.zeros((h, w, 3), np.float32); self.A = np.zeros((h, w, 1), np.float32); self.D = np.ones((h, w, 1), np.float32)
+
+def blend(tg, ya, yb, xa, xb, rgb, aa):
+    """aplica 'over' com alfa aa (h,w,1) e cor rgb (h,w,3 ou 3) em srcf ou Layer."""
+    if isinstance(tg, Layer):
+        tg.P[ya:yb, xa:xb] = tg.P[ya:yb, xa:xb] * (1 - aa) + rgb * aa
+        tg.A[ya:yb, xa:xb] = tg.A[ya:yb, xa:xb] * (1 - aa) + aa
+    else:
+        tg[ya:yb, xa:xb] = tg[ya:yb, xa:xb] * (1 - aa) + rgb * aa
+
+def darken(tg, ya, yb, xa, xb, s):
+    if isinstance(tg, Layer): tg.D[ya:yb, xa:xb] *= (1 - s)
+    else: tg[ya:yb, xa:xb] *= (1 - s)
+
+_BG = None   # quadro original (para luz de borda)
+
+# ---------- tracking de câmera (homografias por cena, de camtrack.json)
+_CT = None
+def cam_H(i):
+    global _CT
+    if _CT is None:
+        _CT = json.load(open("camtrack.json"))
+        _CT = [(d["i0"], [np.array(h, np.float64) for h in d["H"]]) for _, d in sorted(_CT.items(), key=lambda kv: int(kv[0]))]
+    for i0, Hs in reversed(_CT):
+        if i >= i0:
+            k = min(i - i0, len(Hs) - 1); S = np.diag([R.SW / 960, R.SH / 540, 1.0])
+            return i0, S @ Hs[k] @ np.linalg.inv(S)
+    return 0, np.eye(3)
+
+def track_G(td, t):
+    """homografia que leva a posição desenhada no instante td para o quadro do instante t (mesma cena)."""
+    i = min(int(round(t * R.FPS)), R.NF - 1); j = min(int(round(td * R.FPS)), R.NF - 1)
+    a, Hi = cam_H(i); b, Hj = cam_H(j)
+    if a != b: return np.eye(3)
+    return Hi @ np.linalg.inv(Hj)
+
+def apply_layer(srcf, L, G):
+    if not np.allclose(G, np.eye(3), atol=1e-4):
+        sz = (R.SW, R.SH)
+        P = cv2.warpPerspective(L.P, G, sz, flags=cv2.INTER_LINEAR)
+        A = cv2.warpPerspective(L.A, G, sz, flags=cv2.INTER_LINEAR)[..., None]
+        D = cv2.warpPerspective(L.D, G, sz, flags=cv2.INTER_LINEAR, borderValue=1.0)[..., None]
+    else: P, A, D = L.P, L.A, L.D
+    srcf *= D
+    srcf[:] = srcf * (1 - A) + P
+
 # ------------------------------------------------------------ utilidades de composição
 def premul_blur(img, sig):
     if sig < .3: return img
@@ -61,7 +110,8 @@ def light_wrap(srcf, spr, x0, y0, k=.45):
     h, w = spr.shape[:2]
     xa, ya = max(0, x0), max(0, y0); xb, yb = min(R.SW, x0 + w), min(R.SH, y0 + h)
     if xa >= xb or ya >= yb: return spr
-    bg = np.zeros((h, w, 3), np.float32); bg[ya - y0:yb - y0, xa - x0:xb - x0] = srcf[ya:yb, xa:xb]
+    src = _BG if _BG is not None else srcf
+    bg = np.zeros((h, w, 3), np.float32); bg[ya - y0:yb - y0, xa - x0:xb - x0] = src[ya:yb, xa:xb]
     bg = cv2.GaussianBlur(bg, (0, 0), 10 * R.SS)
     a = spr[..., 3]; inner = cv2.GaussianBlur(a, (0, 0), 6 * R.SS)
     edge = np.clip(a - inner, 0, 1)[..., None] * 2.2
@@ -74,7 +124,7 @@ def comp(srcf, spr, x0, y0, alpha=1.0, clip_y=None):
     if clip_y is not None: yb = min(yb, int(clip_y))
     if xa >= xb or ya >= yb: return
     s = spr[ya - y0:yb - y0, xa - x0:xb - x0]; a = s[..., 3:4] * alpha
-    srcf[ya:yb, xa:xb] = srcf[ya:yb, xa:xb] * (1 - a) + s[..., :3] * a
+    blend(srcf, ya, yb, xa, xb, s[..., :3], a)
 
 def shade(srcf, sh, x0, y0, op):
     """escurece (sombra) com um mapa de alfa."""
@@ -82,7 +132,7 @@ def shade(srcf, sh, x0, y0, op):
     xa, ya = max(0, x0), max(0, y0); xb, yb = min(R.SW, x0 + w), min(R.SH, y0 + h)
     if xa >= xb or ya >= yb: return
     s = sh[ya - y0:yb - y0, xa - x0:xb - x0, None] * op
-    srcf[ya:yb, xa:xb] *= (1 - s)
+    darken(srcf, ya, yb, xa, xb, s)
 
 def project_plane(img, wpx, ry, rx, rz=0.0, f=1600.0):
     """projeta um plano (card) girado; devolve imagem deformada e os 4 cantos relativos ao centro."""
@@ -208,7 +258,7 @@ def draw_phone(srcf, t, i):
         x_, y_ = int(bx - hl.shape[1] / 2), int(wy - hl.shape[0] / 2 + 2 * R.SS)
         xa, ya = max(0, x_), max(0, y_); xb, yb = min(R.SW, x_ + hl.shape[1]), min(R.SH, y_ + hl.shape[0])
         if xa < xb and ya < yb:
-            aa = hl[ya - y_:yb - y_, xa - x_:xb - x_, None]; srcf[ya:yb, xa:xb] = srcf[ya:yb, xa:xb] * (1 - aa) + .92 * aa
+            aa = hl[ya - y_:yb - y_, xa - x_:xb - x_, None]; blend(srcf, ya, yb, xa, xb, .92, aa)
     else:
         comp(srcf, out, x0, y0, clip_y=wy + 2 * R.SS)          # ainda caindo: some ao tocar a água
     return True
@@ -221,21 +271,26 @@ def draw_particles(srcf, t, i):
     if e < 0 or t >= PH_PLANES[0][1]: return
     (bx, wy), hfrac = PH_PLANES[0][2], PH_PLANES[0][3]
     bx *= R.SW; wy *= R.SH; hpx = hfrac * R.SH; wpx = hpx * .476
-    # ondas: anéis elípticos que se abrem (perspectiva achatada) por ~3 s
-    for k in range(5):
-        tk = e - k * .32
-        if not (0 < tk < 3.0): continue
-        rad = wpx * .40 + tk * 240 * R.SS; a = .22 * (1 - tk / 3.0) ** 1.5
-        rx, ry_ = int(rad), max(2, int(rad * .10))
-        pad = 6; m = np.zeros((2 * ry_ + 2 * pad, 2 * rx + 2 * pad), np.float32)
-        cv2.ellipse(m, (rx + pad, ry_ + pad), (rx, ry_), 0, 0, 360, 1.0, max(1, int(2 * R.SS)), cv2.LINE_AA)
-        m = cv2.GaussianBlur(m, (0, 0), 1.0 * R.SS)
-        m[: ry_ + pad - int(ry_ * .15)] *= .35                  # a parte de trás do anel some atrás do celular/fica mais fraca
-        x_, y_ = int(bx - rx - pad), int(wy - ry_ - pad + 4 * R.SS)
-        xa, ya = max(0, x_), max(0, y_); xb, yb = min(R.SW, x_ + m.shape[1]), min(R.SH, y_ + m.shape[0])
-        if xa < xb and ya < yb:
-            aa = m[ya - y_:yb - y_, xa - x_:xb - x_, None] * a
-            srcf[ya:yb, xa:xb] = srcf[ya:yb, xa:xb] * (1 - aa) + .85 * aa
+    # lâminas de água subindo dos dois lados (coroa do respingo)
+    if False:  # lâminas procedurais desligadas (pareciam falsas)
+        for side in (-1, 1):
+            hs = .20 * R.SH * math.sin(math.pi * min(1.0, e / .75)) ** .8
+            if hs < 4: continue
+            n = 24; xs = np.linspace(0, 1, n)
+            outer = [(bx + side * (wpx * .45 + u * wpx * (.35 + .6 * e)), wy - hs * math.sin(math.pi * (.15 + .85 * u)) * (1 - .35 * u)) for u in xs]
+            inner = [(bx + side * (wpx * .45 + u * wpx * (.25 + .45 * e)), wy - hs * .55 * math.sin(math.pi * (.15 + .85 * u))) for u in xs[::-1]]
+            poly = np.array(outer + inner, np.float32)
+            x0, y0 = int(poly[:, 0].min()) - 8, int(poly[:, 1].min()) - 8
+            x1, y1 = int(poly[:, 0].max()) + 9, int(poly[:, 1].max()) + 9
+            m = np.zeros((y1 - y0, x1 - x0), np.float32)
+            cv2.fillPoly(m, [(poly - [x0, y0]).astype(np.int32)], 1.0, cv2.LINE_AA)
+            m = cv2.GaussianBlur(m, (0, 0), 3 * R.SS)
+            # textura de água: estrias verticais irregulares
+            tex = np.clip(.55 + .45 * np.sin(np.arange(m.shape[1])[None, :] / (3.1 * R.SS) + rng(5).uniform(0, 6)) * np.cos(np.arange(m.shape[0])[:, None] / (7.0 * R.SS)), 0, 1)
+            al = m * tex * .42 * clampf(1 - e / .75, 0, 1) ** .7
+            xa, ya = max(0, x0), max(0, y0); xb, yb = min(R.SW, x1), min(R.SH, y1)
+            if xa < xb and ya < yb:
+                blend(srcf, ya, yb, xa, xb, np.array([.90, .95, .96], np.float32), al[ya - y0:yb - y0, xa - x0:xb - x0, None])
     if e > 1.4: return
     # espuma branca na base
     fa = .55 * clampf(1 - e / 1.2, 0, 1)
@@ -245,7 +300,7 @@ def draw_particles(srcf, t, i):
         xa, ya = max(0, x_), max(0, y_); xb, yb = min(R.SW, x_ + fm.shape[1]), min(R.SH, y_ + fm.shape[0])
         if xa < xb and ya < yb:
             aa = fm[ya - y_:yb - y_, xa - x_:xb - x_, None] * fa
-            srcf[ya:yb, xa:xb] = srcf[ya:yb, xa:xb] * (1 - aa) + np.array([.90, .94, .92], np.float32) * aa
+            blend(srcf, ya, yb, xa, xb, np.array([.90, .94, .92], np.float32), aa)
     # gotas: coroa de respingo com rastro
     if _SPL is None:
         g = rng(7); n = 150
@@ -272,7 +327,48 @@ def draw_particles(srcf, t, i):
         xa, ya = max(0, x0_), max(0, y0_); xb, yb = min(R.SW, x1_), min(R.SH, y1_)
         aa = m[ya - y0_:yb - y0_, xa - x0_:xb - x0_, None] * a
         c = np.array([.86, .92, .93], np.float32) * S_["br"][k]
-        srcf[ya:yb, xa:xb] = srcf[ya:yb, xa:xb] * (1 - aa) + c * aa
+        blend(srcf, ya, yb, xa, xb, c, aa)
+
+def apply_ripples(srcf, t, G):
+    """ondas reais: distorce os pixels da água em anéis que se abrem (no quadro final, já com tracking)."""
+    p = phone_cfg(); e = t - p["land"]
+    if not (0 < e < 3.2) or t >= PH_PLANES[0][1]: return
+    (bx, wy), hfrac = PH_PLANES[0][2], PH_PLANES[0][3]
+    c = G @ np.array([bx * R.SW, wy * R.SH, 1.0]); cx, cy = c[0] / c[2], c[1] / c[2]
+    wpx = hfrac * R.SH * .476
+    rmax = wpx * .5 + 3.2 * 260 * R.SS
+    x0, x1 = int(max(0, cx - rmax)), int(min(R.SW, cx + rmax)); y0, y1 = int(max(0, cy - 10 * R.SS)), int(min(R.SH, cy + rmax * .16))
+    if x1 <= x0 or y1 <= y0: return
+    yy, xx = np.mgrid[y0:y1, x0:x1].astype(np.float32)
+    r = np.sqrt(((xx - cx)) ** 2 + ((yy - cy) / .13) ** 2)      # elipse achatada (perspectiva da água)
+    front = r - (wpx * .45 + e * 260 * R.SS)
+    amp = 5.5 * R.SS * math.exp(-e * 1.1)
+    wave = np.exp(-(front / (60 * R.SS)) ** 2) * np.sin(front / (9 * R.SS))
+    dy = amp * wave
+    mx = xx.astype(np.float32); my = (yy + dy).astype(np.float32)
+    reg = cv2.remap(srcf, mx, my, cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT)
+    # brilho nas cristas
+    reg = np.clip(reg + (np.clip(wave, 0, 1) * .05 * math.exp(-e * 1.2))[..., None], 0, 1)
+    srcf[y0:y1, x0:x1] = reg
+
+# instante de referência do desenho em cada cena (as posições foram escolhidas olhando estes quadros)
+TD = {1: 7.9, 2: 14.5, 3: 19.5, 4: 26.0, 5: 39.5, 6: 47.5}
+
+def draw_world(srcf, t, i):
+    """desenha tudo que fica 'no mundo' numa camada e deforma pelo movimento real da câmera."""
+    global _BG
+    ci = R.cena_idx(t + .5 / R.FPS)
+    if ci not in TD: return False
+    _BG = srcf
+    L = Layer(R.SH, R.SW)
+    draw_chart(L, t, i)
+    draw_panels(L, t, i)
+    if draw_phone(L, t, i): draw_particles(L, t, i)
+    if not L.A.any() and (L.D == 1).all(): return False
+    G = track_G(TD[ci], t)
+    apply_layer(srcf, L, G)
+    apply_ripples(srcf, t, G)
+    return True
 
 def shake(t):
     p = phone_cfg(); e = t - p["land"]
@@ -372,8 +468,7 @@ def draw_chart(srcf, t, i):
         a_ = np.clip(layer * op * al, 0, 1)
         xa, ya = max(0, x0), max(0, y0); xb, yb = min(R.SW, x0 + w), min(R.SH, y0 + h)
         aa = a_[ya - y0:yb - y0, xa - x0:xb - x0, None]
-        if m is not None: aa = aa * (1 - m[ya:yb, xa:xb, None])
-        srcf[ya:yb, xa:xb] = srcf[ya:yb, xa:xb] * (1 - aa) + c * aa
+        blend(srcf, ya, yb, xa, xb, c, aa)
 
 # ------------------------------------------------------------ nomes: principal + eco em contorno + rótulo
 def outline_text(txt, px, col=(255, 255, 255, 255), stroke=2):

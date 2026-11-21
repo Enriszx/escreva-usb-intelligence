@@ -525,10 +525,7 @@ def frame_at(src, t):
     pm = mundo.person_mask(i, t) if (names or behind or chart or phone or panels) else None
     mundo.R._PM = pm
     orig = srcf.copy() if pm is not None else None
-    if CARDS_ON:
-        mundo.draw_chart(srcf, t, i)
-        mundo.draw_panels(srcf, t, i)
-        if mundo.draw_phone(srcf, t, i): mundo.draw_particles(srcf, t, i)
+    if CARDS_ON: mundo.draw_world(srcf, t, i)
     if pm is not None:  # a pessoa sempre na frente do que está atrás dela (camadas sem erro)
         pr = np.clip((pm - .12) / .45, 0, 1) if phone else pm   # no celular: recorte firme, mão nunca fica transparente
         srcf = srcf * (1 - pr[..., None]) + orig * pr[..., None]
