@@ -20,3 +20,6 @@ Cada feedback do Enrique fica anotado aqui. Ele marca o que vira **regra fixa**.
 | 14 | Prévia 1 | Zooms frequentes e secos ficaram artificiais e repetitivos: zoom SÓ em frases de impacto, suave (entra em ~1 s, segura, volta devagar), mira fixa (sem ficar seguindo o rosto). | a decidir |
 | 15 | Prévia 1 | Quer mais dinâmico, mais bonito e "menos cara de IA": animação por letra nos destaques, legenda entrando com leve subida/desfoque, plaquinha de nome sem caixa (barra de cor + nome), cards 3D, SFX discretos. | a decidir |
 | 16 | Áudio | Melhorar sem soar artificial: DeepFilterNet com atenuação limitada (15 dB, mantém o ambiente), corte de grave, EQ leve, de-esser, compressão suave, volume igual entre as pessoas, -15 LUFS. | a decidir |
+| 17 | Prévia 2 | "Ainda está ruim". Referências: texto atrás da pessoa (vazado), texto com tracking na cabeça, celular 3D ancorado na cena, legenda simples branca. | a decidir |
+| 18 | Nomes | Nome da pessoa em cima/ao lado da cabeça, com TRACK (acompanha a cabeça) e efeito: letras sobem de trás da pessoa (recorte MODNet), faixa de luz, saída letra a letra. Nos planos fechados o nome fica ao lado da cabeça, só a última letra escondida. | a decidir |
+| 19 | Geral | Pediu "meio que uma versão final, mas não a final": entregar 1080p do 4K, com tudo, para revisão. | a decidir |

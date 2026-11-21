@@ -4,13 +4,13 @@ import json
 
 # cena: (início, fim, pessoa, cor de destaque, altura da legenda no peito 0-1)
 CENAS = [
-    (0.00, 4.50, "Fábio (bike)", "#C9D65A", 0.62),
-    (4.50, 13.23, "Fábio (deitado)", "#C9D65A", 0.34),
+    (0.00, 4.50, "Fábio (bike)", "#EEF5A8", 0.62),
+    (4.50, 13.23, "Fábio (deitado)", "#EEF5A8", 0.74),
     (13.23, 18.07, "Higor (plano A)", "#4FB3E8", 0.76),
     (18.07, 22.47, "Higor (plano B)", "#4FB3E8", 0.70),
     (22.47, 37.53, "Marielly", "#F2C38B", 0.80),
-    (37.53, 45.27, "Gustavo (plano 1)", "#A6E36B", 0.52),
-    (45.27, 51.77, "Gustavo (plano 2)", "#A6E36B", 0.52),
+    (37.53, 45.27, "Gustavo (plano 1)", "#A6E36B", 0.60),
+    (45.27, 51.77, "Gustavo (plano 2)", "#A6E36B", 0.60),
     (51.77, 53.60, "Enrique (entra no quadro)", "#F0B45A", 0.70),
     (53.60, 63.53, "Enrique", "#F0B45A", 0.72),
 ]
@@ -51,7 +51,7 @@ L = [
     # Gustavo
     ("apesar de", 37.96, "M"), ("tudo isso", 39.08, "M"), ("temos", 39.60, "P"),
     ("aplicações", 39.78, "P"), ("que podem", 40.26, "P"), ("funcionar", 40.54, "P"),
-    ("sem internet", 40.94, "K", {"fica_no_topo_ate": 44.9}),
+    ("sem internet", 40.94, "K", {"atras": True, "fim": 44.9}),
     ("com acesso", 41.58, "P"), ("para qualquer", 42.42, "P"), ("usuário", 42.96, "P"),
     ("de pequenas", 43.46, "P"), ("ou grandes", 43.94, "P"), ("empresas", 44.30, "M"),
     ("por exemplo", 44.98, "M"), ("tem", 45.94, "P"),
@@ -69,21 +69,25 @@ L = [
 ]
 
 # Plaquinha de nome (~2 s, canto inferior esquerdo, Inter)
-NOMES = [("Fábio", 5.0), ("Higor", 13.8), ("Marielly", 22.9), ("Gustavo", 37.8), ("Enrique", 53.8)]
+# nome com tracking, atrás da pessoa: (nome, entra, duração, modo) modo = acima | esq | dir (lado da cabeça)
+NOMES = [("Fábio", 5.1, 2.6, "acima"), ("Higor", 13.35, 2.0, "esq"), ("Marielly", 22.7, 2.4, "esq"), ("Gustavo", 37.7, 2.6, "acima"), ("Enrique", 53.75, 2.5, "dir")]
+
+# Celular 3D em pé ao lado do Gustavo (ref 1): entra, troca de tela no assunto e sai
+PHONE = {"entra": 38.5, "sai": 50.9, "telas": [["dash", 38.5], ["offline", 40.7], ["ia", 45.9]]}
+# Transição com desfoque de movimento nos cortes de cena
+TRANSICOES = [13.23, 22.47, 37.53, 51.77]
 
 # Cards 3D (telas do app, sem números): (card, entra, sai, lado)
 CARDS = [
     ("logo", 2.6, 4.5, "centro-topo"),            # empinada
-    ("importer", 6.3, 8.2, "dir-topo"),          # "plugou um pendrive"
-    ("dashboard", 14.6, 17.9, "esq"),            # "gera relatórios" (abertura estilo ref: 2 cards)
-    ("donut", 15.0, 17.9, "dir"),
+    ("importer", 7.85, 9.25, "dir-topo"),          # "plugou um pendrive"
+    ("dashboard", 15.25, 17.9, "esq"),            # "gera relatórios" (abertura estilo ref: 2 cards)
+    ("donut", 15.5, 17.9, "dir"),
     ("dashboard", 18.6, 20.4, "dir"),            # "o painel mostra gráficos"
     ("dups", 20.4, 22.3, "esq"),                 # "duplicados"
-    ("importer", 23.4, 25.6, "esq"),             # "você importa seus arquivos"
+    ("importer", 23.6, 25.6, "dir"),             # "você importa seus arquivos"
     ("library", 25.8, 28.2, "dir"),              # "biblioteca pesquisável com tags"
     ("library", 33.2, 36.4, "esq"),              # "mesma experiência para computador" (tela de computador)
-    ("importer", 41.7, 44.6, "dir"),             # "funcionar sem internet" (selo Offline)
-    ("ai", 46.0, 50.4, "dir"),                   # "inteligência artificial ... opcional"
     ("logo", 62.6, 65.53, "centro"),             # encerramento, fundo desfocado (+2 s de quadro congelado)
 ]
 
@@ -113,7 +117,7 @@ for i, it in enumerate(L):
     c = cena(t0)
     leg.append({"txt": txt, "t0": t0, "t1": round(t1, 2), "tipo": tipo, "cor": c[3], "y": c[4], **o})
 
-json.dump({"fim_video": 63.53, "congela": 2.0, "cenas": CENAS, "legenda": leg, "nomes": NOMES, "cards": CARDS, "zoom": ZOOM},
+json.dump({"fim_video": 63.53, "congela": 2.0, "cenas": CENAS, "legenda": leg, "nomes": NOMES, "cards": CARDS, "zoom": ZOOM, "phone": PHONE, "transicoes": TRANSICOES},
           open("mapa.json", "w"), ensure_ascii=False, indent=1)
 
 TIPO = {"P": "pequena", "M": "média branca", "K": "**DESTAQUE**", "C": "**colorida palavra a palavra**"}
@@ -132,7 +136,7 @@ for c in CENAS:
             if x.get("fica_no_topo_ate"): extra.append(f"fica fixa no topo até {x['fica_no_topo_ate']}")
             evs.append((x["t0"], f"{t}{' ?' if x.get('flag') else ''}", TIPO[x["tipo"]],
                         x.get("pos", "peito") + (" · " + ", ".join(extra) if extra else ""), ""))
-    for n, t in NOMES:
+    for n, t, *_ in NOMES:
         if c[0] <= t < c[1]: evs.append((t, "", "", "", f"plaquinha **{n}**"))
     for k, a, b, lado in CARDS:
         if c[0] <= a < c[1]: evs.append((a, "", "", "", f"card `{k}` entra ({lado}), sai {b}"))

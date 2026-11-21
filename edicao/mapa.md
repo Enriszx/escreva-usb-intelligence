@@ -3,26 +3,26 @@
 Legenda em minúsculas e sem pontuação (como na referência), sempre batendo com a boca. 
 `?` = palavra/tempo a confirmar no áudio. Linha 2 dos destaques em Crimson itálica colorida.
 
-## Fábio (bike) · 0.00–4.50 · cor #C9D65A
+## Fábio (bike) · 0.00–4.50 · cor #EEF5A8
 
 | Tempo | Legenda | Tipo | Posição | Card / zoom / nome |
 |---|---|---|---|---|
 | 2.60 |  |  |  | card `logo` entra (centro-topo), sai 4.5 |
 
-## Fábio (deitado) · 4.50–13.23 · cor #C9D65A
+## Fábio (deitado) · 4.50–13.23 · cor #EEF5A8
 
 | Tempo | Legenda | Tipo | Posição | Card / zoom / nome |
 |---|---|---|---|---|
 | 4.82 | quantas vezes | média branca | peito |  |
-| 5.00 |  |  |  | plaquinha **Fábio** |
+| 5.10 |  |  |  | plaquinha **Fábio** |
 | 5.56 | você | pequena | peito |  |
 | 5.96 | plugou um | pequena | peito |  |
-| 6.30 |  |  |  | card `importer` entra (dir-topo), sai 8.2 |
 | 6.32 | pendrive | **DESTAQUE** | peito |  |
 | 6.76 | e não | média branca | peito |  |
 | 6.96 | achou | média branca | peito |  |
 | 7.24 | o arquivo | pequena | peito |  |
 | 7.48 | que procurava | pequena | peito |  |
+| 7.85 |  |  |  | card `importer` entra (dir-topo), sai 9.25 |
 | 8.26 | hoje | média branca | peito |  |
 | 8.26 |  |  |  | zoom suave 1.12 até 12.7 ("Hoje apresentamos o USB Intelligence") |
 | 8.58 | apresentamos | pequena | peito |  |
@@ -35,11 +35,11 @@ Legenda em minúsculas e sem pontuação (como na referência), sempre batendo c
 
 | Tempo | Legenda | Tipo | Posição | Card / zoom / nome |
 |---|---|---|---|---|
-| 13.80 |  |  |  | plaquinha **Higor** |
+| 13.35 |  |  |  | plaquinha **Higor** |
 | 14.16 | ele gera | média branca | peito |  |
-| 14.60 |  |  |  | card `dashboard` entra (esq), sai 17.9 |
-| 15.00 |  |  |  | card `donut` entra (dir), sai 17.9 |
 | 15.08 | relatórios | **DESTAQUE** | peito |  |
+| 15.25 |  |  |  | card `dashboard` entra (esq), sai 17.9 |
+| 15.50 |  |  |  | card `donut` entra (dir), sai 17.9 |
 | 15.88 | mantendo | pequena | peito |  |
 | 16.44 | tudo organizado | média branca | peito |  |
 
@@ -61,9 +61,9 @@ Legenda em minúsculas e sem pontuação (como na referência), sempre batendo c
 
 | Tempo | Legenda | Tipo | Posição | Card / zoom / nome |
 |---|---|---|---|---|
-| 22.90 |  |  |  | plaquinha **Marielly** |
+| 22.70 |  |  |  | plaquinha **Marielly** |
 | 23.10 | você importa | média branca | peito |  |
-| 23.40 |  |  |  | card `importer` entra (esq), sai 25.6 |
+| 23.60 |  |  |  | card `importer` entra (dir), sai 25.6 |
 | 23.96 | seus arquivos | pequena | peito |  |
 | 24.66 | que ficam | pequena | peito |  |
 | 25.14 | organizados | pequena | peito |  |
@@ -90,7 +90,7 @@ Legenda em minúsculas e sem pontuação (como na referência), sempre batendo c
 
 | Tempo | Legenda | Tipo | Posição | Card / zoom / nome |
 |---|---|---|---|---|
-| 37.80 |  |  |  | plaquinha **Gustavo** |
+| 37.70 |  |  |  | plaquinha **Gustavo** |
 | 37.96 | apesar de | média branca | peito |  |
 | 39.08 | tudo isso | média branca | peito |  |
 | 39.60 | temos | pequena | peito |  |
@@ -98,9 +98,8 @@ Legenda em minúsculas e sem pontuação (como na referência), sempre batendo c
 | 40.26 | que podem | pequena | peito |  |
 | 40.40 |  |  |  | zoom suave 1.16 até 44.8 ("funcionar sem internet") |
 | 40.54 | funcionar | pequena | peito |  |
-| 40.94 | sem internet | **DESTAQUE** | peito · fica fixa no topo até 44.9 |  |
+| 40.94 | sem internet | **DESTAQUE** | peito |  |
 | 41.58 | com acesso | pequena | peito |  |
-| 41.70 |  |  |  | card `importer` entra (dir), sai 44.6 |
 | 42.42 | para qualquer | pequena | peito |  |
 | 42.96 | usuário | pequena | peito |  |
 | 43.46 | de pequenas | pequena | peito |  |
@@ -113,7 +112,6 @@ Legenda em minúsculas e sem pontuação (como na referência), sempre batendo c
 | Tempo | Legenda | Tipo | Posição | Card / zoom / nome |
 |---|---|---|---|---|
 | 45.94 | tem | pequena | peito |  |
-| 46.00 |  |  |  | card `ai` entra (dir), sai 50.4 |
 | 46.06 | inteligência / *artificial* | **DESTAQUE** | esq |  |
 | 46.66 | também | pequena | peito |  |
 | 47.10 | já é | pequena | peito |  |
@@ -135,7 +133,7 @@ Legenda em minúsculas e sem pontuação (como na referência), sempre batendo c
 
 | Tempo | Legenda | Tipo | Posição | Card / zoom / nome |
 |---|---|---|---|---|
-| 53.80 |  |  |  | plaquinha **Enrique** |
+| 53.75 |  |  |  | plaquinha **Enrique** |
 | 53.90 | também mostra | pequena | peito |  |
 | 54.44 | como a | pequena | peito |  |
 | 54.74 | nossa produção | pequena | peito |  |

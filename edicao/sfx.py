@@ -27,7 +27,10 @@ for name, a, b, lado in M["cards"]:
     put(whoosh(.5 if lado != "centro" else .9, peak=-27 if lado != "centro" else -24), a - .18, PAN[lado])
 for c in M["legenda"]:
     if c["tipo"] in "KC": put(tick(-31), c["t0"] - .01)
-for n, t in M["nomes"]: put(whoosh(.35, 900, 3200, -33), t - .05, -.6)
+for n, t, *_ in M["nomes"]: put(whoosh(.45, 700, 3000, -30), t - .08, 0); put(tick(-34), t + .1)
+for tc in M["transicoes"]: put(whoosh(.42, 400, 2400, -25), tc - .2, 0)
+ph = M["phone"]; put(whoosh(.6, 300, 1800, -26), ph["entra"] - .15, .5); put(whoosh(.4, 600, 2200, -30), ph["sai"] - .1, .5)
+for _, ts in ph["telas"][1:]: put(tick(-32), ts)
 st = np.stack([L, R], 1)[:int(TOT * SR)]
 o = wave.open("sfx.wav", "wb"); o.setnchannels(2); o.setsampwidth(2); o.setframerate(SR)
 o.writeframes((np.clip(st, -1, 1) * 32767).astype(np.int16).tobytes()); o.close()

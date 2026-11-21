@@ -3,3 +3,7 @@
 *.wav
 frames/
 models/
+refs/
+*.npy
+masks.log
+render.log

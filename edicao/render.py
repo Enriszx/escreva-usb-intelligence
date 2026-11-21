@@ -14,7 +14,8 @@ M = json.load(open("mapa.json"))
 FPS = 30
 W, H = (1920, 1080) if Q == "final" else (1280, 720)
 S = W / 1920
-SRC, SW, SH = ("bruto.mp4", 3840, 2160) if Q == "final" else ("bruto_1080.mp4", 1920, 1080)
+SRC, SW, SH = ("bruto.mp4", 2560, 1440) if Q == "final" else ("bruto_1080.mp4", 1920, 1080)
+SS = SW / 1920  # escala do espaço da cena (antes do zoom)
 FIM, CONG = M["fim_video"], M["congela"]
 NF = int(round(FIM * FPS)); NTOT = NF + int(CONG * FPS)
 CENAS = M["cenas"]
@@ -73,14 +74,15 @@ def pil_text(txt, fk, px, color):
 
 def np_rgba(im): return np.asarray(im, dtype=np.float32) / 255.0
 
-def with_shadow(a, soft=14, op=.42, dy=5, tight=.30):
+def with_shadow(a, soft=14, op=.42, dy=5, tight=.30, k=None):
+    S_ = k if k else S
     """a: float RGBA. Devolve RGBA com sombra suave (larga) + sombra curta para leitura."""
-    p = int(40 * S); h, w = a.shape[:2]
+    p = int(40 * S_); h, w = a.shape[:2]
     out = np.zeros((h + 2 * p, w + 2 * p, 4), np.float32)
     al = np.zeros((h + 2 * p, w + 2 * p), np.float32); al[p:p + h, p:p + w] = a[..., 3]
-    s1 = cv2.GaussianBlur(al, (0, 0), soft * S) * op
-    s2 = cv2.GaussianBlur(al, (0, 0), 2.2 * S) * tight
-    sh = np.maximum(np.roll(s1, int(dy * S), 0), np.roll(s2, int(1.5 * S), 0))
+    s1 = cv2.GaussianBlur(al, (0, 0), soft * S_) * op
+    s2 = cv2.GaussianBlur(al, (0, 0), 2.2 * S_) * tight
+    sh = np.maximum(np.roll(s1, int(dy * S_), 0), np.roll(s2, int(1.5 * S_), 0))
     out[..., 3] = sh
     fg = np.zeros_like(out); fg[p:p + h, p:p + w] = a
     oa = fg[..., 3:4] + out[..., 3:4] * (1 - fg[..., 3:4])
@@ -105,7 +107,7 @@ def fit_x(cx, w, margin=60):
 LEG = M["legenda"]
 PAL_C = ["#C9D65A", "#4FB3E8", "#F2C38B", "#F0B45A"]  # uma cor de cada cena
 for j, c in enumerate([c for c in LEG if c["tipo"] == "C"]): c["cor"] = PAL_C[j % 4]
-SCENE_X = {1: .30, 7: .27, 8: .27}
+SCENE_X = {1: .70, 7: .27, 8: .27}
 POS_X = {"esq": .25, "dir": .75, "centro": .5}
 LOGO_ICON = Image.open("cards/logo.png").crop((30, 40, 130, 140))
 
@@ -115,8 +117,7 @@ def run_sprite(c):
     if k not in _cache:
         if c["tipo"] == "M": im, _ = pil_text(c["txt"], "d_b", 80 * S, (255, 255, 255, 255))
         else:
-            col = tuple(int(v * .82 + 255 * .18) for v in hexrgb(c["cor"]))  # cor da cena, levemente clareada
-            im, _ = pil_text(c["txt"], "d_sb", 66 * S, col + (255,))
+            im, _ = pil_text(c["txt"], "d_sb", 66 * S, (255, 255, 255, 240))
         _cache[k] = with_shadow(np_rgba(im))
     return _cache[k]
 
@@ -195,7 +196,7 @@ def draw_captions(fr, t):
         nxt = LEG[i + 1]["t0"] if i + 1 < len(LEG) else 1e9
         end = top if top else t1
         fade_out = c["tipo"] in "PM" and nxt - t1 > .12
-        if not (t0 <= t < end + (4 / FPS if fade_out else 0)): continue
+        if not (t0 <= t < end + (4 / FPS if fade_out else 0)) or c.get("atras"): continue
         ci = cena_idx(t0)
         x = POS_X.get(c.get("pos"), SCENE_X.get(ci, .5)); y = c["y"]
         if c["tipo"] in "KC" and (c.get("pos") in ("esq", "dir") or ci in (7, 8)): y = min(y, .60)
@@ -208,14 +209,14 @@ def draw_captions(fr, t):
             cx = fit_x(x * W, s.shape[1]); cy = y * H + (1 - p) * 22 * S
             blit(fr, s, cx, cy, a)
         else:
-            s = with_shadow(keyword_sprite(c, t), 18, .40, 6)
+            s = with_shadow(keyword_sprite(c, t), 18, .50, 6, .45)
             k = 1.0
             if top and t >= t1:  # sobe e fica fixa no topo, menor
                 a_ = inout((t - t1) * FPS / 12)
                 x = x + (.5 - x) * a_; y = y + (.115 - y) * a_; k = 1 - .5 * a_
             s = scale_spr(s, k)
             if s.shape[1] > W * .94: s = scale_spr(s, W * .94 / s.shape[1])
-            blit(fr, s, fit_x(x * W, s.shape[1], 30), y * H)
+            blit(fr, s, fit_x(x * W, s.shape[1], 30), clamp(y * H, s.shape[0] / 2 - 20 * S, H - s.shape[0] / 2 + 10 * S))
 
 # ---------------- plaquinha de nome ----------------
 def draw_names(fr, t):
@@ -325,9 +326,177 @@ def end_card(fr, t):
     if t > NTOT / FPS - .5: b *= clamp((NTOT / FPS - t) / .5, 0, 1)  # fade final
     return b
 
+# ---------------- espaço da cena: tracking, nome atrás da pessoa, palavra vazada, celular ----------------
+MASKS = np.load("masks.npy", mmap_mode="r") if os.path.exists("masks.npy") else None
+def mask_full(i):
+    if MASKS is None or i >= len(MASKS): return None
+    m = cv2.resize(np.asarray(MASKS[i]), (SW, SH), interpolation=cv2.INTER_LINEAR).astype(np.float32) / 255
+    return cv2.GaussianBlur(m, (0, 0), 1.2 * SS)
+
+def build_track():
+    """rosto quadro a quadro: interpola as detecções e suaviza (gaussiana) dentro de cada cena."""
+    n = NF; t = np.arange(n) / FPS
+    ft = np.array([f["t"] for f in F]); ok = np.array(["cx" in f for f in F])
+    out = {}
+    for k in ("cx", "cy", "h"):
+        v = np.array([f.get(k, np.nan) for f in F], float); arr = np.full(n, np.nan)
+        for ci, c in enumerate(CENAS):
+            m = ok & (ft >= c[0]) & (ft < c[1]); sel = (t >= c[0]) & (t < c[1])
+            if m.sum() < 3: continue
+            vv = v[m]; tt = ft[m]
+            med = np.median(vv); mad = np.median(np.abs(vv - med)) + 1e-3
+            keep = np.abs(vv - med) < 4 * mad + .03          # descarta detecções erradas
+            x = np.interp(t[sel], tt[keep], vv[keep])
+            sig = 4.0 if k != "h" else 8.0
+            ker = np.exp(-.5 * (np.arange(-12, 13) / sig) ** 2); ker /= ker.sum()
+            xp = np.pad(x, 12, mode="edge"); arr[sel] = np.convolve(xp, ker, "valid")
+        out[k] = arr
+    return out
+TRK = build_track()
+def track(t):
+    i = clamp(int(round(t * FPS)), 0, NF - 1)
+    if np.isnan(TRK["cx"][i]): return None
+    return TRK["cx"][i], TRK["cy"][i], TRK["h"][i]
+
+def occluded_blit(srcf, spr, cx, cy, m, alpha=1.0):
+    """desenha atrás da pessoa: o recorte (m) tampa o texto."""
+    h, w = spr.shape[:2]; x0 = int(round(cx - w / 2)); y0 = int(round(cy - h / 2))
+    xa, ya = max(0, x0), max(0, y0); xb, yb = min(SW, x0 + w), min(SH, y0 + h)
+    if xa >= xb or ya >= yb: return
+    s = spr[ya - y0:yb - y0, xa - x0:xb - x0]
+    a = s[..., 3:4] * alpha
+    if m is not None: a = a * (1 - m[ya:yb, xa:xb, None])
+    srcf[ya:yb, xa:xb] = srcf[ya:yb, xa:xb] * (1 - a) + s[..., :3] * a
+
+def name_sprite(n, t, tn, D, px, col):
+    f_ = (t - tn) * FPS; out = (t - (tn + D - .4)) * FPS
+    line = kinetic_line(n, "anton", px, (255, 255, 255, 255), f_, stagger=1.6, dur=9)
+    if out > 0:  # sai: letras sobem e somem uma a uma
+        q = np.clip((out - np.arange(len(n)) * 1.2) / 8, 0, 1)
+        xs, sp, tw, hh = letters(n, "anton", px, (255, 255, 255, 255))
+        line = np.zeros((hh, tw, 4), np.float32)
+        for j, (x, s_) in enumerate(zip(xs, sp)):
+            p = cubic(q[j]); dy = int(p * hh * .5)
+            seg = s_.copy(); seg[..., 3] *= 1 - p
+            x0 = int(x); w = min(seg.shape[1], tw - x0); hcut = hh - dy
+            d = line[0:hcut, x0:x0 + w]; a = seg[dy:dy + hcut, :w, 3:4]
+            d[..., :3] = d[..., :3] * (1 - a) + seg[dy:dy + hcut, :w, :3] * a; d[..., 3:4] = d[..., 3:4] + a * (1 - d[..., 3:4])
+    # faixa de luz que atravessa o nome na entrada
+    if 4 <= f_ <= 26:
+        hh, ww = line.shape[:2]; xx = np.arange(ww)[None, :] / ww
+        band = np.exp(-((xx - (f_ - 4) / 18 * 1.4 + .2) / .06) ** 2)[..., None] * .8
+        line = line.copy(); line[..., :3] = np.clip(line[..., :3] + band * line[..., 3:4], 0, 1)
+    # traço fino na cor da cena, embaixo, crescendo do centro
+    return line
+
+def draw_names_tracked(srcf, t, m):
+    for n, tn, D, modo in M["nomes"]:
+        if not (tn <= t < tn + D): continue
+        tr = track(t)
+        if tr is None: continue
+        cx, cy, h = tr; col = hexrgb(CENAS[cena_idx(tn)][3])
+        hpx = h * 1080
+        if modo == "acima":
+            px = clamp(hpx * 1.15, 120, 300) * SS
+            spr = name_sprite(n, t, tn, D, px, col); th, tw = spr.shape[:2]
+            y = (cy - .62 * h) * SH - th * .5 + th * .30   # 30% de baixo do nome atrás do cabelo
+            y = max(y, th * .5 + 14 * SS); x = cx * SW
+        else:
+            px = clamp(hpx * .80, 130, 250) * SS
+            spr = name_sprite(n, t, tn, D, px, col); th, tw = spr.shape[:2]
+            fw = .78 * h * SH                                 # largura aproximada da cabeça
+            y = (cy - .28 * h) * SH
+            x = (cx * SW - fw * .30 - tw / 2) if modo == "esq" else (cx * SW + fw * .36 + tw / 2)
+            x = clamp(x, tw / 2 + 30 * SS, SW - tw / 2 - 30 * SS)
+        occluded_blit(srcf, with_shadow(spr, 22, .35, 8, .2, SS), x, y, m)
+        k = ("lbl", n)
+        if k not in _cache: _cache[k] = np_rgba(pil_text("USB Intelligence", "ital", 54 * SS, col + (255,))[0])
+        lb = _cache[k]; f_ = (t - tn) * FPS
+        a = cubic((f_ - 6) / 8) * (1 - cubic((t - (tn + D - .45)) * FPS / 7))
+        if a > 0:
+            lx = x - tw / 2 + lb.shape[1] / 2 + 6 * SS if modo != "dir" else x + tw / 2 - lb.shape[1] / 2
+            if modo == "acima": lx = x + tw * .18
+            ly = y - th * .5 - 2 * SS + (1 - a) * 10 * SS
+            if ly - lb.shape[0] / 2 < 8 * SS: ly = y + th * .5 + lb.shape[0] * .3
+            blit_src(srcf, with_shadow(lb, 10, .35, 3, .2, SS), lx, ly, a)
+
+def blit_src(srcf, spr, cx, cy, alpha=1.0):
+    h, w = spr.shape[:2]; x0 = int(round(cx - w / 2)); y0 = int(round(cy - h / 2))
+    xa, ya = max(0, x0), max(0, y0); xb, yb = min(SW, x0 + w), min(SH, y0 + h)
+    if xa >= xb or ya >= yb: return
+    s = spr[ya - y0:yb - y0, xa - x0:xb - x0]; a = s[..., 3:4] * alpha
+    srcf[ya:yb, xa:xb] = srcf[ya:yb, xa:xb] * (1 - a) + s[..., :3] * a
+
+def draw_behind_words(srcf, t, m):
+    for c in LEG:
+        if not c.get("atras") or not (c["t0"] <= t < c["t1"] + .3): continue
+        tr = track(c["t0"] + .2)
+        cx, cy, h = tr if tr else (.5, .3, .2)
+        f_ = (t - c["t0"]) * FPS; out = (t - c["t1"]) * FPS
+        spr = kinetic_line(c["txt"], "anton", 190 * SS, (255, 255, 255, 255), f_, stagger=1.2, dur=10)
+        if spr.shape[1] > SW * .50: spr = scale_spr(spr, SW * .50 / spr.shape[1])
+        a = 1 - cubic(out / 8) if out > 0 else 1
+        head_top = (cy - .62 * h) * SH
+        y = max(head_top - spr.shape[0] * .22, spr.shape[0] * .5 + 10 * SS)
+        occluded_blit(srcf, with_shadow(spr, 26, .30, 10, .15, SS), cx * SW, y, m, a)
+
+PH = M.get("phone")
+PH_IMG = {}
+def draw_phone(srcf, t):
+    if not PH or not (PH["entra"] <= t < PH["sai"] + .4): return
+    fi = (t - PH["entra"]) * FPS; fo = (t - PH["sai"]) * FPS
+    scr = PH["telas"][0][0]; prev = None; cf = 1
+    for nm_, ts in PH["telas"]:
+        if t >= ts: prev, scr, cf = scr, nm_, cubic((t - ts) * FPS / 9)
+    for nm_ in (scr, prev):
+        if nm_ and nm_ not in PH_IMG: PH_IMG[nm_] = np_rgba(Image.open(f"cards/phone_{nm_}.png"))
+    img = PH_IMG[scr]
+    if prev and cf < 1: img = PH_IMG[prev] * (1 - cf) + img * cf
+    if fi < 26: img = sweep(img, fi / 26)
+    p = back(fi / 16, 1.1); al = cubic(fi / 10)
+    ry = -16 + 70 * (1 - cubic(fi / 18)) + 3 * math.sin((t - PH["entra"]) * 1.3)
+    cy = (.53 + .25 * (1 - p)) * SH + 6 * SS * math.sin((t - PH["entra"]) * 2.0)
+    if fo > 0: q = cubic(fo / 10); al *= 1 - q; ry -= 60 * q; cy += .1 * SH * q
+    if al <= 0: return
+    cx = .765 * SW; hpx = .64 * SH; wpx = hpx * img.shape[1] / img.shape[0]
+    # sombra no chão
+    sh = np.zeros((int(60 * SS), int(wpx * 1.3), 4), np.float32); cv2.ellipse(sh, (sh.shape[1] // 2, sh.shape[0] // 2), (sh.shape[1] // 2 - 4, sh.shape[0] // 4), 0, 0, 360, (0, 0, 0, .55), -1)
+    sh = cv2.GaussianBlur(sh, (0, 0), 12 * SS)
+    blit_src(srcf, sh, cx + 20 * SS, cy + hpx / 2 + 40 * SS, al)
+    r = project_src(img, cx, cy, wpx, ry, 3)
+    if r is None: return
+    out, x0, y0 = r; h, w = out.shape[:2]; aa = out[..., 3:4] * al
+    reg = srcf[y0:y0 + h, x0:x0 + w]; reg[:] = reg * (1 - aa) + out[..., :3] * aa
+
+def project_src(img, cx, cy, wpx, ry, rx):
+    h, w = img.shape[:2]; ww = wpx; hh = ww * h / w; f = 1600 * SS; pts = []
+    for X, Y in ((-ww / 2, -hh / 2), (ww / 2, -hh / 2), (ww / 2, hh / 2), (-ww / 2, hh / 2)):
+        a, b = math.radians(ry), math.radians(rx)
+        x1 = X * math.cos(a); z1 = X * math.sin(a)
+        y2 = Y * math.cos(b) - z1 * math.sin(b); z2 = Y * math.sin(b) + z1 * math.cos(b)
+        k = f / (f + z2); pts.append((cx + x1 * k, cy + y2 * k))
+    dst = np.float32(pts); x0, y0 = int(max(0, dst[:, 0].min() - 4)), int(max(0, dst[:, 1].min() - 4))
+    x1, y1 = int(min(SW, dst[:, 0].max() + 4)), int(min(SH, dst[:, 1].max() + 4))
+    if x1 <= x0 or y1 <= y0: return None
+    Mt = cv2.getPerspectiveTransform(np.float32([[0, 0], [w, 0], [w, h], [0, h]]), dst - np.float32([x0, y0]))
+    return cv2.warpPerspective(img, Mt, (x1 - x0, y1 - y0), flags=cv2.INTER_LINEAR, borderValue=(0, 0, 0, 0)), x0, y0
+
+def transition(fr, t):
+    """desfoque de movimento + deslize horizontal curto nos cortes."""
+    for tc in M.get("transicoes", []):
+        d = (t - tc) * FPS
+        if -4 <= d < 4:
+            k = 1 - abs(d + .5) / 4.5; L = int(90 * S * k) | 1
+            ker = np.zeros((1, L), np.float32); ker[0] = 1 / L
+            fr = cv2.filter2D(fr, -1, ker, borderType=cv2.BORDER_REFLECT)
+            dx = (-1 if d < 0 else 1) * 50 * S * k
+            fr = cv2.warpAffine(fr, np.float32([[1, 0, dx], [0, 1, 0]]), (W, H), borderMode=cv2.BORDER_REFLECT)
+            fr = np.clip(fr * (1 + .12 * k), 0, 1)
+    return fr
+
 # ---------------- quadro ----------------
 def reader():
-    p = subprocess.Popen(["ffmpeg", "-v", "error", "-i", SRC, "-vf", f"fps={FPS}", "-f", "rawvideo", "-pix_fmt", "rgb24", "-"], stdout=subprocess.PIPE, bufsize=SW * SH * 3)
+    p = subprocess.Popen(["ffmpeg", "-v", "error", "-i", SRC, "-vf", f"fps={FPS},scale={SW}:{SH}:flags=lanczos", "-f", "rawvideo", "-pix_fmt", "rgb24", "-"], stdout=subprocess.PIPE, bufsize=SW * SH * 3)
     n = SW * SH * 3
     while True:
         b = p.stdout.read(n)
@@ -335,16 +504,21 @@ def reader():
         yield np.frombuffer(b, np.uint8).reshape(SH, SW, 3)
 
 def frame_at(src, t):
+    i = min(int(round(t * FPS)), NF - 1)
+    srcf = src.astype(np.float32) / 255
+    need = any(tn <= t < tn + D for _, tn, D, _m in M["nomes"]) or any(c.get("atras") and c["t0"] <= t < c["t1"] + .3 for c in LEG)
+    m = mask_full(i) if need else None
+    draw_behind_words(srcf, t, m); draw_names_tracked(srcf, t, m)
+    if CARDS_ON: draw_phone(srcf, t)
     z, cx, cy = cam(t)
     cw, ch = SW / z, SH / z
     x0 = clamp(cx * SW - cw / 2, 0, SW - cw); y0 = clamp(cy * SH - ch / 2, 0, SH - ch)
     Mx = np.array([[W / cw, 0, -x0 * W / cw], [0, H / ch, -y0 * H / ch]], np.float32)
-    img = cv2.warpAffine(src, Mx, (W, H), flags=cv2.INTER_AREA if (Q == "final" or z < 1.01) else cv2.INTER_CUBIC)
-    fr = img.astype(np.float32) / 255
+    fr = cv2.warpAffine(srcf, Mx, (W, H), flags=cv2.INTER_AREA if W / cw < 1 else cv2.INTER_CUBIC)
+    fr = transition(fr, t)
     if CARDS_ON: draw_cards(fr, t)
     if CARDS_ON: fr = end_card(fr, t)
-    if not (CARDS_ON and t >= LOGO_T):
-        draw_captions(fr, t); draw_names(fr, t)
+    if not (CARDS_ON and t >= LOGO_T): draw_captions(fr, t)
     return (np.clip(fr, 0, 1) * 255 + .5).astype(np.uint8)
 
 def main():
