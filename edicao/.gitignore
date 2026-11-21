@@ -7,3 +7,4 @@ refs/
 *.npy
 masks.log
 render.log
+__pycache__/
