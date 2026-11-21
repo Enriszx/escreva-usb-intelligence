@@ -35,3 +35,6 @@ Cada feedback do Enrique fica anotado aqui. Ele marca o que vira **regra fixa**.
 | 29 | v4 | Mão na frente do objeto não pode ficar transparente: recorte em alta, sem suavização entre quadros, e recorte "firme" ao recompor a pessoa. | a decidir |
 | 30 | v5 | A câmera do bruto NÃO é parada: todo elemento "no mundo" precisa de tracking de câmera (homografia do fundo, quadro a quadro). Medir no vídeo final: objeto vs fundo ≤ ~4 px. | a decidir |
 | 31 | v5 | Respingo procedural não convence: para água realista, usar elemento filmado/IA (fundo preto, modo tela). | a decidir |
+| 32 | v6 | Cards: estilo **vidro de realidade aumentada** (painel fosco flutuando, fundo desfocado através dele, ícones acesos, aresta iluminada), aprovado sobre "objeto físico". | a decidir |
+| 33 | v6 | Celular "parecia papel": precisa de volume (lateral de metal com espessura real ~11% da largura), aro com brilho, sombreamento (base perto da água mais escura), reflexo do ambiente no vidro e gotas d'água sutis depois de cair. | a decidir |
+| 34 | v6 | Respingo: usar o clipe do Flow (refs/flow_splash.mp4, fundo preto) somado como luz, acelerado 1,65× (é câmera lenta), coroa ~1,3× a largura do celular. | a decidir |

@@ -134,14 +134,14 @@ def shade(srcf, sh, x0, y0, op):
     s = sh[ya - y0:yb - y0, xa - x0:xb - x0, None] * op
     darken(srcf, ya, yb, xa, xb, s)
 
-def project_plane(img, wpx, ry, rx, rz=0.0, f=1600.0):
+def project_plane(img, wpx, ry, rx, rz=0.0, f=1600.0, z=0.0):
     """projeta um plano (card) girado; devolve imagem deformada e os 4 cantos relativos ao centro."""
     h, w = img.shape[:2]; hh = wpx * h / w; ff = f * R.SS
     a, b, c = math.radians(ry), math.radians(rx), math.radians(rz)
     pts = []
     for X, Y in ((-wpx / 2, -hh / 2), (wpx / 2, -hh / 2), (wpx / 2, hh / 2), (-wpx / 2, hh / 2)):
         X, Y = X * math.cos(c) - Y * math.sin(c), X * math.sin(c) + Y * math.cos(c)
-        x1 = X * math.cos(a); z1 = X * math.sin(a)
+        x1 = X * math.cos(a) - z * math.sin(a); z1 = X * math.sin(a) + z * math.cos(a)
         y2 = Y * math.cos(b) - z1 * math.sin(b); z2 = Y * math.sin(b) + z1 * math.cos(b)
         k = ff / (ff + z2); pts.append((x1 * k, y2 * k))
     return np.float32(pts)
@@ -174,6 +174,48 @@ def glare(img, k=.10):
     o = img.copy(); o[..., :3] = np.clip(o[..., :3] + g[..., None] * img[..., 3:4], 0, 1); return o
 
 # ------------------------------------------------------------ celular que cai do céu (Gustavo)
+_LOOK = {}
+def _drops_overlay(h, w):
+    """gotas d'água no vidro (espaço do sprite): devolve (escurecimento, luz) — estáticas, sem 'vida'.
+    gota real: borda escura fina, foco de luz embaixo (lente) e brilho pequeno em cima."""
+    g = rng(11); dk = np.zeros((h, w), np.float32); lt = np.zeros((h, w), np.float32); u = w / 600
+    def drop(x, y, r, ey):
+        # corpo levemente mais claro (a água espalha a luz sobre a tela escura), borda escura bem fina,
+        # e um brilho pequeno e suave no alto
+        cv2.ellipse(lt, (int(x), int(y)), (int(r), int(ey)), 0, 0, 360, .07, -1, cv2.LINE_AA)
+        cv2.ellipse(dk, (int(x), int(y)), (int(r), int(ey)), 0, 0, 360, .22, max(1, int(r * .12)), cv2.LINE_AA)
+        cv2.circle(lt, (int(x - r * .28), int(y - ey * .38)), max(1, int(r * .20)), .55, -1, cv2.LINE_AA)
+    for _ in range(46):
+        r = g.uniform(7, 20) * u; drop(g.uniform(.06, .94) * w, (g.uniform(.30, 1.0) ** .6) * h, r, r * g.uniform(1.0, 1.35))
+    for _ in range(6):   # escorridos: rastro molhado + gota na ponta
+        x = g.uniform(.1, .9) * w; y0 = g.uniform(.35, .75) * h; L = g.uniform(60, 170) * u; wd = g.uniform(7, 11) * u
+        cv2.line(lt, (int(x), int(y0)), (int(x), int(y0 + L)), .05, int(wd), cv2.LINE_AA)
+        cv2.line(dk, (int(x + wd * .5), int(y0)), (int(x + wd * .5), int(y0 + L)), .10, max(1, int(wd * .15)), cv2.LINE_AA)
+        drop(x, y0 + L, wd * 1.2, wd * 1.5)
+    return cv2.GaussianBlur(dk, (0, 0), 1.2 * u), cv2.GaussianBlur(lt, (0, 0), 1.4 * u)
+def phone_look(name, wet):
+    """sprite do celular com volume: sombreamento (lado que vira para longe e base perto da água mais escuros),
+    aro de metal com brilho em cima, e gotas d'água depois que cai."""
+    k = (name, wet)
+    if k in _LOOK: return _LOOK[k]
+    img = glare(load(name), .09).copy(); h, w = img.shape[:2]; a = img[..., 3]
+    yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
+    sh = (1 - .30 * np.clip((yy / h - .62) / .38, 0, 1) ** 1.5) * (.90 + .10 * (1 - xx / w))
+    img[..., :3] *= sh[..., None]
+    er = cv2.erode((a > .5).astype(np.uint8), np.ones((5, 5), np.uint8)).astype(np.float32)
+    rim = np.clip(a - er, 0, 1) * (.25 + .55 * np.clip(1 - yy / (h * .5), 0, 1))
+    img[..., :3] = np.clip(img[..., :3] + rim[..., None] * .55, 0, 1)
+    if wet:
+        dk, lt = _drops_overlay(h, w)
+        img[..., :3] = np.clip(img[..., :3] * (1 - dk[..., None]) + lt[..., None] * np.float32([.92, .96, 1.0]), 0, 1)
+    _LOOK[k] = img; return img
+def phone_side(h, w):
+    """cor da lateral de metal (grafite com reflexo do céu em cima)."""
+    if ("side", h, w) in _LOOK: return _LOOK[("side", h, w)]
+    yy = np.linspace(0, 1, h, dtype=np.float32)[:, None]
+    base = .16 + .30 * np.exp(-((yy - .08) / .10) ** 2) + .10 * np.exp(-((yy - .55) / .25) ** 2)
+    rgb = np.repeat(base[..., None], 3, 2) * np.float32([.96, 1.0, 1.04]) * np.ones((1, w, 1), np.float32)
+    _LOOK[("side", h, w)] = rgb; return rgb
 PH = None
 def phone_cfg():
     global PH
@@ -208,9 +250,9 @@ def draw_phone(srcf, t, i):
     scr, prev, cf = p["telas"][0][0], None, 1.0
     for nm, ts in p["telas"]:
         if t >= ts: prev, scr, cf = scr, nm, R.cubic((t - ts) * R.FPS / 9)
-    img = load("phone_" + scr)
-    if prev and cf < 1: img = load("phone_" + prev) * (1 - cf) + img * cf
-    img = glare(img, .09)
+    wet = (not (t < PH_PLANES[0][1])) or t >= tl + .12
+    img = phone_look("phone_" + scr, wet)
+    if prev and cf < 1: img = phone_look("phone_" + prev, wet) * (1 - cf) + img * cf
     hpx = hfrac * R.SH; wpx = hpx * img.shape[1] / img.shape[0]
     bx, wy = base[0] * R.SW, base[1] * R.SH                 # wy = linha d'água
     first = t < PH_PLANES[0][1]
@@ -225,13 +267,32 @@ def draw_phone(srcf, t, i):
     quad = project_plane(img, wpx, ry, 1.0, rz)
     bot = (quad[2] + quad[3]) / 2
     sink = .05 * hpx                                          # parte que fica dentro da água
-    quad += np.float32([bx - bot[0], wy + sink + dy - bot[1]])
+    offv = np.float32([bx - bot[0], wy + sink + dy - bot[1]])
+    quad += offv
+    # espessura real (~8,5 mm num celular de 75 mm): camadas da lateral de metal, de trás para a frente
+    T = wpx * .11; NL = max(8, int(10 * R.SS))
+    side = np.dstack([phone_side(img.shape[0], img.shape[1]), img[..., 3:4]])
+    settled0 = not first or t >= tl
+    for k in range(NL, 0, -1):
+        u = k / NL
+        q2 = project_plane(img, wpx, ry, 1.0, rz, z=T * u) + offv
+        rs = warp_to(side * np.float32([1 - .25 * u, 1 - .25 * u, 1 - .25 * u, 1]), q2)
+        if rs is None: continue
+        so, sx, sy = rs
+        if settled0: comp(srcf, so, sx, sy, clip_y=None)
+        else: comp(srcf, so, sx, sy, clip_y=wy + 2 * R.SS)
     r = warp_to(img, quad)
     if r is None: return True
     out, x0, y0 = r
     out = motion_blur_v(out, min(vel * .45, 70 * R.SS))
     out = realism(out, i, tint=(.55, .62, .40), amount=.04, contrast=.96, grain=0)
     out = light_wrap(srcf, out, x0, y0)
+    env = _BG if _BG is not None else srcf
+    hh_, ww_ = out.shape[:2]; xa, ya = max(0, x0), max(0, y0); xb, yb = min(R.SW, x0 + ww_), min(R.SH, y0 + hh_)
+    if xa < xb and ya < yb:   # o vidro reflete o mato à frente (espelhado e desfocado)
+        ev = np.zeros((hh_, ww_, 3), np.float32); ev[ya - y0:yb - y0, xa - x0:xb - x0] = env[ya:yb, xa:xb]
+        ev = cv2.GaussianBlur(np.fliplr(ev), (0, 0), 14 * R.SS)
+        out[..., :3] = np.clip(out[..., :3] + ev * .13, 0, 1)
     settled = not first or t >= tl
     if settled:
         ph = t * 2.2
@@ -301,7 +362,9 @@ def draw_particles(srcf, t, i):
         if xa < xb and ya < yb:
             aa = fm[ya - y_:yb - y_, xa - x_:xb - x_, None] * fa
             blend(srcf, ya, yb, xa, xb, np.array([.90, .94, .92], np.float32), aa)
-    # gotas: coroa de respingo com rastro
+    draw_splash(srcf, e, bx, wy, wpx)
+    return
+    # (antigo) gotas procedurais
     if _SPL is None:
         g = rng(7); n = 150
         side = g.choice([-1, 1], n)
@@ -328,6 +391,39 @@ def draw_particles(srcf, t, i):
         aa = m[ya - y0_:yb - y0_, xa - x0_:xb - x0_, None] * a
         c = np.array([.86, .92, .93], np.float32) * S_["br"][k]
         blend(srcf, ya, yb, xa, xb, c, aa)
+
+_FLOW = None
+FLOW_F0, FLOW_F1, FLOW_SPD = 21, 70, 1.65   # quadro do impacto, fim da coroa, aceleração (o clipe é câmera lenta)
+FLOW_C = (960, 815, 780)                     # no clipe: centro x, linha d'água y, largura da base da coroa
+def draw_splash(L, e, bx, wy, wpx):
+    """respingo filmado (refs/flow_splash.mp4, fundo preto) somado como luz (modo tela) no impacto."""
+    global _FLOW
+    if _FLOW is None:
+        cap = cv2.VideoCapture("refs/flow_splash.mp4"); fr = []
+        while True:
+            ok, f = cap.read()
+            if not ok: break
+            fr.append(cv2.cvtColor(f, cv2.COLOR_BGR2GRAY))
+        _FLOW = fr[FLOW_F0:FLOW_F1 + 2]
+    k = e * 24 * FLOW_SPD
+    if e < 0 or k >= len(_FLOW) - 1: return
+    k0 = int(k); f = k - k0
+    g = (_FLOW[k0].astype(np.float32) * (1 - f) + _FLOW[k0 + 1].astype(np.float32) * f) / 255
+    g = np.clip((g - .10) / .72, 0, 1) ** 1.15
+    H0, W0 = g.shape; cx, cy, cw = FLOW_C
+    g[cy + 25:] *= .45                                   # reflexo do respingo na água: mais fraco
+    xw = np.clip(np.minimum(np.arange(W0), W0 - 1 - np.arange(W0)) / (W0 * .12), 0, 1)
+    yw = np.clip(np.arange(H0) / (H0 * .10), 0, 1)
+    g *= np.outer(yw, xw)
+    sc = wpx * 1.30 / cw
+    g = cv2.resize(g, (max(2, int(W0 * sc)), max(2, int(H0 * sc))), interpolation=cv2.INTER_AREA)
+    fade = clampf(1 - (k - (len(_FLOW) - 14)) / 13, 0, 1) * clampf(e / .04, 0, 1)
+    x_, y_ = int(bx - cx * sc), int(wy - cy * sc)
+    xa, ya = max(0, x_), max(0, y_); xb, yb = min(R.SW, x_ + g.shape[1]), min(R.SH, y_ + g.shape[0])
+    if xa >= xb or ya >= yb: return
+    add = g[ya - y_:yb - y_, xa - x_:xb - x_, None] * np.float32([.93, .98, .97]) * fade
+    if isinstance(L, Layer): L.P[ya:yb, xa:xb] += add
+    else: L[ya:yb, xa:xb] = np.clip(L[ya:yb, xa:xb] + add, 0, 1)
 
 def apply_ripples(srcf, t, G):
     """ondas reais: distorce os pixels da água em anéis que se abrem (no quadro final, já com tracking)."""
@@ -379,54 +475,78 @@ def shake(t):
 # ------------------------------------------------------------ painéis 3D ancorados no ambiente
 # (card, entra, sai, base x, base y, altura, rotY, rotX, desfoque, entrada, reflexo)
 PAINEIS = [
-    ("importer", 7.75, 9.35, .79, .40, .34, -6, -58, .6, "pousa", False),      # deitado na grama, ao lado do Fábio
-    ("dashboard", 18.55, 20.35, .845, .80, .40, -24, 2, 2.2, "sobe", False),   # Higor B: "o painel mostra gráficos"
+    ("importer", 7.75, 9.35, .80, .62, .34, -14, -6, .6, "vidro", False),      # flutua ao lado do Fábio
+    ("dashboard", 18.55, 20.35, .815, .80, .36, -24, 2, 2.2, "sobe", False),   # Higor B: "o painel mostra gráficos"
     ("dups", 20.35, 22.40, .165, .80, .40, 24, 2, 2.2, "sobe", False),        # Higor B: "duplicados"
     ("importer", 23.55, 25.60, .875, .74, .36, -22, 2, 2.4, "sobe", True),     # Marielly: "você importa"
     ("library", 25.75, 28.30, .165, .74, .40, 22, 2, 2.4, "sobe", True),      # "biblioteca pesquisável com tags"
     ("library", 33.10, 36.50, .165, .74, .40, 22, 2, 2.4, "sobe", True),      # "em breve no computador"
 ]
 
+_GL = {}
+def glass_parts(nm):
+    """separa o card em 'tinta' (texto, ícones, cores: fica aceso) e 'vidro' (o fundo escuro vira vidro fosco)."""
+    if nm in _GL: return _GL[nm]
+    c = load(nm); a = c[..., 3:4]
+    lum = c[..., :3].max(2, keepdims=True)
+    ink = np.dstack([np.clip(c[..., :3] * 1.08, 0, 1), np.clip((lum - .12) / .20, 0, 1) * a])
+    shape = np.dstack([np.ones_like(c[..., :3]), a])
+    h, w = a.shape[:2]
+    er = cv2.erode((a[..., 0] > .5).astype(np.uint8), np.ones((5, 5), np.uint8)).astype(np.float32)
+    yy = np.linspace(1, .45, h, dtype=np.float32)[:, None]
+    rim = np.dstack([np.ones_like(c[..., :3]), (np.clip(a[..., 0] - er, 0, 1) * yy)[..., None]])
+    _GL[nm] = (ink, shape, rim); return _GL[nm]
+
 def draw_panels(srcf, t, i):
+    """cards como VIDRO DE REALIDADE AUMENTADA: painel fosco flutuando, ícones acesos, aresta iluminada."""
+    env = _BG if _BG is not None else srcf
     for nm, a, b, x, y, hf, ry, rx, dof, kind, refl in PAINEIS:
         if not (a <= t < b + .4) or R.cena_idx(t + .5 / R.FPS) != R.cena_idx(a): continue
         fi = (t - a) * R.FPS; fo = (t - b) * R.FPS
-        img = load(nm)
-        if 0 <= fi < 24: img = R.sweep(img, fi / 24)
-        hpx = hf * R.SH; wpx = hpx * img.shape[1] / img.shape[0]
-        bx, by = x * R.SW, y * R.SH
-        al = 1.0; rise = 0.0; drop = 0.0; ryy = ry
-        if kind == "sobe":
-            rise = 1 - R.quint(fi / 18)
-            if fo > 0: rise = R.cubic(fo / 12)
-            ryy += 30 * (1 - R.cubic(fi / 20)) * (1 if ry > 0 else -1)
-        else:  # pousa na grama
-            drop = 1 - R.back(fi / 14, 1.2); al = R.cubic(fi / 6)
-            if fo > 0: al *= 1 - R.cubic(fo / 9); drop = -.4 * R.cubic(fo / 9)
+        ink, shape, rim = glass_parts(nm)
+        if 0 <= fi < 24: ink = R.sweep(ink, fi / 24)
+        hpx = hf * R.SH; wpx = hpx * ink.shape[1] / ink.shape[0]
+        al = R.cubic(fi / 10); sc = .90 + .10 * R.quint(fi / 16); ryy = ry + 18 * (1 - R.cubic(fi / 18)) * (1 if ry > 0 else -1)
+        if fo > 0: al *= 1 - R.cubic(fo / 10); sc *= 1 - .06 * R.cubic(fo / 10)
         if al <= 0: continue
-        quad = project_plane(img, wpx, ryy, rx)
-        bot = (quad[2] + quad[3]) / 2
-        if kind == "sobe":
-            quad += np.float32([bx - bot[0], by - bot[1] + rise * (hpx * 1.05)])
-        else:
-            cen = quad.mean(0); quad = (quad - cen) * (1 + .25 * drop) + np.float32([bx, by])
-            # sombra no chão (aparece quando encosta)
-            sm, pad = ellipse_map(int(wpx * 1.0), int(hpx * .55), 14 * R.SS * (1 + drop * 2))
-            shade(srcf, sm, int(bx - wpx * .5 - pad + 18 * R.SS), int(by - hpx * .27 - pad + 22 * R.SS), .42 * al * (1 - .6 * abs(drop)))
-        if refl and kind == "sobe":
-            rimg = np.flipud(img).copy(); rimg[..., 3] *= np.linspace(.20, 0, rimg.shape[0])[:, None]
-            rq = quad.copy(); rq[:, 1] = 2 * (by + rise * hpx * 1.05) - rq[:, 1]; rq = rq[[3, 2, 1, 0]]
+        cx, cy = x * R.SW, y * R.SH - hpx * .62          # flutua acima do chão/água
+        quad = project_plane(shape, wpx * sc, ryy, rx) + np.float32([cx, cy])
+        rs = warp_to(shape, quad)
+        if rs is None: continue
+        sh_, x0, y0 = rs; pa = sh_[..., 3:4]
+        hh, ww = pa.shape[:2]
+        xa, ya = max(0, x0), max(0, y0); xb, yb = min(R.SW, x0 + ww), min(R.SH, y0 + hh)
+        if xa >= xb or ya >= yb: continue
+        # vidro fosco: a cena atrás, bem desfocada e clareada
+        pad = int(40 * R.SS); px0, py0 = max(0, xa - pad), max(0, ya - pad); px1, py1 = min(R.SW, xb + pad), min(R.SH, yb + pad)
+        fro = cv2.GaussianBlur(env[py0:py1, px0:px1], (0, 0), 20 * R.SS)[ya - py0:yb - py0, xa - px0:xb - px0] * .74 + .19
+        pa_ = pa[ya - y0:yb - y0, xa - x0:xb - x0] * .92 * al
+        blend(srcf, ya, yb, xa, xb, fro, pa_)
+        # reflexo na água (só a tinta, fraco)
+        if refl:
+            rimg = np.flipud(ink).copy(); rimg[..., 3] *= np.linspace(.22, 0, rimg.shape[0])[:, None]
+            rq = quad.copy(); rq[:, 1] = 2 * (y * R.SH + hpx * .08) - rq[:, 1]; rq = rq[[3, 2, 1, 0]]
             r = warp_to(rimg, rq)
-            if r: comp(srcf, premul_blur(r[0], 4 * R.SS), r[1], r[2], al, )
-        r = warp_to(img, quad)
-        if r is None: continue
-        out, x0, y0 = r
-        # espessura (borda lateral escura) para não parecer adesivo
-        th = np.zeros_like(out); th[..., 3] = out[..., 3]; th[..., :3] = .04
-        off = int((5 if ry < 0 else -5) * R.SS)
-        out = realism(out, i, tint=(.45, .55, .35), amount=.04, contrast=.96, grain=0)
-        comp(srcf, th, x0 + off, y0 + int(3 * R.SS), al * .9, clip_y=by if kind == "sobe" else None)
-        comp(srcf, out, x0, y0, al, clip_y=by if kind == "sobe" else None)
+            if r: comp(srcf, premul_blur(r[0], 4 * R.SS), r[1], r[2], al)
+        # conteúdo aceso + brilho
+        r = warp_to(ink, quad)
+        if r is not None:
+            io, ix, iy = r
+            comp(srcf, io, ix, iy, al * .96)
+            glow = cv2.GaussianBlur(io[..., :3] * io[..., 3:4], (0, 0), 9 * R.SS) * .30 * al
+            gx0, gy0 = max(0, ix), max(0, iy); gx1, gy1 = min(R.SW, ix + io.shape[1]), min(R.SH, iy + io.shape[0])
+            if gx0 < gx1 and gy0 < gy1:
+                add = glow[gy0 - iy:gy1 - iy, gx0 - ix:gx1 - ix]
+                if isinstance(srcf, Layer): srcf.P[gy0:gy1, gx0:gx1] += add
+                else: srcf[gy0:gy1, gx0:gx1] = np.clip(srcf[gy0:gy1, gx0:gx1] + add, 0, 1)
+        # aresta do vidro iluminada + faixa de reflexo diagonal
+        r = warp_to(rim, quad)
+        if r is not None: comp(srcf, r[0], r[1], r[2], al * .75)
+        yy, xx = np.mgrid[0:hh, 0:ww].astype(np.float32)
+        st = np.clip(1 - np.abs((xx - ww * .45) * .9 + (yy - hh * .5) * .5) / (40 * R.SS), 0, 1)[..., None] * .09 * pa * al
+        add = (st * np.ones(3, np.float32))[ya - y0:yb - y0, xa - x0:xb - x0]
+        if isinstance(srcf, Layer): srcf.P[ya:yb, xa:xb] += add
+        else: srcf[ya:yb, xa:xb] = np.clip(srcf[ya:yb, xa:xb] + add, 0, 1)
 
 # ------------------------------------------------------------ gráfico que cresce atrás do Higor (ref "chart grow")
 CHART = (14.10, 17.95)
