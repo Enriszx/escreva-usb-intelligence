@@ -97,7 +97,8 @@
    "t1": 6.76,
    "tipo": "K",
    "cor": "#EEF5A8",
-   "y": 0.74
+   "y": 0.74,
+   "icon": "usb"
   },
   {
    "txt": "e não",
@@ -198,7 +199,8 @@
    "t1": 15.88,
    "tipo": "K",
    "cor": "#4FB3E8",
-   "y": 0.76
+   "y": 0.76,
+   "icon": "chart"
   },
   {
    "txt": "mantendo",
@@ -266,7 +268,8 @@
    "cor": "#4FB3E8",
    "y": 0.7,
    "pos": "dir",
-   "fim": 21.9
+   "fim": 21.9,
+   "icon": "copy"
   },
   {
    "txt": "você importa",
@@ -315,7 +318,8 @@
    "tipo": "K",
    "cor": "#F2C38B",
    "y": 0.8,
-   "t2": 26.98
+   "t2": 26.98,
+   "icon": "search"
   },
   {
    "txt": "com tags",
@@ -373,7 +377,8 @@
    "tipo": "K",
    "cor": "#F2C38B",
    "y": 0.8,
-   "pos": "dir"
+   "pos": "dir",
+   "icon": "cable"
   },
   {
    "txt": "e em breve",
@@ -423,7 +428,8 @@
    "cor": "#F2C38B",
    "y": 0.8,
    "t2": 35.6,
-   "fim": 36.8
+   "fim": 36.8,
+   "icon": "laptop"
   },
   {
    "txt": "apesar de",
@@ -555,7 +561,8 @@
    "cor": "#A6E36B",
    "y": 0.6,
    "t2": 46.4,
-   "pos": "esq"
+   "pos": "esq",
+   "icon": "spark"
   },
   {
    "txt": "também",
@@ -597,7 +604,8 @@
    "cor": "#A6E36B",
    "y": 0.6,
    "t2": 48.54,
-   "pos": "esq"
+   "pos": "esq",
+   "icon": "toggle"
   },
   {
    "txt": "você quer",
@@ -671,7 +679,8 @@
    "t1": 56.28,
    "tipo": "C",
    "cor": "#F0B45A",
-   "y": 0.72
+   "y": 0.72,
+   "icon": "script"
   },
   {
    "txt": "gravação",
@@ -679,7 +688,8 @@
    "t1": 56.9,
    "tipo": "C",
    "cor": "#F0B45A",
-   "y": 0.72
+   "y": 0.72,
+   "icon": "rec"
   },
   {
    "txt": "edição",
@@ -687,7 +697,8 @@
    "t1": 57.46,
    "tipo": "C",
    "cor": "#F0B45A",
-   "y": 0.72
+   "y": 0.72,
+   "icon": "cut"
   },
   {
    "txt": "e entrega",
@@ -696,7 +707,8 @@
    "tipo": "C",
    "cor": "#F0B45A",
    "y": 0.72,
-   "fim": 58.1
+   "fim": 58.1,
+   "icon": "send"
   },
   {
    "txt": "cada etapa",
@@ -741,20 +753,11 @@
   {
    "txt": "maneira",
    "t0": 61.42,
-   "t1": 61.7,
+   "t1": 61.75,
    "tipo": "P",
    "cor": "#F0B45A",
-   "y": 0.72
-  },
-  {
-   "txt": "clara|e visual",
-   "t0": 61.7,
-   "t1": 62.75,
-   "tipo": "K",
-   "cor": "#F0B45A",
    "y": 0.72,
-   "t2": 62.2,
-   "fim": 62.75
+   "fim": 61.75
   }
  ],
  "nomes": [
@@ -792,61 +795,7 @@
  "cards": [
   [
    "logo",
-   2.6,
-   4.5,
-   "centro-topo"
-  ],
-  [
-   "importer",
-   7.85,
-   9.25,
-   "dir-topo"
-  ],
-  [
-   "dashboard",
-   15.25,
-   17.9,
-   "esq"
-  ],
-  [
-   "donut",
-   15.5,
-   17.9,
-   "dir"
-  ],
-  [
-   "dashboard",
-   18.6,
-   20.4,
-   "dir"
-  ],
-  [
-   "dups",
-   20.4,
-   22.3,
-   "esq"
-  ],
-  [
-   "importer",
-   23.6,
-   25.6,
-   "dir"
-  ],
-  [
-   "library",
-   25.8,
-   28.2,
-   "dir"
-  ],
-  [
-   "library",
-   33.2,
-   36.4,
-   "esq"
-  ],
-  [
-   "logo",
-   62.6,
+   63.6,
    65.53,
    "centro"
   ]
@@ -881,16 +830,11 @@
    50.6,
    1.12,
    "é opcional"
-  ],
-  [
-   61.0,
-   63.53,
-   1.1,
-   "clara e visual"
   ]
  ],
  "phone": {
-  "entra": 38.5,
+  "entra": 38.45,
+  "land": 39.0,
   "sai": 50.9,
   "telas": [
    [
@@ -908,9 +852,25 @@
   ]
  },
  "transicoes": [
-  13.23,
-  22.47,
-  37.53,
-  51.77
+  [
+   4.5,
+   "whip_v"
+  ],
+  [
+   13.23,
+   "zoom"
+  ],
+  [
+   22.47,
+   "leak"
+  ],
+  [
+   37.53,
+   "whip_h"
+  ],
+  [
+   51.77,
+   "zoom"
+  ]
  ]
 }

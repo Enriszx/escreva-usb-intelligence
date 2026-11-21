@@ -22,7 +22,7 @@ CENAS = [
 L = [
     # Fábio
     ("quantas vezes", 4.82, "M"), ("você", 5.56, "P"), ("plugou um", 5.96, "P"),
-    ("pendrive", 6.32, "K"),
+    ("pendrive", 6.32, "K", {"icon": "usb"}),
     ("e não", 6.76, "M"), ("achou", 6.96, "M"), ("o arquivo", 7.24, "P"), ("que procurava", 7.48, "P"),
     ("hoje", 8.26, "M"), ("apresentamos", 8.58, "P"),
     ("USB|intelligence", 9.30, "K", {"logo": True, "t2": 9.46, "fica_no_topo_ate": 12.9}),
@@ -31,23 +31,23 @@ L = [
     ("de arquivos", 11.88, "P", {"fim": 12.8}),
     # Higor
     ("ele gera", 14.16, "M"),
-    ("relatórios", 15.08, "K"),
+    ("relatórios", 15.08, "K", {"icon": "chart"}),
     ("mantendo", 15.88, "P"), ("tudo organizado", 16.44, "M", {"fim": 17.9}),
     ("o painel", 18.36, "P"), ("mostra", 19.02, "P"),
     ("gráficos", 19.28, "K", {"pos": "esq"}),
     ("e encontra", 19.88, "P"), ("arquivos", 20.14, "P"),
-    ("duplicados", 20.66, "K", {"pos": "dir", "fim": 21.9}),
+    ("duplicados", 20.66, "K", {"pos": "dir", "fim": 21.9, "icon": "copy"}),
     # Marielly
     ("você importa", 23.10, "M"), ("seus arquivos", 23.96, "P"), ("que ficam", 24.66, "P"),
     ("organizados", 25.14, "P"), ("na", 25.68, "P"),
-    ("biblioteca|pesquisável", 25.80, "K", {"t2": 26.98}),
+    ("biblioteca|pesquisável", 25.80, "K", {"t2": 26.98, "icon": "search"}),
     ("com tags", 27.54, "P", {"fim": 28.3}),
     ("já funciona", 28.38, "M"), ("no celular", 29.44, "P"), ("android", 29.96, "P"),
     ("via", 30.24, "P"), ("adaptador", 30.46, "P"),
-    ("OTG", 31.76, "K", {"pos": "dir"}),
+    ("OTG", 31.76, "K", {"pos": "dir", "icon": "cable"}),
     ("e em breve", 32.36, "P"), ("terá a mesma", 33.66, "P"), ("experiência", 34.34, "P"), ("também", 34.72, "P"),
     ("para o", 35.08, "P"),
-    ("computador|em breve", 35.36, "K", {"t2": 35.6, "fim": 36.8}),
+    ("computador|em breve", 35.36, "K", {"t2": 35.6, "fim": 36.8, "icon": "laptop"}),
     # Gustavo
     ("apesar de", 37.96, "M"), ("tudo isso", 39.08, "M"), ("temos", 39.60, "P"),
     ("aplicações", 39.78, "P"), ("que podem", 40.26, "P"), ("funcionar", 40.54, "P"),
@@ -55,17 +55,16 @@ L = [
     ("com acesso", 41.58, "P"), ("para qualquer", 42.42, "P"), ("usuário", 42.96, "P"),
     ("de pequenas", 43.46, "P"), ("ou grandes", 43.94, "P"), ("empresas", 44.30, "M"),
     ("por exemplo", 44.98, "M"), ("tem", 45.94, "P"),
-    ("inteligência|artificial", 46.06, "K", {"t2": 46.40, "pos": "esq"}),
+    ("inteligência|artificial", 46.06, "K", {"t2": 46.40, "pos": "esq", "icon": "spark"}),
     ("também", 46.66, "P"), ("já é", 47.10, "P"), ("opção", 47.54, "P"), ("de vocês", 47.98, "P"),
-    ("é|opcional", 48.44, "K", {"t2": 48.54, "pos": "esq"}),
+    ("é|opcional", 48.44, "K", {"t2": 48.54, "pos": "esq", "icon": "toggle"}),
     ("você quer", 49.08, "M"), ("usar", 49.48, "P"), ("ou não", 49.72, "M", {"fim": 50.7}),
     # Enrique
     ("esse vídeo", 53.04, "M", {"pos": "esq"}), ("também mostra", 53.90, "P"), ("como a", 54.44, "P"),
     ("nossa produção", 54.74, "P"), ("funciona", 55.24, "P"),
-    ("roteiro", 55.84, "C"), ("gravação", 56.28, "C"), ("edição", 56.90, "C"), ("e entrega", 57.46, "C", {"fim": 58.1}),
+    ("roteiro", 55.84, "C", {"icon": "script"}), ("gravação", 56.28, "C", {"icon": "rec"}), ("edição", 56.90, "C", {"icon": "cut"}), ("e entrega", 57.46, "C", {"fim": 58.1, "icon": "send"}),
     ("cada etapa", 58.12, "M"), ("foi planejada", 58.92, "P"), ("para explicar", 59.68, "P"),
-    ("o produto", 60.22, "P"), ("de uma", 61.10, "P"), ("maneira", 61.42, "P"),
-    ("clara|e visual", 61.70, "K", {"t2": 62.20, "fim": 62.75}),
+    ("o produto", 60.22, "P"), ("de uma", 61.10, "P"), ("maneira", 61.42, "P", {"fim": 61.75}),
 ]
 
 # Plaquinha de nome (~2 s, canto inferior esquerdo, Inter)
@@ -73,22 +72,13 @@ L = [
 NOMES = [("Fábio", 5.1, 2.6, "acima"), ("Higor", 13.35, 2.0, "esq"), ("Marielly", 22.7, 2.4, "esq"), ("Gustavo", 37.7, 2.6, "acima"), ("Enrique", 53.75, 2.5, "dir")]
 
 # Celular 3D em pé ao lado do Gustavo (ref 1): entra, troca de tela no assunto e sai
-PHONE = {"entra": 38.5, "sai": 50.9, "telas": [["dash", 38.5], ["offline", 40.7], ["ia", 45.9]]}
+PHONE = {"entra": 38.45, "land": 39.0, "sai": 50.9, "telas": [["dash", 38.5], ["offline", 40.7], ["ia", 45.9]]}
 # Transição com desfoque de movimento nos cortes de cena
-TRANSICOES = [13.23, 22.47, 37.53, 51.77]
+TRANSICOES = [[4.50, "whip_v"], [13.23, "zoom"], [22.47, "leak"], [37.53, "whip_h"], [51.77, "zoom"]]
 
 # Cards 3D (telas do app, sem números): (card, entra, sai, lado)
 CARDS = [
-    ("logo", 2.6, 4.5, "centro-topo"),            # empinada
-    ("importer", 7.85, 9.25, "dir-topo"),          # "plugou um pendrive"
-    ("dashboard", 15.25, 17.9, "esq"),            # "gera relatórios" (abertura estilo ref: 2 cards)
-    ("donut", 15.5, 17.9, "dir"),
-    ("dashboard", 18.6, 20.4, "dir"),            # "o painel mostra gráficos"
-    ("dups", 20.4, 22.3, "esq"),                 # "duplicados"
-    ("importer", 23.6, 25.6, "dir"),             # "você importa seus arquivos"
-    ("library", 25.8, 28.2, "dir"),              # "biblioteca pesquisável com tags"
-    ("library", 33.2, 36.4, "esq"),              # "mesma experiência para computador" (tela de computador)
-    ("logo", 62.6, 65.53, "centro"),             # encerramento, fundo desfocado (+2 s de quadro congelado)
+    ("logo", 63.60, 65.53, "centro"),             # encerramento sobre o quadro congelado
 ]
 
 # Zoom de câmera SÓ em frases de impacto: empurrão suave (ease in-out) até o nível, segura, e volta devagar.
@@ -99,7 +89,6 @@ ZOOM = [
     (33.16, 36.40, 1.10, "em breve ... para o computador"),
     (40.40, 44.80, 1.16, "funcionar sem internet"),
     (48.30, 50.60, 1.12, "é opcional"),
-    (61.00, 63.53, 1.10, "clara e visual"),
 ]
 
 def cena(t):

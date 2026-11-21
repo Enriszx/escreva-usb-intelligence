@@ -172,6 +172,13 @@ def keyword_sprite(c, t):
         gap = int(18 * S); nl = np.zeros((max(l1.shape[0], ic.shape[0]), ic.shape[1] + gap + l1.shape[1], 4), np.float32)
         oy = (nl.shape[0] - ic.shape[0]) // 2; nl[oy:oy + ic.shape[0], :ic.shape[1]] = ic
         oy = (nl.shape[0] - l1.shape[0]) // 2; nl[oy:oy + l1.shape[0], ic.shape[1] + gap:] = l1; l1 = nl
+    if c.get("icon"):
+        import mundo
+        isz = int(l1.shape[0] * .62); icol = (255, 255, 255) if c["tipo"] == "K" else hexrgb(c["cor"])
+        ic = mundo.icon_sprite(c["icon"], isz, quint(fr / 14), icol, extra=(fr - 14) / 8)
+        gap = int(16 * S); nl = np.zeros((max(l1.shape[0], ic.shape[0]), ic.shape[1] + gap + l1.shape[1], 4), np.float32)
+        oy = (nl.shape[0] - ic.shape[0]) // 2; nl[oy:oy + ic.shape[0], :ic.shape[1]] = ic
+        oy = (nl.shape[0] - l1.shape[0]) // 2; nl[oy:oy + l1.shape[0], ic.shape[1] + gap:] = l1; l1 = nl
     if not b: return l1
     t2 = c.get("t2", c["t0"]); f2 = (t - t2) * FPS
     k = ("ital", b, c["cor"])
@@ -503,20 +510,38 @@ def reader():
         if len(b) < n: break
         yield np.frombuffer(b, np.uint8).reshape(SH, SW, 3)
 
+import mundo
+mundo.init(globals())
+CUTS = M.get("transicoes", [])
+
 def frame_at(src, t):
     i = min(int(round(t * FPS)), NF - 1)
     srcf = src.astype(np.float32) / 255
-    need = any(tn <= t < tn + D for _, tn, D, _m in M["nomes"]) or any(c.get("atras") and c["t0"] <= t < c["t1"] + .3 for c in LEG)
-    m = mask_full(i) if need else None
-    draw_behind_words(srcf, t, m); draw_names_tracked(srcf, t, m)
-    if CARDS_ON: draw_phone(srcf, t)
+    names = any(tn <= t < tn + D for _, tn, D, _m in M["nomes"])
+    behind = any(c.get("atras") and c["t0"] <= t < c["t1"] + .3 for c in LEG)
+    chart = mundo.CHART[0] <= t < mundo.CHART[1] + .4
+    phone = M["phone"]["entra"] <= t < mundo.PH_PLANES[-1][1]
+    panels = any(a <= t < b + .4 for _, a, b, *_r in mundo.PAINEIS)
+    pm = mundo.person_mask(i, t) if (names or behind or chart or phone or panels) else None
+    mundo.R._PM = pm
+    orig = srcf.copy() if pm is not None else None
+    if CARDS_ON:
+        mundo.draw_chart(srcf, t, i)
+        mundo.draw_panels(srcf, t, i)
+        if mundo.draw_phone(srcf, t, i): mundo.draw_particles(srcf, t, i)
+    if pm is not None:  # a pessoa sempre na frente do que está atrás dela (camadas sem erro)
+        srcf = srcf * (1 - pm[..., None]) + orig * pm[..., None]
+    draw_behind_words(srcf, t, pm); mundo.draw_names(srcf, t, i, pm)
+    mundo.draw_hand_words(srcf, t, i)
     z, cx, cy = cam(t)
+    sx, sy = mundo.shake(t)
     cw, ch = SW / z, SH / z
     x0 = clamp(cx * SW - cw / 2, 0, SW - cw); y0 = clamp(cy * SH - ch / 2, 0, SH - ch)
+    if sx or sy:  # tremida do impacto (com uma leve aproximação para não mostrar borda)
+        zz = 1.02; cw, ch = cw / zz, ch / zz; x0 = clamp(x0 + (SW / z - cw) / 2 + sx * SS, 0, SW - cw); y0 = clamp(y0 + (SH / z - ch) / 2 + sy * SS, 0, SH - ch)
     Mx = np.array([[W / cw, 0, -x0 * W / cw], [0, H / ch, -y0 * H / ch]], np.float32)
     fr = cv2.warpAffine(srcf, Mx, (W, H), flags=cv2.INTER_AREA if W / cw < 1 else cv2.INTER_CUBIC)
-    fr = transition(fr, t)
-    if CARDS_ON: draw_cards(fr, t)
+    fr = mundo.transition(fr, t, CUTS)
     if CARDS_ON: fr = end_card(fr, t)
     if not (CARDS_ON and t >= LOGO_T): draw_captions(fr, t)
     return (np.clip(fr, 0, 1) * 255 + .5).astype(np.uint8)

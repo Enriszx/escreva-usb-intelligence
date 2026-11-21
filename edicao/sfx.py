@@ -22,15 +22,36 @@ L = np.zeros(int(TOT * SR) + SR); R = np.zeros_like(L)
 def put(sig, t, pan=0.0):
     i = int(t * SR); n = min(len(sig), len(L) - i)
     L[i:i + n] += sig[:n] * np.sqrt((1 - pan) / 2) * 1.414; R[i:i + n] += sig[:n] * np.sqrt((1 + pan) / 2) * 1.414
-PAN = {"esq": -.5, "esq-topo": -.5, "dir": .5, "dir-topo": .5, "centro": 0, "centro-topo": 0}
-for name, a, b, lado in M["cards"]:
-    put(whoosh(.5 if lado != "centro" else .9, peak=-27 if lado != "centro" else -24), a - .18, PAN[lado])
+def boom(peak=-15):
+    n = int(.9 * SR); t = np.arange(n) / SR
+    y = (np.sin(2 * np.pi * (52 * t - 14 * t * t)) * np.exp(-t / .22) + .5 * np.sin(2 * np.pi * 84 * t) * np.exp(-t / .12))
+    nz = sosfilt(butter(2, 900, "lowpass", fs=SR, output="sos"), rng.standard_normal(n)) * np.exp(-t / .06) * .9
+    y = y + nz; return y / np.abs(y).max() * db(peak)
+def debris(dur=.6, peak=-30):
+    n = int(dur * SR); y = np.zeros(n)
+    for k in range(40):
+        i = int(rng.uniform(0, .5) ** 1.6 * SR); m = int(.012 * SR)
+        if i + m < n: y[i:i + m] += sosfilt(butter(2, [1500, 7000], "bandpass", fs=SR, output="sos"), rng.standard_normal(m)) * np.exp(-np.arange(m) / (.003 * SR)) * rng.uniform(.3, 1)
+    return y / np.abs(y).max() * db(peak)
+def shimmer(dur=.7, peak=-30):
+    n = int(dur * SR); t = np.arange(n) / SR
+    y = sosfilt(butter(2, [5000, 12000], "bandpass", fs=SR, output="sos"), rng.standard_normal(n)) * np.sin(np.pi * t / dur) ** 2
+    return y / np.abs(y).max() * db(peak)
+for tc, kind in M["transicoes"]:
+    if kind == "leak": put(shimmer(.8, -29), tc - .4); put(whoosh(.45, 400, 2000, -29), tc - .2)
+    elif kind == "zoom": put(whoosh(.55, 300, 3200, -24), tc - .3)
+    else: put(whoosh(.40, 500, 2600, -24), tc - .2, -.3 if kind == "whip_h" else 0)
+ph = M["phone"]
+put(whoosh(.6, 3200, 700, -26), ph["land"] - .58, .5)          # assobio da queda
+put(boom(-15), ph["land"] - .01, .35); put(debris(.6, -29), ph["land"] + .02, .4)
+for _, ts in ph["telas"][1:]: put(tick(-33), ts, .4)
+for nm, a_, *_ in [(p[0], p[1]) for p in [("importer", 7.75), ("dashboard", 18.55), ("dups", 20.35), ("importer", 23.55), ("library", 25.75), ("library", 33.10)]]:
+    put(whoosh(.45, 600, 2400, -30), a_ - .1)
 for c in M["legenda"]:
-    if c["tipo"] in "KC": put(tick(-31), c["t0"] - .01)
+    if c["tipo"] in "KC": put(tick(-32), c["t0"] - .01)
 for n, t, *_ in M["nomes"]: put(whoosh(.45, 700, 3000, -30), t - .08, 0); put(tick(-34), t + .1)
-for tc in M["transicoes"]: put(whoosh(.42, 400, 2400, -25), tc - .2, 0)
-ph = M["phone"]; put(whoosh(.6, 300, 1800, -26), ph["entra"] - .15, .5); put(whoosh(.4, 600, 2200, -30), ph["sai"] - .1, .5)
-for _, ts in ph["telas"][1:]: put(tick(-32), ts)
+put(shimmer(.5, -31), 61.80, -.5); put(shimmer(.5, -31), 62.30, .5); put(tick(-31), 61.80, -.5); put(tick(-31), 62.30, .5)
+put(whoosh(.9, 400, 2000, -25), 63.45)  # logo final
 st = np.stack([L, R], 1)[:int(TOT * SR)]
 o = wave.open("sfx.wav", "wb"); o.setnchannels(2); o.setsampwidth(2); o.setframerate(SR)
 o.writeframes((np.clip(st, -1, 1) * 32767).astype(np.int16).tobytes()); o.close()

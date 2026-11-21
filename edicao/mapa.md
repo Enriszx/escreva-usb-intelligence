@@ -7,7 +7,6 @@ Legenda em minúsculas e sem pontuação (como na referência), sempre batendo c
 
 | Tempo | Legenda | Tipo | Posição | Card / zoom / nome |
 |---|---|---|---|---|
-| 2.60 |  |  |  | card `logo` entra (centro-topo), sai 4.5 |
 
 ## Fábio (deitado) · 4.50–13.23 · cor #EEF5A8
 
@@ -22,7 +21,6 @@ Legenda em minúsculas e sem pontuação (como na referência), sempre batendo c
 | 6.96 | achou | média branca | peito |  |
 | 7.24 | o arquivo | pequena | peito |  |
 | 7.48 | que procurava | pequena | peito |  |
-| 7.85 |  |  |  | card `importer` entra (dir-topo), sai 9.25 |
 | 8.26 | hoje | média branca | peito |  |
 | 8.26 |  |  |  | zoom suave 1.12 até 12.7 ("Hoje apresentamos o USB Intelligence") |
 | 8.58 | apresentamos | pequena | peito |  |
@@ -38,8 +36,6 @@ Legenda em minúsculas e sem pontuação (como na referência), sempre batendo c
 | 13.35 |  |  |  | plaquinha **Higor** |
 | 14.16 | ele gera | média branca | peito |  |
 | 15.08 | relatórios | **DESTAQUE** | peito |  |
-| 15.25 |  |  |  | card `dashboard` entra (esq), sai 17.9 |
-| 15.50 |  |  |  | card `donut` entra (dir), sai 17.9 |
 | 15.88 | mantendo | pequena | peito |  |
 | 16.44 | tudo organizado | média branca | peito |  |
 
@@ -48,13 +44,11 @@ Legenda em minúsculas e sem pontuação (como na referência), sempre batendo c
 | Tempo | Legenda | Tipo | Posição | Card / zoom / nome |
 |---|---|---|---|---|
 | 18.36 | o painel | pequena | peito |  |
-| 18.60 |  |  |  | card `dashboard` entra (dir), sai 20.4 |
 | 19.02 | mostra | pequena | peito |  |
 | 19.28 | gráficos | **DESTAQUE** | esq |  |
 | 19.88 | e encontra | pequena | peito |  |
 | 19.95 |  |  |  | zoom suave 1.10 até 21.6 ("encontra arquivos duplicados") |
 | 20.14 | arquivos | pequena | peito |  |
-| 20.40 |  |  |  | card `dups` entra (esq), sai 22.3 |
 | 20.66 | duplicados | **DESTAQUE** | dir |  |
 
 ## Marielly · 22.47–37.53 · cor #F2C38B
@@ -63,13 +57,11 @@ Legenda em minúsculas e sem pontuação (como na referência), sempre batendo c
 |---|---|---|---|---|
 | 22.70 |  |  |  | plaquinha **Marielly** |
 | 23.10 | você importa | média branca | peito |  |
-| 23.60 |  |  |  | card `importer` entra (dir), sai 25.6 |
 | 23.96 | seus arquivos | pequena | peito |  |
 | 24.66 | que ficam | pequena | peito |  |
 | 25.14 | organizados | pequena | peito |  |
 | 25.68 | na | pequena | peito |  |
 | 25.80 | biblioteca / *pesquisável* | **DESTAQUE** | peito |  |
-| 25.80 |  |  |  | card `library` entra (dir), sai 28.2 |
 | 27.54 | com tags | pequena | peito |  |
 | 28.38 | já funciona | média branca | peito |  |
 | 29.44 | no celular | pequena | peito |  |
@@ -79,7 +71,6 @@ Legenda em minúsculas e sem pontuação (como na referência), sempre batendo c
 | 31.76 | OTG | **DESTAQUE** | dir |  |
 | 32.36 | e em breve | pequena | peito |  |
 | 33.16 |  |  |  | zoom suave 1.10 até 36.4 ("em breve ... para o computador") |
-| 33.20 |  |  |  | card `library` entra (esq), sai 36.4 |
 | 33.66 | terá a mesma | pequena | peito |  |
 | 34.34 | experiência | pequena | peito |  |
 | 34.72 | também | pequena | peito |  |
@@ -146,8 +137,5 @@ Legenda em minúsculas e sem pontuação (como na referência), sempre batendo c
 | 58.92 | foi planejada | pequena | peito |  |
 | 59.68 | para explicar | pequena | peito |  |
 | 60.22 | o produto | pequena | peito |  |
-| 61.00 |  |  |  | zoom suave 1.10 até 63.53 ("clara e visual") |
 | 61.10 | de uma | pequena | peito |  |
 | 61.42 | maneira | pequena | peito |  |
-| 61.70 | clara / *e visual* | **DESTAQUE** | peito |  |
-| 62.60 |  |  |  | card `logo` entra (centro), sai 65.53 |
