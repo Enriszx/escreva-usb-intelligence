@@ -43,7 +43,7 @@ for tc, kind in M["transicoes"]:
     else: put(whoosh(.40, 500, 2600, -24), tc - .2, -.3 if kind == "whip_h" else 0)
 ph = M["phone"]
 put(whoosh(.6, 3200, 700, -26), ph["land"] - .58, .5)          # assobio da queda
-put(boom(-15), ph["land"] - .01, .35); put(debris(.6, -29), ph["land"] + .02, .4)
+put(boom(-21), ph["land"] - .01, .35); put(shimmer(.9, -24), ph["land"], .35); put(debris(.8, -26), ph["land"] + .03, .4)  # mergulho: baque + água + gotas
 for _, ts in ph["telas"][1:]: put(tick(-33), ts, .4)
 for nm, a_, *_ in [(p[0], p[1]) for p in [("importer", 7.75), ("dashboard", 18.55), ("dups", 20.35), ("importer", 23.55), ("library", 25.75), ("library", 33.10)]]:
     put(whoosh(.45, 600, 2400, -30), a_ - .1)

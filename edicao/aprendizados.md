@@ -29,3 +29,7 @@ Cada feedback do Enrique fica anotado aqui. Ele marca o que vira **regra fixa**.
 | 23 | v3 | Nada de card 3D solto: elementos ancorados no ambiente (deitado na grama, saindo do mato, reflexo na água), com perspectiva e realismo. | a decidir |
 | 24 | v3 | Nomes melhores: nunca esconder letra atrás da cabeça (afastamento medido pelo recorte, no máx. 4% escondido), eco em contorno discreto. | a decidir |
 | 25 | v3 | Palavras que surgem das mãos (tracking da mão), na ORDEM DA FALA, não na ordem em que a mão sobe. | a decidir |
+| 26 | v4 | Cards e celular não podem ficar borrados nem "vivos": nítidos, sem granulação piscando, sem balanço — travados no mundo, como na ref 1. | a decidir |
+| 27 | v4 | Celular gigante, em pé, maior que a pessoa e (parcialmente) atrás dela. Usar a geografia real da cena: tem água → cai NA ÁGUA (respingo, ondas, linha d'água, reflexo), não poeira. | a decidir |
+| 28 | v4 | No zoom, o objeto 3D fica grudado no lugar e é cortado pelas bordas junto com a cena (desenhar no espaço da imagem, antes do zoom). | a decidir |
+| 29 | v4 | Mão na frente do objeto não pode ficar transparente: recorte em alta, sem suavização entre quadros, e recorte "firme" ao recompor a pessoa. | a decidir |

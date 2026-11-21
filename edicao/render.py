@@ -530,7 +530,8 @@ def frame_at(src, t):
         mundo.draw_panels(srcf, t, i)
         if mundo.draw_phone(srcf, t, i): mundo.draw_particles(srcf, t, i)
     if pm is not None:  # a pessoa sempre na frente do que está atrás dela (camadas sem erro)
-        srcf = srcf * (1 - pm[..., None]) + orig * pm[..., None]
+        pr = np.clip((pm - .12) / .45, 0, 1) if phone else pm   # no celular: recorte firme, mão nunca fica transparente
+        srcf = srcf * (1 - pr[..., None]) + orig * pr[..., None]
     draw_behind_words(srcf, t, pm); mundo.draw_names(srcf, t, i, pm)
     mundo.draw_hand_words(srcf, t, i)
     z, cx, cy = cam(t)

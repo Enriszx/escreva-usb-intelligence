@@ -131,23 +131,30 @@ def phone_cfg():
         PH = R.M["phone"]; PH["land"] = PH.get("land", PH["entra"] + .55)
     return PH
 
-# planos do Gustavo: base do celular (x, y do chão na margem do lago) e altura, em fração da imagem
-PH_PLANES = [(37.53, 45.27, (.795, .872), .50, -14), (45.27, 51.77, (.855, .975), .60, -14)]
+# planos do Gustavo: base do celular NA ÁGUA (x, y da linha d'água) e altura, em fração da imagem
+PH_PLANES = [(37.53, 45.27, (.705, .955), .84, -16), (45.27, 51.77, (.765, 1.035), .98, -16)]
 
 def phone_state(t):
-    p = phone_cfg()
     for a, b, base, hfrac, ry in PH_PLANES:
         if a <= t < b: return base, hfrac, ry
     return None
+
+def wave_rows(img, amp, freq, phase):
+    """ondulação horizontal por linha (água)."""
+    h, w = img.shape[:2]
+    ys = np.arange(h, dtype=np.float32)
+    dx = (amp * np.sin(ys / freq + phase) * np.linspace(.3, 1, h)).astype(np.float32)
+    mx = np.tile(np.arange(w, dtype=np.float32), (h, 1)) + dx[:, None]
+    my = np.tile(ys[:, None], (1, w))
+    return cv2.remap(img, mx, my, cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT, borderValue=(0, 0, 0, 0))
 
 def draw_phone(srcf, t, i):
     p = phone_cfg()
     if t < p["entra"] or t >= PH_PLANES[-1][1]: return False
     st = phone_state(t)
     if st is None: return False
-    base, hfrac, ry0 = st
+    base, hfrac, ry = st
     t0, tl = p["entra"], p["land"]
-    # tela atual (troca com crossfade)
     scr, prev, cf = p["telas"][0][0], None, 1.0
     for nm, ts in p["telas"]:
         if t >= ts: prev, scr, cf = scr, nm, R.cubic((t - ts) * R.FPS / 9)
@@ -155,110 +162,122 @@ def draw_phone(srcf, t, i):
     if prev and cf < 1: img = load("phone_" + prev) * (1 - cf) + img * cf
     img = glare(img, .09)
     hpx = hfrac * R.SH; wpx = hpx * img.shape[1] / img.shape[0]
-    bx, by = base[0] * R.SW, base[1] * R.SH
-    # queda com gravidade, quique curto e assentamento
-    dy, rz, ry, vel, squash = 0.0, 0.0, ry0, 0.0, 1.0
-    first_plane = t < PH_PLANES[0][1]
-    if first_plane and t < tl:
-        u = (t - t0) / (tl - t0); D = by + hpx * 1.15
+    bx, wy = base[0] * R.SW, base[1] * R.SH                 # wy = linha d'água
+    first = t < PH_PLANES[0][1]
+    dy, vel, rz = 0.0, 0.0, 0.0
+    if first and t < tl:                                     # queda livre
+        u = (t - t0) / (tl - t0); D = wy + hpx * 1.1
         dy = -D * (1 - u * u); vel = 2 * D * u / (tl - t0) / R.FPS
-        rz = 7 * (1 - u) * math.sin(u * 5); ry = ry0 + 26 * (1 - u)
-    elif first_plane and t < tl + .5:
-        e = t - tl
-        dy = -abs(math.sin(e * 22)) * .022 * R.SH * math.exp(-e * 9)
-        squash = 1 - .05 * math.exp(-e * 18) * math.cos(e * 30)
-        rz = 1.6 * math.exp(-e * 8) * math.sin(e * 26)
-    quad = project_plane(img, wpx, ry, 2.0, rz)
-    quad[:, 1] *= squash
+        rz = 5 * (1 - u) * math.sin(u * 4)
+    elif first and t < tl + .45:                              # afunda um pouco e volta (só uma vez)
+        e = (t - tl) / .45
+        dy = math.sin(math.pi * e) * .035 * R.SH * (1 - e * .3)
+    quad = project_plane(img, wpx, ry, 1.0, rz)
     bot = (quad[2] + quad[3]) / 2
-    quad += np.float32([bx - bot[0], by + dy - bot[1]])
-    # sombras no chão: cresce e escurece com a aproximação
-    near = 1.0 if (not first_plane or t >= tl) else clampf((t - t0) / (tl - t0), 0, 1) ** 2
-    sw_ = int(wpx * (1.25 + .9 * (1 - near))); sh_ = int(hpx * .07 * (1 + .6 * (1 - near)))
-    em, pad = ellipse_map(sw_, sh_, 10 * R.SS * (1 + 2 * (1 - near)))
-    shade(srcf, em, int(bx + .10 * wpx - sw_ / 2 - pad), int(by - sh_ / 2 - pad + 4 * R.SS), .55 * near)
-    if near > .95:  # sombra de contato bem justa
-        cm, pad2 = ellipse_map(int(wpx * 1.05), int(16 * R.SS), 4 * R.SS)
-        shade(srcf, cm, int(bx - wpx * .525 - pad2), int(by - 8 * R.SS - pad2), .85)
-        am, pad3 = ellipse_map(int(wpx * 1.6), int(60 * R.SS), 22 * R.SS)
-        shade(srcf, am, int(bx - wpx * .8 - pad3), int(by - 30 * R.SS - pad3), .35)
-    # reflexo na água (abaixo da margem), fraco e desfocado
-    if near > .95:
-        refl = np.flipud(img)[: int(img.shape[0] * .35)].copy(); refl[..., 3] *= np.linspace(.22, 0, refl.shape[0])[:, None]
-        rq = project_plane(refl, wpx, ry, -2.0)
-        top = (rq[0] + rq[1]) / 2; rq += np.float32([bx - top[0], by + dy + 6 * R.SS - top[1]])
-        r = warp_to(refl, rq)
-        if r: comp(srcf, premul_blur(r[0], 3 * R.SS), r[1], r[2])
+    sink = .05 * hpx                                          # parte que fica dentro da água
+    quad += np.float32([bx - bot[0], wy + sink + dy - bot[1]])
     r = warp_to(img, quad)
     if r is None: return True
     out, x0, y0 = r
     out = motion_blur_v(out, min(vel * .45, 70 * R.SS))
-    out = realism(premul_blur(out, 1.1 * R.SS), i, tint=(.55, .62, .40), amount=.07, contrast=.88)
+    out = realism(out, i, tint=(.55, .62, .40), amount=.04, contrast=.96, grain=0)
     out = light_wrap(srcf, out, x0, y0)
-    comp(srcf, out, x0, y0)
+    settled = not first or t >= tl
+    if settled:
+        ph = t * 2.2
+        # reflexo ondulado na água (abaixo da linha d'água)
+        hcut = int(max(1, min(out.shape[0], wy - y0)))
+        top = out[:hcut]
+        refl = np.flipud(top).copy()
+        refl[..., :3] *= .55; refl[..., 3] *= np.linspace(.42, 0, refl.shape[0])[:, None]
+        refl = wave_rows(refl, 2.5 * R.SS, 5.0 * R.SS, ph)
+        comp(srcf, premul_blur(refl, 1.4 * R.SS), x0, int(wy))
+        # parte submersa: escura, esverdeada e ondulada
+        sub = out[hcut:].copy()
+        if sub.shape[0] > 0:
+            sub[..., :3] = sub[..., :3] * .35 + np.array([.10, .14, .08], np.float32)
+            sub[..., 3] *= np.linspace(.55, .15, sub.shape[0])[:, None]
+            comp(srcf, wave_rows(sub, 2 * R.SS, 4 * R.SS, ph + 1), x0, y0 + hcut)
+        comp(srcf, out[:hcut], x0, y0)
+        # linha d'água: faixa escura de contato + brilho fino
+        ln, pad = ellipse_map(int(wpx * 1.08), int(14 * R.SS), 3 * R.SS)
+        shade(srcf, ln, int(bx - wpx * .54 - pad), int(wy - 7 * R.SS - pad), .45)
+        hl = np.zeros((int(8 * R.SS) + 2, int(wpx * 1.05)), np.float32)
+        cv2.ellipse(hl, (hl.shape[1] // 2, hl.shape[0] // 2), (hl.shape[1] // 2 - 2, max(1, hl.shape[0] // 2 - 1)), 0, 180, 360, 1.0, max(1, int(1.5 * R.SS)), cv2.LINE_AA)
+        hl = cv2.GaussianBlur(hl, (0, 0), .8 * R.SS) * .22
+        x_, y_ = int(bx - hl.shape[1] / 2), int(wy - hl.shape[0] / 2 + 2 * R.SS)
+        xa, ya = max(0, x_), max(0, y_); xb, yb = min(R.SW, x_ + hl.shape[1]), min(R.SH, y_ + hl.shape[0])
+        if xa < xb and ya < yb:
+            aa = hl[ya - y_:yb - y_, xa - x_:xb - x_, None]; srcf[ya:yb, xa:xb] = srcf[ya:yb, xa:xb] * (1 - aa) + .92 * aa
+    else:
+        comp(srcf, out, x0, y0, clip_y=wy + 2 * R.SS)          # ainda caindo: some ao tocar a água
     return True
 
-# partículas do impacto (determinísticas)
-_PART = None
-def particles(t):
-    global _PART
-    p = phone_cfg(); tl = p["land"]
-    if not (tl <= t < tl + 1.3) or t >= PH_PLANES[0][1]: return []
-    if _PART is None:
-        g = rng(42); n = 110
-        ang = g.uniform(-1.25, 1.25, n) - math.pi / 2          # para cima, abrindo
-        sp = g.uniform(.25, 1.0, n)
-        kind = g.choice([0, 1, 2], n, p=[.45, .35, .20])          # 0 terra, 1 folha, 2 poeira grande
-        _PART = dict(ang=ang, sp=sp, kind=kind, x0=g.uniform(-.5, .5, n), size=g.uniform(.6, 1.4, n),
-                     rot=g.uniform(0, 6.28, n), spin=g.uniform(-12, 12, n), life=g.uniform(.6, 1.2, n))
-    return _PART
-
+# respingo do impacto na água (determinístico)
+_SPL = None
 def draw_particles(srcf, t, i):
-    P = particles(t)
-    if not P: return
-    p = phone_cfg(); e = t - p["land"]
-    (bx, by), hfrac = PH_PLANES[0][2], PH_PLANES[0][3]
-    bx *= R.SW; by *= R.SH; hpx = hfrac * R.SH; wpx = hpx * .476
-    g = 2.6 * R.SH  # gravidade em px/s²
-    # poeira (nuvem suave que abre na base)
-    for k in range(10):
-        a = clampf(1 - e / 1.1, 0, 1) * (.42 if k % 2 else .30)
-        if a <= 0: continue
-        side = -1 if k < 5 else 1; kk = k % 5
-        rad = (18 + 50 * R.cubic(e / .9) * (1 + kk * .25)) * R.SS
-        cx = bx + side * (wpx * .25 + (40 + kk * 38) * R.SS * R.cubic(e / .8))
-        cy = by - (6 + kk * 6) * R.SS - 30 * R.SS * R.cubic(e / 1.2)
-        em, pad = ellipse_map(int(rad * 2.4), int(rad * 1.4), rad * .45)
-        col = np.array([.74, .69, .58], np.float32)
-        h, w = em.shape; x0, y0 = int(cx - w / 2), int(cy - h / 2)
-        xa, ya = max(0, x0), max(0, y0); xb, yb = min(R.SW, x0 + w), min(R.SH, y0 + h)
+    global _SPL
+    p = phone_cfg(); tl = p["land"]; e = t - tl
+    if e < 0 or t >= PH_PLANES[0][1]: return
+    (bx, wy), hfrac = PH_PLANES[0][2], PH_PLANES[0][3]
+    bx *= R.SW; wy *= R.SH; hpx = hfrac * R.SH; wpx = hpx * .476
+    # ondas: anéis elípticos que se abrem (perspectiva achatada) por ~3 s
+    for k in range(5):
+        tk = e - k * .32
+        if not (0 < tk < 3.0): continue
+        rad = wpx * .40 + tk * 240 * R.SS; a = .22 * (1 - tk / 3.0) ** 1.5
+        rx, ry_ = int(rad), max(2, int(rad * .10))
+        pad = 6; m = np.zeros((2 * ry_ + 2 * pad, 2 * rx + 2 * pad), np.float32)
+        cv2.ellipse(m, (rx + pad, ry_ + pad), (rx, ry_), 0, 0, 360, 1.0, max(1, int(2 * R.SS)), cv2.LINE_AA)
+        m = cv2.GaussianBlur(m, (0, 0), 1.0 * R.SS)
+        m[: ry_ + pad - int(ry_ * .15)] *= .35                  # a parte de trás do anel some atrás do celular/fica mais fraca
+        x_, y_ = int(bx - rx - pad), int(wy - ry_ - pad + 4 * R.SS)
+        xa, ya = max(0, x_), max(0, y_); xb, yb = min(R.SW, x_ + m.shape[1]), min(R.SH, y_ + m.shape[0])
         if xa < xb and ya < yb:
-            aa = em[ya - y0:yb - y0, xa - x0:xb - x0, None] * a
-            srcf[ya:yb, xa:xb] = srcf[ya:yb, xa:xb] * (1 - aa) + col * aa
-    # terra e folhas (balísticas)
-    cols = [np.array(c, np.float32) / 255 for c in ((78, 60, 40), (66, 92, 38), (150, 135, 105))]
-    for k in range(len(P["ang"])):
-        if e > P["life"][k]: continue
-        v = P["sp"][k] * (1.4 if P["kind"][k] == 0 else .9) * R.SH
-        x = bx + P["x0"][k] * wpx + math.cos(P["ang"][k]) * v * e
-        y = by + math.sin(P["ang"][k]) * v * e + .5 * g * e * e
-        if y > by + 8 * R.SS: continue
-        a = clampf(1 - e / P["life"][k], 0, 1) ** .6
-        sz = P["size"][k] * (4.2 if P["kind"][k] == 0 else 7.0 if P["kind"][k] == 1 else 3.0) * R.SS
-        c = cols[P["kind"][k]]
-        rot = P["rot"][k] + P["spin"][k] * e
-        box = cv2.boxPoints(((x, y), (sz * (2.2 if P["kind"][k] == 1 else 1.2), sz), math.degrees(rot))).astype(np.int32)
-        x0, y0 = box[:, 0].min() - 2, box[:, 1].min() - 2; x1, y1 = box[:, 0].max() + 3, box[:, 1].max() + 3
-        if x1 <= 0 or y1 <= 0 or x0 >= R.SW or y0 >= R.SH: continue
-        m = np.zeros((y1 - y0, x1 - x0), np.float32); cv2.fillConvexPoly(m, box - [x0, y0], 1.0, cv2.LINE_AA)
-        xa, ya = max(0, x0), max(0, y0); xb, yb = min(R.SW, x1), min(R.SH, y1)
-        aa = m[ya - y0:yb - y0, xa - x0:xb - x0, None] * a
+            aa = m[ya - y_:yb - y_, xa - x_:xb - x_, None] * a
+            srcf[ya:yb, xa:xb] = srcf[ya:yb, xa:xb] * (1 - aa) + .85 * aa
+    if e > 1.4: return
+    # espuma branca na base
+    fa = .55 * clampf(1 - e / 1.2, 0, 1)
+    if fa > 0:
+        fm, pad = ellipse_map(int(wpx * (1.1 + .9 * R.cubic(e / .8))), int(28 * R.SS * (1 + e)), 9 * R.SS)
+        x_, y_ = int(bx - fm.shape[1] / 2), int(wy - fm.shape[0] / 2 + 4 * R.SS)
+        xa, ya = max(0, x_), max(0, y_); xb, yb = min(R.SW, x_ + fm.shape[1]), min(R.SH, y_ + fm.shape[0])
+        if xa < xb and ya < yb:
+            aa = fm[ya - y_:yb - y_, xa - x_:xb - x_, None] * fa
+            srcf[ya:yb, xa:xb] = srcf[ya:yb, xa:xb] * (1 - aa) + np.array([.90, .94, .92], np.float32) * aa
+    # gotas: coroa de respingo com rastro
+    if _SPL is None:
+        g = rng(7); n = 150
+        side = g.choice([-1, 1], n)
+        _SPL = dict(x0=side * g.uniform(.15, .62, n), vx=side * g.uniform(.05, .55, n), vy=-g.uniform(.45, 1.35, n),
+                    sz=g.uniform(2.0, 6.0, n), life=g.uniform(.5, 1.0, n), br=g.uniform(.80, 1.0, n))
+    S_ = _SPL; gpx = 3.2 * R.SH
+    for k in range(len(S_["x0"])):
+        if e > S_["life"][k]: continue
+        v = .62 * R.SH
+        x = bx + S_["x0"][k] * wpx + S_["vx"][k] * v * e
+        y = wy + S_["vy"][k] * v * e + .5 * gpx * e * e
+        if y > wy + 4 * R.SS: continue
+        vxp, vyp = S_["vx"][k] * v, S_["vy"][k] * v + gpx * e
+        L = .006; x2, y2 = x - vxp * L, y - vyp * L
+        a = clampf(1 - e / S_["life"][k], 0, 1) ** .5 * .70
+        sz = max(1, int(S_["sz"][k] * R.SS))
+        x0_, y0_ = int(min(x, x2)) - sz - 2, int(min(y, y2)) - sz - 2
+        x1_, y1_ = int(max(x, x2)) + sz + 3, int(max(y, y2)) + sz + 3
+        if x1_ <= 0 or y1_ <= 0 or x0_ >= R.SW or y0_ >= R.SH: continue
+        m = np.zeros((y1_ - y0_, x1_ - x0_), np.float32)
+        cv2.line(m, (int(x - x0_), int(y - y0_)), (int(x2 - x0_), int(y2 - y0_)), 1.0, sz, cv2.LINE_AA)
+        m = cv2.GaussianBlur(m, (0, 0), .7 * R.SS)
+        xa, ya = max(0, x0_), max(0, y0_); xb, yb = min(R.SW, x1_), min(R.SH, y1_)
+        aa = m[ya - y0_:yb - y0_, xa - x0_:xb - x0_, None] * a
+        c = np.array([.86, .92, .93], np.float32) * S_["br"][k]
         srcf[ya:yb, xa:xb] = srcf[ya:yb, xa:xb] * (1 - aa) + c * aa
 
 def shake(t):
     p = phone_cfg(); e = t - p["land"]
-    if not (0 <= e < .5) or t >= PH_PLANES[0][1]: return 0.0, 0.0
-    amp = 9 * math.exp(-e * 8)
+    if not (0 <= e < .4) or t >= PH_PLANES[0][1]: return 0.0, 0.0
+    amp = 6 * math.exp(-e * 9)
     return amp * math.sin(e * 71), amp * .8 * math.cos(e * 53)
 
 # ------------------------------------------------------------ painéis 3D ancorados no ambiente
@@ -280,7 +299,7 @@ def draw_panels(srcf, t, i):
         if 0 <= fi < 24: img = R.sweep(img, fi / 24)
         hpx = hf * R.SH; wpx = hpx * img.shape[1] / img.shape[0]
         bx, by = x * R.SW, y * R.SH
-        al = 1.0; rise = 0.0; drop = 0.0; ryy = ry + 2.5 * math.sin((t - a) * 1.1)
+        al = 1.0; rise = 0.0; drop = 0.0; ryy = ry
         if kind == "sobe":
             rise = 1 - R.quint(fi / 18)
             if fo > 0: rise = R.cubic(fo / 12)
@@ -309,8 +328,8 @@ def draw_panels(srcf, t, i):
         # espessura (borda lateral escura) para não parecer adesivo
         th = np.zeros_like(out); th[..., 3] = out[..., 3]; th[..., :3] = .04
         off = int((5 if ry < 0 else -5) * R.SS)
-        out = realism(premul_blur(out, dof * R.SS), i, tint=(.45, .55, .35), amount=.06)
-        comp(srcf, premul_blur(th, dof * R.SS), x0 + off, y0 + int(3 * R.SS), al * .9, clip_y=by if kind == "sobe" else None)
+        out = realism(out, i, tint=(.45, .55, .35), amount=.04, contrast=.96, grain=0)
+        comp(srcf, th, x0 + off, y0 + int(3 * R.SS), al * .9, clip_y=by if kind == "sobe" else None)
         comp(srcf, out, x0, y0, al, clip_y=by if kind == "sobe" else None)
 
 # ------------------------------------------------------------ gráfico que cresce atrás do Higor (ref "chart grow")
