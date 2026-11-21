@@ -17,3 +17,6 @@ Cada feedback do Enrique fica anotado aqui. Ele marca o que vira **regra fixa**.
 | 11 | Transcrição | Gustavo fala "Apesar de tudo isso" (vale o áudio). | — |
 | 12 | Cards | Números ilustrativos dos cards podem ficar. | a decidir |
 | 13 | Final | Congelar o último quadro +2 s para o logo final respirar. | a decidir |
+| 14 | Prévia 1 | Zooms frequentes e secos ficaram artificiais e repetitivos: zoom SÓ em frases de impacto, suave (entra em ~1 s, segura, volta devagar), mira fixa (sem ficar seguindo o rosto). | a decidir |
+| 15 | Prévia 1 | Quer mais dinâmico, mais bonito e "menos cara de IA": animação por letra nos destaques, legenda entrando com leve subida/desfoque, plaquinha de nome sem caixa (barra de cor + nome), cards 3D, SFX discretos. | a decidir |
+| 16 | Áudio | Melhorar sem soar artificial: DeepFilterNet com atenuação limitada (15 dB, mantém o ambiente), corte de grave, EQ leve, de-esser, compressão suave, volume igual entre as pessoas, -15 LUFS. | a decidir |
