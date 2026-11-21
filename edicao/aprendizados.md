@@ -33,3 +33,5 @@ Cada feedback do Enrique fica anotado aqui. Ele marca o que vira **regra fixa**.
 | 27 | v4 | Celular gigante, em pé, maior que a pessoa e (parcialmente) atrás dela. Usar a geografia real da cena: tem água → cai NA ÁGUA (respingo, ondas, linha d'água, reflexo), não poeira. | a decidir |
 | 28 | v4 | No zoom, o objeto 3D fica grudado no lugar e é cortado pelas bordas junto com a cena (desenhar no espaço da imagem, antes do zoom). | a decidir |
 | 29 | v4 | Mão na frente do objeto não pode ficar transparente: recorte em alta, sem suavização entre quadros, e recorte "firme" ao recompor a pessoa. | a decidir |
+| 30 | v5 | A câmera do bruto NÃO é parada: todo elemento "no mundo" precisa de tracking de câmera (homografia do fundo, quadro a quadro). Medir no vídeo final: objeto vs fundo ≤ ~4 px. | a decidir |
+| 31 | v5 | Respingo procedural não convence: para água realista, usar elemento filmado/IA (fundo preto, modo tela). | a decidir |
