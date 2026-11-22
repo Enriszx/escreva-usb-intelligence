@@ -63,6 +63,9 @@ def cam(t):
             dn = 1 - inout_sine((t - (t1 - .7)) / .7) if t1 < FIM - .01 else 1  # volta em 0,7 s
             k = min(up, dn)
             return 1 + (z - 1) * k, cx, cy
+    a, b, zp = mundo.PUNCH
+    if a <= t < b:   # corte seco com aproximação ("edição")
+        fx, fy = face_at(t); return zp, fx, fy + .06
     return 1.0, .5, .5
 
 # ---------------- utilidades de imagem ----------------
@@ -502,13 +505,23 @@ def transition(fr, t):
     return fr
 
 # ---------------- quadro ----------------
-def reader():
-    p = subprocess.Popen(["ffmpeg", "-v", "error", "-i", SRC, "-vf", f"fps={FPS},scale={SW}:{SH}:flags=lanczos", "-f", "rawvideo", "-pix_fmt", "rgb24", "-"], stdout=subprocess.PIPE, bufsize=SW * SH * 3)
+# trechos substituídos por uma versão tratada fora daqui (ex.: olhar corrigido). (arquivo, início, fim) no tempo do bruto
+SUBST = [("marielly_olhar.mp4", 22.47, 37.53)]
+def _frames(path, vf):
+    p = subprocess.Popen(["ffmpeg", "-v", "error", "-i", path, "-vf", vf, "-f", "rawvideo", "-pix_fmt", "rgb24", "-"], stdout=subprocess.PIPE, bufsize=SW * SH * 3)
     n = SW * SH * 3
     while True:
         b = p.stdout.read(n)
         if len(b) < n: break
         yield np.frombuffer(b, np.uint8).reshape(SH, SW, 3)
+def reader():
+    subs = [(f, int(round(a * FPS)), int(round(b * FPS)), _frames(f, f"fps={FPS},scale={SW}:{SH}:flags=lanczos")) for f, a, b in SUBST if os.path.exists(f)]
+    for f, *_ in subs: print("trecho substituído por", f, flush=True)
+    for i, fr in enumerate(_frames(SRC, f"fps={FPS},scale={SW}:{SH}:flags=lanczos")):
+        for f, a, b, g in subs:
+            if a <= i < b:
+                fr = next(g, fr); break
+        yield fr
 
 import mundo
 mundo.init(globals())
@@ -521,7 +534,7 @@ def frame_at(src, t):
     behind = any(c.get("atras") and c["t0"] <= t < c["t1"] + .3 for c in LEG)
     chart = mundo.CHART[0] <= t < mundo.CHART[1] + .4
     phone = M["phone"]["entra"] <= t < mundo.PH_PLANES[-1][1]
-    panels = any(a <= t < b + .4 for _, a, b, *_r in mundo.PAINEIS)
+    panels = any(a <= t < b + .4 for _, a, b, *_r in mundo.PAINEIS) or mundo.sig_active(t)
     pm = mundo.person_mask(i, t) if (names or behind or chart or phone or panels) else None
     mundo.R._PM = pm
     orig = srcf.copy() if pm is not None else None
@@ -542,6 +555,7 @@ def frame_at(src, t):
     fr = mundo.transition(fr, t, CUTS)
     if CARDS_ON: fr = end_card(fr, t)
     if not (CARDS_ON and t >= LOGO_T): draw_captions(fr, t)
+    if CARDS_ON: fr = mundo.post_fx(fr, t)
     return (np.clip(fr, 0, 1) * 255 + .5).astype(np.uint8)
 
 def main():

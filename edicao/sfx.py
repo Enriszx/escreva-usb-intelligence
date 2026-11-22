@@ -52,6 +52,22 @@ for c in M["legenda"]:
 for n, t, *_ in M["nomes"]: put(whoosh(.45, 700, 3000, -30), t - .08, 0); put(tick(-34), t + .1)
 put(shimmer(.5, -31), 61.80, -.5); put(shimmer(.5, -31), 62.30, .5); put(tick(-31), 61.80, -.5); put(tick(-31), 62.30, .5)
 put(whoosh(.9, 400, 2000, -25), 63.45)  # logo final
+
+# momentos assinatura (v9)
+def beep(f=1000, dur=.12, peak=-31):
+    n = int(dur * SR); tt = np.arange(n) / SR
+    return np.sin(2 * np.pi * f * tt) * np.minimum(1, np.minimum(tt / .005, (dur - tt) / .02)) * db(peak)
+for k in range(12): put(tick(-38), 6.72 + k * .045, .3)                       # Fábio: arquivos espalhados
+put(whoosh(.5, 900, 2200, -31), 8.0, .4)                                       # entram no importador
+for k in range(12): put(tick(-37), 10.89 + k * .055, .3)                      # caem organizados
+put(whoosh(.45, 600, 2400, -31), 28.35, -.4); put(tick(-33), 31.60, -.4)       # OTG; "pronto"
+put(whoosh(.55, 300, 2600, -27), 53.65); put(whoosh(.55, 2600, 300, -28), 55.15)   # editor abre / fecha
+for _, _, _, tk in [("", "", 0, 55.84), ("", "", 0, 56.28), ("", "", 0, 56.90), ("", "", 0, 57.46)]: put(tick(-32), tk - .01)
+put(beep(), 56.24)                                                              # REC
+put(boom(-30), 56.90)                                                           # corte seco
+put(shimmer(.5, -31), 57.95)                                                    # entregue
+for k in range(4): put(tick(-36), 58.40 + k * .22)                              # ✓ planejada
+put(shimmer(.6, -30), 60.20, .4)                                                # o produto
 st = np.stack([L, R], 1)[:int(TOT * SR)]
 o = wave.open("sfx.wav", "wb"); o.setnchannels(2); o.setsampwidth(2); o.setframerate(SR)
 o.writeframes((np.clip(st, -1, 1) * 32767).astype(np.int16).tobytes()); o.close()

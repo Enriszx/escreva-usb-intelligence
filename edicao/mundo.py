@@ -715,9 +715,11 @@ def draw_otg(srcf, t, i):
         blend(srcf, ya, yb, xa, xb, cc, np.clip(L_[ya - y0:yb - y0, xa - x0:xb - x0, None] * fo, 0, 1))
 
 # ------------------------------------------------------------ ENRIQUE: timeline de edição + linha de produção
-EDIT = (53.72, 55.62)
-ETAPAS = [("Roteiro", "script", 165, 55.84), ("Gravação", "rec", 575, 56.28), ("Edição", "cut", 1345, 56.90), ("Entrega", "send", 1755, 57.46)]
-PIPE = dict(a=55.55, fim=57.95, check=58.40, sai=60.95, y=300)
+EDIT = (-9.0, -8.0)   # (substituído pela janela do editor em tela)
+ETAPAS = [("Roteiro", "script", 150, 55.84), ("Gravação", "rec", 450, 56.28), ("Edição", "cut", 1470, 56.90), ("Entrega", "send", 1770, 57.46)]
+LOGO_P = (60.20, 61.55)
+EXPORT = (57.46, 58.35)
+PIPE = dict(a=55.55, fim=57.95, check=58.40, sai=59.95, y=300)
 def draw_enrique(srcf, t, i):
     u = R.SS; col = R.hexrgb("#F0B45A"); c = np.array(col, np.float32) / 255
     a, b = EDIT
@@ -739,8 +741,9 @@ def draw_enrique(srcf, t, i):
         pp = pill_parts(("edit", ph_), 520, 300, ed, radius=26)
         glass_draw(srcf, pp, quad_at(pp, 540 * u, (440 + 24 * (1 - R.quint(e))) * u, 460 * u, ry=20), al, blur=18)
     P = PIPE
-    if not (P["a"] <= t < P["sai"] + .4): return
-    fo = 1 - R.cubic(clampf((t - P["sai"]) / .4, 0, 1))
+    if not (P["a"] <= t < LOGO_P[1] + .4): return
+    fo = 1 - R.cubic(clampf((t - P["sai"]) / .3, 0, 1))
+    qv = R.inout(clampf((t - P["sai"]) / .38, 0, 1))      # etapas voam para o card do produto
     keys = [(P["a"], 80)] + [(tk, x) for _, _, x, tk in ETAPAS] + [(P["fim"], 1840)]
     xh = keys[-1][1]
     for (t0, x0_), (t1, x1_) in zip(keys, keys[1:]):
@@ -775,8 +778,194 @@ def draw_enrique(srcf, t, i):
                 d.ellipse([cx_ - rr, cy_ - rr, cx_ + rr, cy_ + rr], fill=(76, 196, 110, int(255 * min(1, ck * 2))))
                 pts = [(cx_ - rr * .45, cy_), (cx_ - rr * .1, cy_ + rr * .38), (cx_ + rr * .5, cy_ - rr * .35)]
                 if ck > .4: d.line(pts, fill=(255, 255, 255, 255), width=int(4 * GS), joint="curve")
-        pp = pill_parts(("etapa", k, round(ck * 6)), 290, 84, pf, radius=26)
-        glass_draw(srcf, pp, quad_at(pp, x * u, (Y - 90 + 22 * (1 - R.quint(e))) * u, 290 * u), R.cubic(e) * fo, streak=False, blur=14)
+        pp = pill_parts(("etapa", k, round(ck * 6)), 250, 80, pf, radius=24)
+        px_, py_ = x + (1520 - x) * qv, (Y - 90 + 22 * (1 - R.quint(e))) + (430 - (Y - 90)) * qv
+        glass_draw(srcf, pp, quad_at(pp, px_ * u, py_ * u, 250 * u * (1 - .6 * qv)), R.cubic(e) * (1 - R.cubic(clampf((qv - .5) / .5, 0, 1))), streak=False, blur=14)
+    # entrega: barra de exportação embaixo
+    a_, b_ = EXPORT
+    if a_ <= t < b_ + .3:
+        pr = clampf((t - a_ - .05) / .45, 0, 1); done = pr >= 1
+        e = clampf((t - a_) / .25, 0, 1); al = R.cubic(e) * (1 - R.cubic(clampf((t - b_) / .3, 0, 1)))
+        def ex(d, W, H, pr=round(pr * 24) / 24, done=done):
+            img = d._image; paste_icon(img, "send", H * .55, H / 2, H * .44, col)
+            f = R.font("d_sb", 22 * GS)
+            d.text((H * 1.0, H * .18), "entregue" if done else "exportando", font=f, fill=(255, 255, 255, 255))
+            pc = "100%" if done else f"{int(pr * 100)}%"; bb = d.textbbox((0, 0), pc, font=f)
+            d.text((W - H * .35 - (bb[2] - bb[0]), H * .18), pc, font=f, fill=col + (255,))
+            d.rounded_rectangle([H * 1.0, H * .66, W - H * .35, H * .74], 4, fill=(255, 255, 255, 50))
+            d.rounded_rectangle([H * 1.0, H * .66, H * 1.0 + (W - H * 1.35) * pr, H * .74], 4, fill=col + (255,))
+        pp = pill_parts(("export", round(pr * 24), done), 460, 84, ex, radius=24)
+        glass_draw(srcf, pp, quad_at(pp, 960 * u, (930 + 20 * (1 - R.quint(e))) * u, 460 * u), al, streak=False, blur=14)
+    # "o produto": card do app
+    a_, b_ = LOGO_P
+    if a_ <= t < b_ + .35:
+        e = clampf((t - a_) / .3, 0, 1); al = R.cubic(e) * (1 - R.cubic(clampf((t - b_) / .3, 0, 1)))
+        ink, shape, rim = glass_parts("logo"); hp = 150 * u * (.9 + .1 * R.back(e, 1.6))
+        glass_draw(srcf, (ink, shape, rim), quad_at((ink, shape, rim), 1520 * u, 430 * u, hp * ink.shape[1] / ink.shape[0], ry=-14), al, blur=18)
+
+# ------------------------------------------------------------ ENRIQUE: a edição de verdade aparecendo (tela)
+import subprocess
+NLE = dict(out=(53.70, 54.25), back=(55.18, 55.72))
+PV = (468, 52, 1040, 585)              # janela de prévia do editor (unidades 1080p)
+TL = (160, 1890)                       # área da timeline em x
+VF = (56.22, 56.90)                    # visor de câmera em "gravação"
+PUNCH = (56.90, 57.46, 1.05)           # corte com aproximação seca em "edição"
+_NLE = {}
+def _decode_audio(path, sr=8000):
+    p = subprocess.run(["ffmpeg", "-v", "error", "-i", path, "-ac", "1", "-ar", str(sr), "-f", "f32le", "-"], capture_output=True)
+    return np.frombuffer(p.stdout, np.float32)
+def _env(x, n, dur, sr=8000):
+    out = np.zeros(n, np.float32); spb = dur * sr / n
+    for k in range(n):
+        s = x[int(k * spb):int((k + 1) * spb)]
+        out[k] = np.sqrt((s ** 2).mean()) if len(s) else 0
+    return out / max(1e-6, np.percentile(out, 99))
+def _thumb(t, w, h):
+    p = subprocess.run(["ffmpeg", "-v", "error", "-ss", f"{t:.2f}", "-i", "bruto_1080.mp4", "-frames:v", "1", "-vf", f"scale={w}:{h}",
+                        "-f", "rawvideo", "-pix_fmt", "rgb24", "-"], capture_output=True)
+    return Image.frombytes("RGB", (w, h), p.stdout)
+def nle_static():
+    """interface do editor (fixa): mídia com miniaturas reais, efeitos, timeline com legenda, motion, vídeo, voz e SFX deste vídeo."""
+    if "ui" in _NLE: return _NLE["ui"]
+    W, H = R.W, R.H; k = W / 1920; dur = R.FIM + R.CONG
+    def X(v): return int(v * k)
+    im = Image.new("RGB", (W, H), (14, 16, 20)); d = ImageDraw.Draw(im)
+    gray, dim, panel = (170, 174, 182), (110, 114, 122), (21, 23, 29)
+    acc = R.hexrgb("#F0B45A")
+    d.rectangle([0, 0, W, X(40)], fill=(22, 24, 30))
+    for j, c in enumerate([(237, 106, 94), (245, 191, 79), (98, 197, 84)]): d.ellipse([X(18 + j * 20), X(14), X(30 + j * 20), X(26)], fill=c)
+    d.text((X(90), X(10)), "USB Intelligence  ·  corte final", font=R.font("d_m", 17 * k), fill=gray)
+    for j, tb in enumerate(["Montagem", "Cor", "Áudio", "Exportar"]):
+        f = R.font("d_sb" if j == 0 else "d_m", 16 * k); d.text((X(820 + j * 120), X(11)), tb, font=f, fill=(255, 255, 255) if j == 0 else dim)
+    d.line([X(820), X(37), X(912), X(37)], fill=acc, width=max(1, X(2)))
+    # mídia: uma miniatura real de cada plano
+    d.rounded_rectangle([X(16), X(52), X(452), X(640)], X(10), fill=panel)
+    d.text((X(32), X(64)), "Mídia", font=R.font("d_sb", 18 * k), fill=(255, 255, 255))
+    for j, c in enumerate(R.CENAS):
+        cx, cy = X(32 + (j % 3) * 140), X(100 + (j // 3) * 128)
+        im.paste(_thumb((c[0] + c[1]) / 2, X(128), X(72)), (cx, cy))
+        d.text((cx, cy + X(78)), c[2].split(" (")[0], font=R.font("d_m", 13 * k), fill=gray)
+    # efeitos ligados (o que este vídeo usa)
+    d.rounded_rectangle([X(1524), X(52), X(1904), X(640)], X(10), fill=panel)
+    d.text((X(1540), X(64)), "Efeitos", font=R.font("d_sb", 18 * k), fill=(255, 255, 255))
+    for j, nm in enumerate(["Legenda dinâmica", "Tracking de câmera", "Recorte da pessoa", "Vidro AR", "Respingo filmado", "Voz −15 LUFS"]):
+        y = X(108 + j * 56)
+        d.text((X(1540), y), nm, font=R.font("d_m", 16 * k), fill=gray)
+        d.rounded_rectangle([X(1836), y, X(1880), y + X(22)], X(11), fill=acc)
+        d.ellipse([X(1860), y + X(3), X(1876), y + X(19)], fill=(255, 255, 255))
+    d.rectangle([X(PV[0]) - 1, X(PV[1]) - 1, X(PV[0] + PV[2]), X(PV[1] + PV[3])], outline=(60, 64, 72))
+    # transporte
+    d.polygon([(X(900), X(656)), (X(900), X(680)), (X(920), X(668))], fill=(255, 255, 255))
+    d.text((X(1300), X(656)), "01:05:16", font=R.font("d_m", 18 * k), fill=dim)
+    # timeline
+    d.rounded_rectangle([X(16), X(700), X(1904), X(1064)], X(10), fill=(18, 20, 25))
+    x0, x1 = TL; tx = lambda t: X(x0 + (x1 - x0) * t / dur)
+    for s in range(0, int(dur) + 1):
+        h = 10 if s % 5 == 0 else 5
+        d.line([tx(s), X(728 - h), tx(s), X(728)], fill=dim, width=1)
+        if s % 5 == 0: d.text((tx(s) + X(3), X(708)), f"0:{s:02d}" if s < 60 else f"1:{s - 60:02d}", font=R.font("d_m", 12 * k), fill=dim)
+    rows = [("LEG", 740, 768), ("FX", 776, 818), ("V1", 826, 906), ("A1", 914, 974), ("A2", 982, 1050)]
+    for nm, y0, y1 in rows:
+        d.text((X(32), X((y0 + y1) / 2 - 8)), nm, font=R.font("d_sb", 14 * k), fill=dim)
+        d.rectangle([X(x0), X(y0), X(x1), X(y1)], fill=(24, 26, 32))
+    for c in R.LEG:   # legenda: cada palavra no tempo dela
+        col = R.hexrgb(c["cor"]) if c["tipo"] in "KC" else (205, 208, 214)
+        d.rounded_rectangle([tx(c["t0"]), X(744), max(tx(c["t0"]) + 2, tx(c["t1"]) - 1), X(764)], X(4), fill=col)
+    fx = [(CHART[0], CHART[1], "#4FB3E8", "gráfico")] + [(a, b, "#8FA3B8", n) for n, a, b, *_ in PAINEIS] + \
+         [(R.M["phone"]["entra"], PH_PLANES[-1][1], "#A6E36B", "celular 3D"), (FAB_T["caos"], FAB_T["sai"], "#EEF5A8", "arquivos"),
+          (OTG["a"], OTG["b"], "#F2C38B", "OTG"), (PIPE["a"], PIPE["sai"], "#F0B45A", "etapas")]
+    for n_, tn, D, _m in R.M["nomes"]: fx.append((tn, tn + D, "#FFFFFF", n_))
+    for a, b, col, nm in fx:
+        lane = 0 if nm in [n_ for n_, *_ in R.M["nomes"]] else 1
+        ya = X(778 + lane * 20); yb = ya + X(18)
+        d.rounded_rectangle([tx(a), ya, tx(b), yb], X(4), fill=R.hexrgb(col) + (), outline=None)
+        if tx(b) - tx(a) > X(60): d.text((tx(a) + X(4), ya + X(2)), nm, font=R.font("d_m", 11 * k), fill=(20, 20, 24))
+    for c in R.CENAS:   # vídeo: miniaturas reais de cada plano, com os cortes
+        a, b = tx(c[0]), tx(min(c[1], R.FIM)); th = _thumb((c[0] + c[1]) / 2, X(142), X(80))
+        x = a
+        while x < b:
+            im.paste(th.crop((0, 0, min(X(142), b - x), X(80))), (x, X(826))); x += X(142)
+        d.line([a, X(826), a, X(906)], fill=(14, 16, 20), width=max(2, X(3)))
+    for nm, path, y0, y1, col in (("A1", "voz_final.wav", 914, 974, (76, 196, 110)), ("A2", "sfx.wav", 982, 1050, (91, 141, 239))):
+        n = X(x1) - X(x0); e = _env(_decode_audio(path), n, dur)
+        mid = X((y0 + y1) / 2); amp = X((y1 - y0) / 2 - 3)
+        for j in range(n):
+            v = min(1.0, e[j]) * amp
+            if v >= 1: d.line([X(x0) + j, mid - v, X(x0) + j, mid + v], fill=col)
+    _NLE["ui"] = np.asarray(im, np.float32) / 255; _NLE["tx"] = tx; _NLE["k"] = k
+    return _NLE["ui"]
+
+def tc(t, fps=30):
+    f = int(round(t * fps)); return f"00:00:{f // fps:02d}:{f % fps:02d}" if f < 60 * fps else f"00:01:{f // fps - 60:02d}:{f % fps:02d}"
+
+def editor_view(fr, t):
+    a0, a1 = NLE["out"]; b0, b1 = NLE["back"]
+    if not (a0 <= t < b1): return fr
+    p = R.inout_sine((t - a0) / (a1 - a0)) if t < b0 else 1 - R.inout_sine((t - b0) / (b1 - b0))
+    if p <= 0: return fr
+    ui = nle_static().copy(); W, H = R.W, R.H; k = _NLE["k"]; tx = _NLE["tx"]
+    # cabeçote (no tempo real do vídeo) e timecode
+    x = tx(t); ui[int(700 * k):int(1064 * k), max(0, x - 1):x + 1] = (.95, .30, .28)
+    cv2.fillConvexPoly(ui, np.int32([[x - 7 * k, 700 * k], [x + 7 * k, 700 * k], [x, 712 * k]]), (.95, .30, .28), cv2.LINE_AA)
+    tim = R.pil_text(tc(t), "d_sb", 22 * k, (255, 255, 255, 255)); ta = R.np_rgba(tim[0])
+    tx0, ty0 = int(988 * k - ta.shape[1] / 2), int(668 * k - ta.shape[0] / 2)
+    ui[ty0:ty0 + ta.shape[0], tx0:tx0 + ta.shape[1]] = ui[ty0:ty0 + ta.shape[0], tx0:tx0 + ta.shape[1]] * (1 - ta[..., 3:]) + ta[..., :3] * ta[..., 3:]
+    # o quadro encolhe da tela cheia até a janela de prévia
+    rx, ry, rw, rh = [v * k for v in PV]
+    X0, Y0, WW = rx * p, ry * p, W + (rw - W) * p
+    HH = WW * H / W
+    Mx = np.float32([[WW / W, 0, X0], [0, HH / H, Y0]])
+    small = cv2.warpAffine(fr, Mx, (W, H), flags=cv2.INTER_AREA, borderMode=cv2.BORDER_CONSTANT, borderValue=(0, 0, 0))
+    m = np.zeros((H, W), np.float32); cv2.rectangle(m, (int(X0), int(Y0)), (int(X0 + WW) - 1, int(Y0 + HH) - 1), 1.0, -1)
+    sh = cv2.GaussianBlur(m, (0, 0), 18 * k)[..., None] * .55 * p
+    out = ui * (1 - sh) 
+    return out * (1 - m[..., None]) + small * m[..., None]
+
+def viewfinder(fr, t):
+    a, b = VF
+    if not (a <= t < b): return fr
+    al = min(1.0, (t - a) * R.FPS / 3, (b - t) * R.FPS / 3); W, H = R.W, R.H; k = W / 1920
+    lay = np.zeros((H, W), np.float32)
+    I, L, th = int(64 * k), int(70 * k), max(2, int(3 * k))
+    for sx, sy in ((0, 0), (1, 0), (0, 1), (1, 1)):
+        x = W - I if sx else I; y = H - I if sy else I; dx = -L if sx else L; dy = -L if sy else L
+        cv2.line(lay, (x, y), (x + dx, y), 1.0, th, cv2.LINE_AA); cv2.line(lay, (x, y), (x, y + dy), 1.0, th, cv2.LINE_AA)
+    for j in (1, 2):
+        cv2.line(lay, (W * j // 3, I + L), (W * j // 3, H - I - L), .22, 1, cv2.LINE_AA)
+        cv2.line(lay, (I + L, H * j // 3), (W - I - L, H * j // 3), .22, 1, cv2.LINE_AA)
+    # caixa de foco no rosto (assenta com mola)
+    fx, fy = face_now(t); s = 1 + .35 * (1 - R.back(clampf((t - a) / .22, 0, 1), 1.8))
+    bw = int(120 * k * s); cx, cy = int(fx * W), int(fy * H)
+    for sx_ in (-1, 1):
+        for sy_ in (-1, 1):
+            x, y = cx + sx_ * bw, cy + sy_ * bw
+            cv2.line(lay, (x, y), (x - sx_ * int(26 * k), y), 1.0, th, cv2.LINE_AA); cv2.line(lay, (x, y), (x, y - sy_ * int(26 * k)), 1.0, th, cv2.LINE_AA)
+    fr = fr * (1 - lay[..., None] * .9 * al) + lay[..., None] * .9 * al
+    def txt(s_, fk, px, x, y, col=(255, 255, 255, 255), right=False):
+        sp = R.np_rgba(R.pil_text(s_, fk, px * k, col)[0]); h, w = sp.shape[:2]
+        x = int(x - w) if right else int(x); y = int(y)
+        fr[y:y + h, x:x + w] = fr[y:y + h, x:x + w] * (1 - sp[..., 3:] * al) + sp[..., :3] * sp[..., 3:] * al
+    if int((t - a) * 2.5) % 2 == 0:
+        cv2.circle(fr, (int(I + 46 * k), int(I + 52 * k)), int(10 * k), (.92, .20, .18), -1, cv2.LINE_AA)
+    txt("REC", "d_b", 26, I + 64 * k, I + 36 * k)
+    txt(tc(t), "d_m", 24, W - I - 40 * k, I + 36 * k, right=True)
+    txt("4K  ·  60 fps", "d_m", 20, I + 40 * k, H - I - 70 * k)
+    txt("ISO 100   1/120", "d_m", 20, W - I - 40 * k, H - I - 70 * k, right=True)
+    return fr
+
+def face_now(t):
+    """rosto no instante exato (YuNet), sem mediana: a caixa de foco tem que cair no rosto."""
+    best = min((f for f in R.F if "cx" in f), key=lambda f: abs(f["t"] - t))
+    return best["cx"], best["cy"]
+
+def post_fx(fr, t):
+    fr = viewfinder(fr, t)
+    fr = editor_view(fr, t)
+    return fr
+
+def sig_active(t):
+    """momentos 'assinatura' que precisam do recorte da pessoa (para ficarem atrás dela)."""
+    return (FAB_T["caos"] <= t < FAB_T["sai"] + .4) or (OTG["a"] <= t < OTG["b"] + .4) or (PIPE["a"] <= t < LOGO_P[1] + .4)
 
 def draw_signatures(srcf, t, i):
     ci = R.cena_idx(t + .5 / R.FPS)
