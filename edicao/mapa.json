@@ -668,47 +668,10 @@
   {
    "txt": "funciona",
    "t0": 55.24,
-   "t1": 55.84,
+   "t1": 56.44,
    "tipo": "P",
    "cor": "#F0B45A",
    "y": 0.72
-  },
-  {
-   "txt": "roteiro",
-   "t0": 55.84,
-   "t1": 56.28,
-   "tipo": "C",
-   "cor": "#F0B45A",
-   "y": 0.72,
-   "icon": "script"
-  },
-  {
-   "txt": "gravação",
-   "t0": 56.28,
-   "t1": 56.9,
-   "tipo": "C",
-   "cor": "#F0B45A",
-   "y": 0.72,
-   "icon": "rec"
-  },
-  {
-   "txt": "edição",
-   "t0": 56.9,
-   "t1": 57.46,
-   "tipo": "C",
-   "cor": "#F0B45A",
-   "y": 0.72,
-   "icon": "cut"
-  },
-  {
-   "txt": "e entrega",
-   "t0": 57.46,
-   "t1": 58.1,
-   "tipo": "C",
-   "cor": "#F0B45A",
-   "y": 0.72,
-   "fim": 58.1,
-   "icon": "send"
   },
   {
    "txt": "cada etapa",

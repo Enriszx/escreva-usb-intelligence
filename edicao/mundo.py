@@ -448,7 +448,7 @@ def apply_ripples(srcf, t, G):
     srcf[y0:y1, x0:x1] = reg
 
 # instante de referência do desenho em cada cena (as posições foram escolhidas olhando estes quadros)
-TD = {1: 7.9, 2: 14.5, 3: 19.5, 4: 26.0, 5: 39.5, 6: 47.5}
+TD = {1: 7.9, 2: 14.5, 3: 19.5, 4: 26.0, 5: 39.5, 6: 47.5, 8: 57.0}
 
 def draw_world(srcf, t, i):
     """desenha tudo que fica 'no mundo' numa camada e deforma pelo movimento real da câmera."""
@@ -459,6 +459,7 @@ def draw_world(srcf, t, i):
     L = Layer(R.SH, R.SW)
     draw_chart(L, t, i)
     draw_panels(L, t, i)
+    draw_signatures(L, t, i)
     if draw_phone(L, t, i): draw_particles(L, t, i)
     if not L.A.any() and (L.D == 1).all(): return False
     G = track_G(TD[ci], t)
@@ -480,7 +481,7 @@ PAINEIS = [
     ("dups", 20.35, 22.40, .165, .80, .40, 24, 2, 2.2, "sobe", False),        # Higor B: "duplicados"
     ("importer", 23.55, 25.60, .875, .74, .36, -22, 2, 2.4, "sobe", True),     # Marielly: "você importa"
     ("library", 25.75, 28.30, .165, .74, .40, 22, 2, 2.4, "sobe", True),      # "biblioteca pesquisável com tags"
-    ("library", 33.10, 36.50, .165, .74, .40, 22, 2, 2.4, "sobe", True),      # "em breve no computador"
+    ("library", 33.10, 36.50, .225, .66, .34, 22, 2, 2.4, "laptop", False),   # "em breve no computador": notebook
 ]
 
 _GL = {}
@@ -497,9 +498,49 @@ def glass_parts(nm):
     rim = np.dstack([np.ones_like(c[..., :3]), (np.clip(a[..., 0] - er, 0, 1) * yy)[..., None]])
     _GL[nm] = (ink, shape, rim); return _GL[nm]
 
+def glass_draw(srcf, parts, quad, al, frost=.92, glow=.30, streak=True, blur=20, refl_y=None):
+    """desenha um elemento de vidro AR (vidro fosco + tinta acesa + brilho + aresta) no quadrilátero dado."""
+    ink, shape, rim = parts
+    env = _BG if _BG is not None else srcf
+    rs = warp_to(shape, quad)
+    if rs is None or al <= 0: return
+    sh_, x0, y0 = rs; pa = sh_[..., 3:4]
+    hh, ww = pa.shape[:2]
+    xa, ya = max(0, x0), max(0, y0); xb, yb = min(R.SW, x0 + ww), min(R.SH, y0 + hh)
+    if xa >= xb or ya >= yb: return
+    pad = int(blur * 2 * R.SS); px0, py0 = max(0, xa - pad), max(0, ya - pad); px1, py1 = min(R.SW, xb + pad), min(R.SH, yb + pad)
+    fro = cv2.GaussianBlur(env[py0:py1, px0:px1], (0, 0), blur * R.SS)[ya - py0:yb - py0, xa - px0:xb - px0] * .74 + .19
+    blend(srcf, ya, yb, xa, xb, fro, pa[ya - y0:yb - y0, xa - x0:xb - x0] * frost * al)
+    if refl_y is not None:
+        rimg = np.flipud(ink).copy(); rimg[..., 3] *= np.linspace(.22, 0, rimg.shape[0])[:, None]
+        rq = quad.copy(); rq[:, 1] = 2 * refl_y - rq[:, 1]; rq = rq[[3, 2, 1, 0]]
+        r = warp_to(rimg, rq)
+        if r: comp(srcf, premul_blur(r[0], 4 * R.SS), r[1], r[2], al)
+    r = warp_to(ink, quad)
+    if r is not None:
+        io, ix, iy = r
+        comp(srcf, io, ix, iy, al * .96)
+        if glow > 0:
+            g = cv2.GaussianBlur(io[..., :3] * io[..., 3:4], (0, 0), 9 * R.SS) * glow * al
+            add_light(srcf, g, ix, iy)
+    r = warp_to(rim, quad)
+    if r is not None: comp(srcf, r[0], r[1], r[2], al * .75)
+    if streak:
+        yy, xx = np.mgrid[0:hh, 0:ww].astype(np.float32)
+        st = np.clip(1 - np.abs((xx - ww * .45) * .9 + (yy - hh * .5) * .5) / (40 * R.SS), 0, 1)[..., None] * .09 * pa * al
+        add_light(srcf, st * np.ones(3, np.float32), x0, y0)
+
+def add_light(srcf, img, x0, y0):
+    """soma luz (modo tela aproximado) numa camada ou quadro."""
+    h, w = img.shape[:2]
+    xa, ya = max(0, x0), max(0, y0); xb, yb = min(R.SW, x0 + w), min(R.SH, y0 + h)
+    if xa >= xb or ya >= yb: return
+    add = img[ya - y0:yb - y0, xa - x0:xb - x0]
+    if isinstance(srcf, Layer): srcf.P[ya:yb, xa:xb] += add
+    else: srcf[ya:yb, xa:xb] = np.clip(srcf[ya:yb, xa:xb] + add, 0, 1)
+
 def draw_panels(srcf, t, i):
     """cards como VIDRO DE REALIDADE AUMENTADA: painel fosco flutuando, ícones acesos, aresta iluminada."""
-    env = _BG if _BG is not None else srcf
     for nm, a, b, x, y, hf, ry, rx, dof, kind, refl in PAINEIS:
         if not (a <= t < b + .4) or R.cena_idx(t + .5 / R.FPS) != R.cena_idx(a): continue
         fi = (t - a) * R.FPS; fo = (t - b) * R.FPS
@@ -511,42 +552,237 @@ def draw_panels(srcf, t, i):
         if al <= 0: continue
         cx, cy = x * R.SW, y * R.SH - hpx * .62          # flutua acima do chão/água
         quad = project_plane(shape, wpx * sc, ryy, rx) + np.float32([cx, cy])
-        rs = warp_to(shape, quad)
-        if rs is None: continue
-        sh_, x0, y0 = rs; pa = sh_[..., 3:4]
-        hh, ww = pa.shape[:2]
-        xa, ya = max(0, x0), max(0, y0); xb, yb = min(R.SW, x0 + ww), min(R.SH, y0 + hh)
-        if xa >= xb or ya >= yb: continue
-        # vidro fosco: a cena atrás, bem desfocada e clareada
-        pad = int(40 * R.SS); px0, py0 = max(0, xa - pad), max(0, ya - pad); px1, py1 = min(R.SW, xb + pad), min(R.SH, yb + pad)
-        fro = cv2.GaussianBlur(env[py0:py1, px0:px1], (0, 0), 20 * R.SS)[ya - py0:yb - py0, xa - px0:xb - px0] * .74 + .19
-        pa_ = pa[ya - y0:yb - y0, xa - x0:xb - x0] * .92 * al
-        blend(srcf, ya, yb, xa, xb, fro, pa_)
-        # reflexo na água (só a tinta, fraco)
-        if refl:
-            rimg = np.flipud(ink).copy(); rimg[..., 3] *= np.linspace(.22, 0, rimg.shape[0])[:, None]
-            rq = quad.copy(); rq[:, 1] = 2 * (y * R.SH + hpx * .08) - rq[:, 1]; rq = rq[[3, 2, 1, 0]]
-            r = warp_to(rimg, rq)
-            if r: comp(srcf, premul_blur(r[0], 4 * R.SS), r[1], r[2], al)
-        # conteúdo aceso + brilho
-        r = warp_to(ink, quad)
-        if r is not None:
-            io, ix, iy = r
-            comp(srcf, io, ix, iy, al * .96)
-            glow = cv2.GaussianBlur(io[..., :3] * io[..., 3:4], (0, 0), 9 * R.SS) * .30 * al
-            gx0, gy0 = max(0, ix), max(0, iy); gx1, gy1 = min(R.SW, ix + io.shape[1]), min(R.SH, iy + io.shape[0])
-            if gx0 < gx1 and gy0 < gy1:
-                add = glow[gy0 - iy:gy1 - iy, gx0 - ix:gx1 - ix]
-                if isinstance(srcf, Layer): srcf.P[gy0:gy1, gx0:gx1] += add
-                else: srcf[gy0:gy1, gx0:gx1] = np.clip(srcf[gy0:gy1, gx0:gx1] + add, 0, 1)
-        # aresta do vidro iluminada + faixa de reflexo diagonal
-        r = warp_to(rim, quad)
-        if r is not None: comp(srcf, r[0], r[1], r[2], al * .75)
-        yy, xx = np.mgrid[0:hh, 0:ww].astype(np.float32)
-        st = np.clip(1 - np.abs((xx - ww * .45) * .9 + (yy - hh * .5) * .5) / (40 * R.SS), 0, 1)[..., None] * .09 * pa * al
-        add = (st * np.ones(3, np.float32))[ya - y0:yb - y0, xa - x0:xb - x0]
-        if isinstance(srcf, Layer): srcf.P[ya:yb, xa:xb] += add
-        else: srcf[ya:yb, xa:xb] = np.clip(srcf[ya:yb, xa:xb] + add, 0, 1)
+        if kind == "laptop":                             # base do notebook (teclado) embaixo da tela
+            bl, br = quad[3], quad[2]; d = (br - bl)
+            base = np.float32([bl, br, br + d * .10 + np.float32([0, hpx * .20]), bl - d * .10 + np.float32([0, hpx * .20])])
+            glass_draw(srcf, keyboard_parts(), base, al * .95, streak=False)
+        glass_draw(srcf, (ink, shape, rim), quad, al, refl_y=(y * R.SH + hpx * .08) if refl else None)
+        if kind == "laptop":                             # selo "em breve" no canto da tela
+            pp = pill_parts("embreve", 210, 62, lambda d, W, H: _txt(d, W, H, "em breve", "d_b", 30, (242, 195, 139)))
+            pw = wpx * .38 * sc; tr = quad[1] + (quad[1] - quad[0]) * -.02
+            pq = project_plane(pp[1], pw, ryy, rx) + np.float32([tr[0] - pw * .35, tr[1] + pw * .08])
+            ap = al * R.back(clampf((t - a - .6) * 3, 0, 1), 1.6) if t - a > .6 else 0
+            glass_draw(srcf, pp, pq, clampf(ap, 0, 1), streak=False, blur=10)
+
+# ------------------------------------------------------------ peças de vidro feitas na hora (pílulas, blocos, ícones)
+_PP = {}
+GS = 1.6   # resolução dos sprites (× unidades de 1080p)
+def _rim_of(a):
+    h = a.shape[0]
+    er = cv2.erode((a > .5).astype(np.uint8), np.ones((5, 5), np.uint8)).astype(np.float32)
+    yy = np.linspace(1, .45, h, dtype=np.float32)[:, None]
+    return np.dstack([np.ones(a.shape + (3,), np.float32), (np.clip(a - er, 0, 1) * yy)[..., None]])
+def pill_parts(key, w, h, draw_fn, radius=None):
+    """vidro arredondado w×h (unidades 1080p) com tinta desenhada por draw_fn(ImageDraw, W, H) em PIL."""
+    if key in _PP: return _PP[key]
+    W, H = int(w * GS), int(h * GS); r = int((radius if radius is not None else h / 2) * GS)
+    m = Image.new("L", (W, H), 0); ImageDraw.Draw(m).rounded_rectangle([0, 0, W - 1, H - 1], r, fill=255)
+    a = np.asarray(m, np.float32) / 255
+    ink = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(ink); draw_fn(d, W, H)
+    inkf = np.asarray(ink, np.float32) / 255; inkf = np.dstack([inkf[..., :3], inkf[..., 3:] * a[..., None]])
+    shape = np.dstack([np.ones((H, W, 3), np.float32), a])
+    _PP[key] = (inkf, shape, _rim_of(a)); return _PP[key]
+def _txt(d, W, H, txt, fk, px, col, x=None):
+    f = R.font(fk, px * GS); bb = d.textbbox((0, 0), txt, font=f)
+    xx = (W - (bb[2] - bb[0])) / 2 - bb[0] if x is None else x
+    d.text((xx, (H - (bb[3] - bb[1])) / 2 - bb[1]), txt, font=f, fill=tuple(col) + (255,))
+def keyboard_parts():
+    def fn(d, W, H):
+        for k in range(3):
+            y = H * (.25 + k * .22)
+            for j in range(12):
+                x0 = W * (.08 + j * .072 + k * .01); d.rounded_rectangle([x0, y, x0 + W * .06, y + H * .14], 3, fill=(255, 255, 255, 60))
+        d.rounded_rectangle([W * .38, H * .84, W * .62, H * .95], 4, fill=(255, 255, 255, 50))
+    return pill_parts("teclado", 600, 120, fn, radius=14)
+def paste_icon(img, name, cx, cy, size, col):
+    """cola um ícone de traço (ICONS) numa imagem PIL RGBA."""
+    ic = icon_sprite(name, int(size), 1.0, col)
+    a = Image.fromarray(np.uint8(np.clip(ic * 255, 0, 255)), "RGBA")
+    img.alpha_composite(a, (int(cx - a.width / 2), int(cy - a.height / 2)))
+FTYPE = {"JPG": "#5B8DEF", "PNG": "#EE6AA7", "MP4": "#9B6BF2", "MOV": "#3CC8E0", "PDF": "#E5574F", "DOC": "#4C8DF0", "MP3": "#F0A93B", "WAV": "#4CC46E"}
+def tile_parts(lbl):
+    def fn(d, W, H):
+        c = R.hexrgb(FTYPE[lbl])
+        d.rounded_rectangle([W * .14, H * .12, W * .86, H * .62], int(10 * GS), fill=c + (255,))
+        _f = R.font("d_b", 21 * GS); bb = d.textbbox((0, 0), lbl, font=_f)
+        d.text((W / 2 - (bb[2] - bb[0]) / 2 - bb[0], H * .37 - (bb[3] - bb[1]) / 2 - bb[1]), lbl, font=_f, fill=(255, 255, 255, 255))
+        d.rounded_rectangle([W * .18, H * .74, W * .82, H * .80], 4, fill=(255, 255, 255, 110))
+        d.rounded_rectangle([W * .18, H * .85, W * .60, H * .90], 4, fill=(255, 255, 255, 70))
+    return pill_parts("tile_" + lbl, 96, 104, fn, radius=18)
+def quad_at(parts, cx, cy, w, ry=0.0, rx=0.0, rz=0.0):
+    return project_plane(parts[1], w, ry, rx, rz) + np.float32([cx, cy])
+
+# ------------------------------------------------------------ FÁBIO: bagunça → importa → organizado
+FAB_LBL = ["JPG", "MP4", "PDF", "MP3", "PNG", "MOV", "DOC", "WAV", "JPG", "MP4", "PDF", "MP3"]
+FAB_COL = {"Fotos": ["JPG", "PNG"], "Vídeos": ["MP4", "MOV"], "Docs": ["PDF", "DOC"], "Áudio": ["MP3", "WAV"]}
+FAB_T = dict(caos=6.72, importa=8.05, card=(1536, 442), organiza=10.74, sai=12.62)
+def draw_fabio(srcf, t, i):
+    T = FAB_T
+    if not (T["caos"] <= t < T["sai"] + .35): return
+    g = rng(21); n = len(FAB_LBL); u = R.SS
+    chaos = [(g.uniform(1340, 1860), g.uniform(80, 700), g.uniform(-38, 38), g.uniform(-30, 30)) for _ in range(n)]
+    cols = list(FAB_COL); xs = [1250, 1400, 1550, 1700]
+    slot = []; cnt = {c: 0 for c in cols}
+    for lbl in FAB_LBL:
+        c = next(k for k in cols if lbl in FAB_COL[k]); slot.append((xs[cols.index(c)], 420 + 108 * cnt[c])); cnt[c] += 1
+    fo = clampf((t - T["sai"]) / .3, 0, 1)
+    # cabeçalhos das colunas
+    if t >= T["organiza"]:
+        for k, c in enumerate(cols):
+            e = clampf((t - T["organiza"] - k * .06) / .35, 0, 1)
+            if e <= 0: continue
+            pp = pill_parts("col_" + c, 140, 48, lambda d, W, H, c=c: _txt(d, W, H, c, "d_sb", 22, (255, 255, 255)))
+            glass_draw(srcf, pp, quad_at(pp, xs[k] * u, (340 - 18 * (1 - R.quint(e))) * u, 140 * u), R.cubic(e) * (1 - fo), streak=False, blur=12, glow=0)
+    cx, cy = T["card"]
+    for k, lbl in enumerate(FAB_LBL):
+        pp = tile_parts(lbl); x, y, rz, ry = chaos[k]
+        x += 7 * math.sin(t * .9 + k); y += 5 * math.cos(t * .8 + k * 1.7); rz += 4 * math.sin(t * .6 + k)
+        sc, al = 1.0, 1.0
+        e0 = (t - T["caos"] - k * .045) / .30
+        if e0 <= 0: continue
+        if t < T["organiza"]:
+            sc = R.back(clampf(e0, 0, 1), 1.6); al = R.cubic(clampf(e0, 0, 1))
+            e1 = clampf((t - T["importa"] - k * .07) / .38, 0, 1)
+            if e1 > 0:   # voa para dentro do importador
+                q = R.inout(e1); x += (cx - x) * q; y += (cy - y) * q; rz *= 1 - q; ry *= 1 - q; sc *= 1 - .7 * q; al *= 1 - R.cubic(clampf((e1 - .6) / .4, 0, 1))
+        else:          # sai do importador e cai no lugar certo
+            e2 = clampf((t - T["organiza"] - .15 - k * .055) / .42, 0, 1)
+            if e2 <= 0: continue
+            q = R.back(e2, 1.2); sx, sy = slot[k]
+            x, y = cx + (sx - cx) * q, cy + (sy - cy) * q; rz = 25 * (1 - R.cubic(e2)); ry = 0; sc = .5 + .5 * R.cubic(e2)
+            al = R.cubic(clampf(e2 * 3, 0, 1)) * (1 - fo)
+        if al <= .01 or sc <= .02: continue
+        glass_draw(srcf, pp, quad_at(pp, x * u, y * u, 92 * u * sc, ry=ry, rz=rz), al, streak=False, blur=12, glow=.22)
+
+# ------------------------------------------------------------ MARIELLY: celular + adaptador OTG + pendrive
+OTG = dict(a=28.40, b=32.05)
+def draw_otg(srcf, t, i):
+    a, b = OTG["a"], OTG["b"]
+    if not (a <= t < b + .35): return
+    u = R.SS; col = R.hexrgb("#F2C38B")
+    fo = 1 - R.cubic(clampf((t - b) / .3, 0, 1))
+    prog = clampf((t - 29.30) / 2.3, 0, 1)
+    def ph(d, W, H, p=round(prog * 20) / 20):
+        _txt(d, W, int(H * .16), "Android", "d_sb", 22, (255, 255, 255))
+        for k, lbl in enumerate(["JPG", "MP4", "PDF", "MP3"]):
+            x0 = W * (.12 + (k % 2) * .40); y0 = H * (.24 + (k // 2) * .17)
+            d.rounded_rectangle([x0, y0, x0 + W * .36, y0 + H * .13], int(8 * GS), fill=R.hexrgb(FTYPE[lbl]) + (230 if p > (k + 1) * .2 else 70,))
+        d.rounded_rectangle([W * .12, H * .66, W * .88, H * .69], 4, fill=(255, 255, 255, 50))
+        d.rounded_rectangle([W * .12, H * .66, W * (.12 + .76 * p), H * .69], 4, fill=col + (255,))
+        _txt(d, W, int(H * 1.52), "importando" if p < 1 else "pronto ✓", "d_m", 17, (255, 255, 255))
+        d.rounded_rectangle([W * .40, H * .93, W * .60, H * .95], 3, fill=(255, 255, 255, 90))
+    pp = pill_parts(("otg_phone", round(prog * 20)), 200, 400, ph, radius=34)
+    e = clampf((t - a) / .35, 0, 1)
+    glass_draw(srcf, pp, quad_at(pp, 250 * u, (450 + 20 * (1 - R.quint(e))) * u, 200 * u, ry=14), R.cubic(e) * fo, blur=16)
+    # pendrive entra pela direita
+    e2 = clampf((t - a - .25) / .45, 0, 1)
+    def pd(d, W, H):
+        d.rounded_rectangle([W * .70, H * .25, W * .97, H * .75], int(6 * GS), outline=(255, 255, 255, 200), width=int(3 * GS))
+        _txt(d, int(W * .7), H, "16 GB", "d_b", 24, col)
+    pq = pill_parts("otg_pen", 200, 70, pd, radius=18)
+    px = (640 + 120 * (1 - R.quint(e2))); py = 720
+    glass_draw(srcf, pq, quad_at(pq, px * u, py * u, 200 * u, ry=10), R.cubic(e2) * fo, streak=False, blur=12)
+    # adaptador OTG
+    e3 = clampf((t - a - .45) / .3, 0, 1)
+    pa_ = pill_parts("otg_ad", 92, 48, lambda d, W, H: _txt(d, W, H, "OTG", "d_b", 22, col), radius=12)
+    glass_draw(srcf, pa_, quad_at(pa_, 450 * u, py * u, 92 * u), R.back(e3, 1.5) * fo if e3 > 0 else 0, streak=False, blur=10, glow=.4)
+    # cabo: pendrive → adaptador → celular (desenha) e dados correndo nele
+    path = np.float32([[540, py], [496, py], [404, py], [250, py], [250, 662]])
+    seg = np.r_[0, np.cumsum(np.linalg.norm(np.diff(path, axis=0), axis=1))]
+    pc = clampf((t - a - .55) / .4, 0, 1) * seg[-1]
+    if pc <= 0: return
+    x0, y0 = int(200 * u), int(620 * u); W_, H_ = int(400 * u), int(140 * u)
+    lay = np.zeros((H_, W_), np.float32); glow = np.zeros_like(lay)
+    pts = [path[0]]
+    for k in range(1, len(path)):
+        if seg[k] <= pc: pts.append(path[k])
+        else: pts.append(path[k - 1] + (path[k] - path[k - 1]) * (pc - seg[k - 1]) / (seg[k] - seg[k - 1])); break
+    pl = ((np.array(pts) * u - [x0, y0])).astype(np.int32).reshape(-1, 1, 2)
+    for a_, b_ in ((0, 1), (2, 3)):   # o cabo some por baixo do adaptador
+        pass
+    cv2.polylines(lay, [pl], False, .75, max(2, int(4 * u)), cv2.LINE_AA)
+    if t > 29.25 and prog < 1:
+        for k in range(5):   # pacotes de dados
+            s_ = ((t - 29.25) * 260 + k * seg[-1] / 5) % seg[-1]
+            j = np.searchsorted(seg, s_) - 1; j = max(0, min(j, len(path) - 2))
+            q = path[j] + (path[j + 1] - path[j]) * (s_ - seg[j]) / max(1e-6, seg[j + 1] - seg[j])
+            cv2.circle(lay, (int(q[0] * u - x0), int(q[1] * u - y0)), int(6 * u), 1.0, -1, cv2.LINE_AA)
+            cv2.circle(glow, (int(q[0] * u - x0), int(q[1] * u - y0)), int(16 * u), 1.0, -1, cv2.LINE_AA)
+    glow = cv2.GaussianBlur(glow, (0, 0), 8 * u) * .6
+    c = np.array(col, np.float32) / 255
+    for L_, cc in ((glow, c), (lay, c * .5 + .5)):
+        xa, ya = max(0, x0), max(0, y0); xb, yb = min(R.SW, x0 + W_), min(R.SH, y0 + H_)
+        blend(srcf, ya, yb, xa, xb, cc, np.clip(L_[ya - y0:yb - y0, xa - x0:xb - x0, None] * fo, 0, 1))
+
+# ------------------------------------------------------------ ENRIQUE: timeline de edição + linha de produção
+EDIT = (53.72, 55.62)
+ETAPAS = [("Roteiro", "script", 165, 55.84), ("Gravação", "rec", 575, 56.28), ("Edição", "cut", 1345, 56.90), ("Entrega", "send", 1755, 57.46)]
+PIPE = dict(a=55.55, fim=57.95, check=58.40, sai=60.95, y=300)
+def draw_enrique(srcf, t, i):
+    u = R.SS; col = R.hexrgb("#F0B45A"); c = np.array(col, np.float32) / 255
+    a, b = EDIT
+    if a <= t < b + .3:     # painel de edição com faixas e cursor andando
+        e = clampf((t - a) / .35, 0, 1); al = R.cubic(e) * (1 - R.cubic(clampf((t - b) / .3, 0, 1)))
+        ph_ = round(clampf((t - a) / (b - a), 0, 1) * 40) / 40
+        def ed(d, W, H, ph_=ph_):
+            d.text((W * .05, H * .06), "Produção", font=R.font("d_sb", 24 * GS), fill=(255, 255, 255, 255))
+            d.text((W * .70, H * .08), "USB Intelligence", font=R.font("d_m", 15 * GS), fill=(255, 255, 255, 150))
+            rows = [[(.04, .30, "#F0B45A"), (.31, .62, "#5B8DEF"), (.63, .96, "#F0B45A")], [(.12, .45, "#9B6BF2"), (.50, .80, "#EE6AA7")]]
+            for r, clips in enumerate(rows):
+                y0 = H * (.30 + r * .20)
+                for x0, x1, cc in clips: d.rounded_rectangle([W * x0, y0, W * x1, y0 + H * .15], int(6 * GS), fill=R.hexrgb(cc) + (220,))
+            y0 = H * .72; xs = np.linspace(W * .04, W * .96, 90)
+            wv = [(x, y0 + H * .07 + H * .06 * math.sin(x * .05) * math.sin(x * .013)) for x in xs]
+            d.line(wv, fill=(76, 196, 110, 230), width=int(3 * GS))
+            xp = W * (.04 + .92 * ph_); d.line([(xp, H * .24), (xp, H * .94)], fill=(255, 255, 255, 255), width=int(3 * GS))
+            d.polygon([(xp - 9 * GS, H * .22), (xp + 9 * GS, H * .22), (xp, H * .26)], fill=(255, 255, 255, 255))
+        pp = pill_parts(("edit", ph_), 520, 300, ed, radius=26)
+        glass_draw(srcf, pp, quad_at(pp, 540 * u, (440 + 24 * (1 - R.quint(e))) * u, 460 * u, ry=20), al, blur=18)
+    P = PIPE
+    if not (P["a"] <= t < P["sai"] + .4): return
+    fo = 1 - R.cubic(clampf((t - P["sai"]) / .4, 0, 1))
+    keys = [(P["a"], 80)] + [(tk, x) for _, _, x, tk in ETAPAS] + [(P["fim"], 1840)]
+    xh = keys[-1][1]
+    for (t0, x0_), (t1, x1_) in zip(keys, keys[1:]):
+        if t < t1: xh = x0_ + (x1_ - x0_) * R.inout(clampf((t - t0) / (t1 - t0), 0, 1)); break
+    Y = P["y"]
+    x0, y0 = int(40 * u), int((Y - 40) * u); W_, H_ = int(1840 * u), int(80 * u)
+    lay = np.zeros((H_, W_), np.float32); glow = np.zeros_like(lay)
+    cv2.line(lay, (int(80 * u - x0), int(Y * u - y0)), (int(1840 * u - x0), int(Y * u - y0)), .16, max(1, int(2 * u)), cv2.LINE_AA)
+    cv2.line(lay, (int(80 * u - x0), int(Y * u - y0)), (int(xh * u - x0), int(Y * u - y0)), 1.0, max(2, int(4 * u)), cv2.LINE_AA)
+    cv2.line(glow, (int(80 * u - x0), int(Y * u - y0)), (int(xh * u - x0), int(Y * u - y0)), 1.0, max(4, int(14 * u)), cv2.LINE_AA)
+    cv2.circle(glow, (int(xh * u - x0), int(Y * u - y0)), int(22 * u), 1.0, -1, cv2.LINE_AA)
+    for k, (nm, ic, x, tk) in enumerate(ETAPAS):
+        if t >= tk:
+            r = 13 * R.back(clampf((t - tk) / .25, 0, 1), 2.0)
+            cv2.circle(lay, (int(x * u - x0), int(Y * u - y0)), max(1, int(r * u)), 1.0, -1, cv2.LINE_AA)
+            cv2.circle(glow, (int(x * u - x0), int(Y * u - y0)), max(1, int(r * 2.2 * u)), 1.0, -1, cv2.LINE_AA)
+    glow = cv2.GaussianBlur(glow, (0, 0), 10 * u) * .55
+    for L_, cc in ((glow, c), (lay, c * .55 + .45)):
+        xa, ya = max(0, x0), max(0, y0); xb, yb = min(R.SW, x0 + W_), min(R.SH, y0 + H_)
+        blend(srcf, ya, yb, xa, xb, cc, np.clip(L_[ya - y0:yb - y0, xa - x0:xb - x0, None] * fo, 0, 1))
+    for k, (nm, ic, x, tk) in enumerate(ETAPAS):
+        e = clampf((t - tk + .04) / .32, 0, 1)
+        if e <= 0: continue
+        ck = clampf((t - P["check"] - k * .22) / .25, 0, 1)
+        def pf(d, W, H, nm=nm, ic=ic, ck=round(ck * 6) / 6):
+            img = d._image
+            paste_icon(img, ic, H * .55, H / 2, H * .46, col)
+            f = R.font("d_sb", 26 * GS); bb = d.textbbox((0, 0), nm, font=f)
+            d.text((H * 1.0, H / 2 - (bb[3] - bb[1]) / 2 - bb[1]), nm, font=f, fill=(255, 255, 255, 255))
+            if ck > 0:   # ✓ "etapa planejada"
+                cx_, cy_, rr = W - H * .45, H / 2, H * .26
+                d.ellipse([cx_ - rr, cy_ - rr, cx_ + rr, cy_ + rr], fill=(76, 196, 110, int(255 * min(1, ck * 2))))
+                pts = [(cx_ - rr * .45, cy_), (cx_ - rr * .1, cy_ + rr * .38), (cx_ + rr * .5, cy_ - rr * .35)]
+                if ck > .4: d.line(pts, fill=(255, 255, 255, 255), width=int(4 * GS), joint="curve")
+        pp = pill_parts(("etapa", k, round(ck * 6)), 290, 84, pf, radius=26)
+        glass_draw(srcf, pp, quad_at(pp, x * u, (Y - 90 + 22 * (1 - R.quint(e))) * u, 290 * u), R.cubic(e) * fo, streak=False, blur=14)
+
+def draw_signatures(srcf, t, i):
+    ci = R.cena_idx(t + .5 / R.FPS)
+    if ci == 1: draw_fabio(srcf, t, i)
+    elif ci == 4: draw_otg(srcf, t, i)
+    elif ci == 8: draw_enrique(srcf, t, i)
 
 # ------------------------------------------------------------ gráfico que cresce atrás do Higor (ref "chart grow")
 CHART = (14.10, 17.95)

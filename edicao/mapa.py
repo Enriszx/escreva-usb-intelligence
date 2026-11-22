@@ -62,7 +62,7 @@ L = [
     # Enrique
     ("esse vídeo", 53.04, "M", {"pos": "esq"}), ("também mostra", 53.90, "P"), ("como a", 54.44, "P"),
     ("nossa produção", 54.74, "P"), ("funciona", 55.24, "P"),
-    ("roteiro", 55.84, "C", {"icon": "script"}), ("gravação", 56.28, "C", {"icon": "rec"}), ("edição", 56.90, "C", {"icon": "cut"}), ("e entrega", 57.46, "C", {"fim": 58.1, "icon": "send"}),
+    # roteiro / gravação / edição / entrega: viram a linha de produção no mundo (mundo.ETAPAS)
     ("cada etapa", 58.12, "M"), ("foi planejada", 58.92, "P"), ("para explicar", 59.68, "P"),
     ("o produto", 60.22, "P"), ("de uma", 61.10, "P"), ("maneira", 61.42, "P", {"fim": 61.75}),
 ]

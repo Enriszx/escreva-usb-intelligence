@@ -129,10 +129,6 @@ Legenda em minúsculas e sem pontuação (como na referência), sempre batendo c
 | 54.44 | como a | pequena | peito |  |
 | 54.74 | nossa produção | pequena | peito |  |
 | 55.24 | funciona | pequena | peito |  |
-| 55.84 | roteiro | **colorida palavra a palavra** | peito |  |
-| 56.28 | gravação | **colorida palavra a palavra** | peito |  |
-| 56.90 | edição | **colorida palavra a palavra** | peito |  |
-| 57.46 | e entrega | **colorida palavra a palavra** | peito |  |
 | 58.12 | cada etapa | média branca | peito |  |
 | 58.92 | foi planejada | pequena | peito |  |
 | 59.68 | para explicar | pequena | peito |  |
