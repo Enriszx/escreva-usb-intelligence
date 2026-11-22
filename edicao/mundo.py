@@ -498,7 +498,7 @@ def glass_parts(nm):
     rim = np.dstack([np.ones_like(c[..., :3]), (np.clip(a[..., 0] - er, 0, 1) * yy)[..., None]])
     _GL[nm] = (ink, shape, rim); return _GL[nm]
 
-def glass_draw(srcf, parts, quad, al, frost=.92, glow=.30, streak=True, blur=20, refl_y=None):
+def glass_draw(srcf, parts, quad, al, frost=.92, glow=.30, streak=True, blur=20, refl_y=None, smoke=False):
     """desenha um elemento de vidro AR (vidro fosco + tinta acesa + brilho + aresta) no quadrilátero dado."""
     ink, shape, rim = parts
     env = _BG if _BG is not None else srcf
@@ -509,7 +509,8 @@ def glass_draw(srcf, parts, quad, al, frost=.92, glow=.30, streak=True, blur=20,
     xa, ya = max(0, x0), max(0, y0); xb, yb = min(R.SW, x0 + ww), min(R.SH, y0 + hh)
     if xa >= xb or ya >= yb: return
     pad = int(blur * 2 * R.SS); px0, py0 = max(0, xa - pad), max(0, ya - pad); px1, py1 = min(R.SW, xb + pad), min(R.SH, yb + pad)
-    fro = cv2.GaussianBlur(env[py0:py1, px0:px1], (0, 0), blur * R.SS)[ya - py0:yb - py0, xa - px0:xb - px0] * .74 + .19
+    fro = cv2.GaussianBlur(env[py0:py1, px0:px1], (0, 0), blur * R.SS)[ya - py0:yb - py0, xa - px0:xb - px0]
+    fro = fro * .42 + .04 if smoke else fro * .74 + .19     # vidro fumê quando o texto precisa de contraste
     blend(srcf, ya, yb, xa, xb, fro, pa[ya - y0:yb - y0, xa - x0:xb - x0] * frost * al)
     if refl_y is not None:
         rimg = np.flipud(ink).copy(); rimg[..., 3] *= np.linspace(.22, 0, rimg.shape[0])[:, None]
@@ -716,7 +717,7 @@ def draw_otg(srcf, t, i):
 
 # ------------------------------------------------------------ ENRIQUE: timeline de edição + linha de produção
 EDIT = (-9.0, -8.0)   # (substituído pela janela do editor em tela)
-ETAPAS = [("Roteiro", "script", 150, 55.84), ("Gravação", "rec", 450, 56.28), ("Edição", "cut", 1470, 56.90), ("Entrega", "send", 1770, 57.46)]
+ETAPAS = [("Roteiro", "script", 150, 55.84), ("Gravação", "rec", 450, 56.28), ("Edição", "cut", 1430, 56.90), ("Entrega", "send", 1715, 57.46)]
 LOGO_P = (60.20, 61.55)
 EXPORT = (57.46, 58.35)
 PIPE = dict(a=55.55, fim=57.95, check=58.40, sai=59.95, y=300)
@@ -801,7 +802,7 @@ def draw_enrique(srcf, t, i):
     if a_ <= t < b_ + .35:
         e = clampf((t - a_) / .3, 0, 1); al = R.cubic(e) * (1 - R.cubic(clampf((t - b_) / .3, 0, 1)))
         ink, shape, rim = glass_parts("logo"); hp = 150 * u * (.9 + .1 * R.back(e, 1.6))
-        glass_draw(srcf, (ink, shape, rim), quad_at((ink, shape, rim), 1520 * u, 430 * u, hp * ink.shape[1] / ink.shape[0], ry=-14), al, blur=18)
+        glass_draw(srcf, (ink, shape, rim), quad_at((ink, shape, rim), 1520 * u, 430 * u, hp * ink.shape[1] / ink.shape[0], ry=-14), al, blur=18, smoke=True)
 
 # ------------------------------------------------------------ ENRIQUE: a edição de verdade aparecendo (tela)
 import subprocess
