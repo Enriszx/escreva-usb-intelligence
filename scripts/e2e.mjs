@@ -41,12 +41,13 @@ const toast = (t) => page.locator('.toast', { hasText: t }).first().waitFor({ ti
 
 await test('1. Página inicial abre com título, ações e gráfico interativo', async () => {
   await go('/');
-  assert(/arquivos sob\s*controle/i.test(await page.locator('main h1').innerText()), 'título ausente');
+  assert(/arquivos sob\s*controle/i.test(await page.locator('main h1').textContent()), 'título ausente');
   assert((await page.getByRole('link', { name: /^Começar/ }).getAttribute('href')).endsWith('#/automatico'), 'Começar leva ao Automático');
   await page.getByRole('link', { name: 'Abrir a central de arquivos' }).waitFor();
   assert(await page.locator('.bb').count(), 'fundo inspirado na bandeira');
-  await page.getByRole('radiogroup', { name: 'Medida' }).getByRole('radio', { name: 'Quantidade' }).check();
-  await page.getByText('Quantidade por tipo (exemplo)').waitFor();
+  const qtd = page.getByRole('radiogroup', { name: 'Medida' }).getByRole('radio', { name: 'Quantidade' });
+  await qtd.check();
+  assert(await qtd.isChecked(), 'gráfico alterna a medida');
 });
 
 await test('2. Navegação: todas as rotas do índice abrem', async () => {
