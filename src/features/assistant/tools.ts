@@ -601,6 +601,105 @@ export const TOOLS: AssistantTool[] = [
     },
   },
   {
+    name: 'configurar',
+    label: 'Mudando as configurações',
+    description: 'Muda qualquer opção de Configurações: animações, qualidade 3D, histórico, registro da biblioteca, voz, leitura automática e o modo automático do pendrive.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        animacoes: { type: 'string', enum: ['sistema', 'reduzido', 'completo'] },
+        qualidade_3d: { type: 'string', enum: ['auto', 'economia', 'alta'] },
+        guardar_historico: { type: 'boolean' },
+        lembrar_biblioteca: { type: 'boolean' },
+        falar_respostas: { type: 'boolean' },
+        ler_sem_perguntar: { type: 'boolean' },
+        auto_executar: { type: 'boolean', description: 'Modo automático roda sozinho ao detectar o pendrive' },
+        auto_verificacao_completa: { type: 'boolean' },
+        auto_organizar: { type: 'boolean' },
+        auto_criterio: { type: 'string', enum: ['categoria', 'extensao', 'categoria-ano', 'ano-mes', 'tamanho'] },
+        auto_duplicados_lixeira: { type: 'boolean' },
+      },
+      additionalProperties: false,
+    },
+    async execute(input, ctx) {
+      const p: Partial<Settings> = {};
+      const b = (k: string, f: keyof Settings) => { if (typeof input[k] === 'boolean') (p as Record<string, unknown>)[f] = input[k]; };
+      const e = (k: string, f: keyof Settings, list: string[]) => { if (list.includes(str(input[k]))) (p as Record<string, unknown>)[f] = str(input[k]); };
+      e('animacoes', 'motion', ['sistema', 'reduzido', 'completo']);
+      e('qualidade_3d', 'quality', ['auto', 'economia', 'alta']);
+      b('guardar_historico', 'saveHistory'); b('lembrar_biblioteca', 'saveLibrary'); b('falar_respostas', 'aiVoice');
+      b('auto_executar', 'autoRun'); b('auto_verificacao_completa', 'autoDeep'); b('auto_organizar', 'autoOrganize'); b('auto_duplicados_lixeira', 'autoTrashDupes');
+      e('auto_criterio', 'autoCriterion', ['categoria', 'extensao', 'categoria-ano', 'ano-mes', 'tamanho']);
+      if (input.ler_sem_perguntar === true) {
+        const ok = await ctx.confirm({ title: 'Deixar o assistente ler arquivos sem perguntar?', body: 'Ele vai ler o conteúdo de textos e planilhas quando precisar, sem pedir a cada vez. Dá para desligar em Configurações.', confirm: 'Permitir' });
+        if (ok) p.aiAutoRead = true;
+      } else if (input.ler_sem_perguntar === false) p.aiAutoRead = false;
+      if (!Object.keys(p).length) throw new Error('Nada para mudar.');
+      await ctx.updateSettings(p);
+      return { aplicado: p };
+    },
+  },
+  {
+    name: 'lixeira',
+    label: 'Cuidando da lixeira',
+    description: 'Lista a lixeira da pasta conectada ou restaura itens dela (acao "listar" ou "restaurar"; sem ids restaura tudo).',
+    inputSchema: {
+      type: 'object',
+      properties: { acao: { type: 'string', enum: ['listar', 'restaurar'] }, ids: { type: 'array', items: { type: 'string' } } },
+      required: ['acao'],
+      additionalProperties: false,
+    },
+    async execute(input, ctx) {
+      requireFolder(ctx);
+      const items = await ctx.folder.backend!.listTrash();
+      if (str(input.acao) !== 'restaurar') return { itens: items.map((t) => ({ id: t.id, nome: t.original, tamanho: formatBytes(t.size), quando: new Date(t.at).toLocaleString('pt-BR') })) };
+      const want = ids(input.ids);
+      const list = want.length ? items.filter((t) => want.includes(t.id)) : items;
+      if (!list.length) return { restaurados: 0, motivo: 'Lixeira vazia.' };
+      const r = await ctx.folder.restore(list);
+      await ctx.folder.refreshTrash();
+      return { restaurados: r.ok, falhas: r.failed.slice(0, 10) };
+    },
+  },
+  {
+    name: 'desfazer',
+    label: 'Desfazendo a última operação',
+    description: 'Desfaz a última operação na pasta (renomear, mover, lixeira ou organização).',
+    inputSchema: { type: 'object', properties: {}, additionalProperties: false },
+    async execute(_input, ctx) {
+      requireFolder(ctx);
+      const label = ctx.folder.undoLabel;
+      if (!label) return { desfeito: false, motivo: 'Não há nada para desfazer.' };
+      await ctx.folder.undo();
+      return { desfeito: true, operacao: label };
+    },
+  },
+  {
+    name: 'verificar_hash',
+    label: 'Conferindo a impressão digital',
+    description: 'Mostra o SHA-256 de um arquivo da lista e, se receber um hash de referência, diz se confere.',
+    inputSchema: { type: 'object', properties: { id: { type: 'string' }, referencia: { type: 'string' } }, required: ['id'], additionalProperties: false },
+    async execute(input, ctx) {
+      const f = ctx.files.entries.find((x) => x.id === str(input.id));
+      if (!f) throw new Error('Arquivo não encontrado. Use listar_arquivos para achar o id.');
+      if (!f.sha256) return { nome: f.name, sha256: null, motivo: 'Ainda sem hash: rode analisar com modo "completa" primeiro.' };
+      const ref = str(input.referencia).toLowerCase().match(/[0-9a-f]{64}/)?.[0];
+      return { nome: f.name, sha256: f.sha256, ...(ref ? { confere: ref === f.sha256 } : {}) };
+    },
+  },
+  {
+    name: 'backup',
+    label: 'Gerando o backup',
+    description: 'Exporta um backup (JSON) das configurações, personagens, histórico e relatórios deste aparelho.',
+    inputSchema: { type: 'object', properties: {}, additionalProperties: false },
+    async execute() {
+      const { makeBackup } = await import('../../lib/storage/backup');
+      const { saveJSON } = await import('../../lib/export');
+      const r = await saveJSON(await makeBackup(), `usbi-backup-${stamp()}.json`);
+      return { resultado: r };
+    },
+  },
+  {
     name: 'pedir_mudanca',
     label: 'Preparando o pedido de mudança',
     description: 'Abre pedido de mudança no código do site via GitHub.',

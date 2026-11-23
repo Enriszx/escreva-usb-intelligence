@@ -36,6 +36,13 @@
     linear-gradient(180deg, transparent 60%, #090b0a 100%);
 }
 .app.is-home2 .site-header { background: color-mix(in srgb, #090b0a 80%, transparent); border-bottom-color: var(--edge); }
+/* Cabeçalho escuro na Início: tokens claros para o texto continuar legível (contraste AA). */
+.app.is-home2 .site-header {
+  --bg: #090b0a; --bg-2: #121614; --bg-3: rgba(255, 255, 255, 0.07); --surface-solid: #1b211e;
+  --fg: #f3f6f3; --fg-2: #b7c0b9; --line: rgba(255, 255, 255, 0.12); --line-strong: rgba(255, 255, 255, 0.24);
+  --ink-ok: #3ee08a; --ink-warn: #ffd54a; --ink-info: #8fb1ff;
+  color: var(--fg);
+}
 
 /* Grão/textura muito sutil por cima de tudo (sem agredir). */
 .home2::before {
@@ -56,7 +63,7 @@
 .h2-kicker::before { content: ''; align-self: center; width: 34px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, #00c853, #ffdf00 55%, #2b6bff); }
 
 /* ====================== HERO ====================== */
-.h2-hero { position: relative; isolation: isolate; padding: clamp(44px, 7vw, 104px) 0 clamp(36px, 5vw, 72px); }
+.h2-hero { position: relative; isolation: isolate; overflow-x: clip; padding: clamp(44px, 7vw, 104px) 0 clamp(36px, 5vw, 72px); }
 /* Aura nas cores do Brasil atrás do objeto — a "sombra" encorpada, sem bandeira. */
 .h2-hero::before {
   content: ''; position: absolute; z-index: -1; pointer-events: none;
@@ -78,7 +85,7 @@
   gap: clamp(28px, 5vw, 72px); align-items: center;
 }
 .h2-hero-copy { display: grid; gap: 26px; justify-items: start; max-width: 36ch; }
-.h2-eyebrow {
+.h2-eyebrow { overflow-wrap: anywhere;
   font-family: var(--mono); font-size: 0.72rem; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-2);
 }
 .h2-eyebrow span { color: var(--green); }
@@ -95,7 +102,7 @@
 .h2-line > span, .h2-line > em { display: inline-block; will-change: transform; }
 
 /* Palco 3D do hero */
-.h2-stage { position: relative; aspect-ratio: 1 / 1.12; min-height: 440px; }
+.h2-stage { position: relative; aspect-ratio: 1 / 1.12; min-height: min(440px, 112vw); max-width: 100%; }
 .h2-canvas { position: absolute; inset: 0; touch-action: pan-y; }
 .h2-stage-fallback { position: absolute; inset: 0; display: grid; place-items: center; }
 .h2-stage-fallback span {
@@ -192,7 +199,7 @@
 .h2-metric { background: var(--surface); padding: 15px 16px; display: grid; gap: 3px; }
 .h2-metric dt { font-family: var(--mono); font-size: 0.64rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); }
 .h2-metric dd { margin: 0; font-family: var(--f-ed); font-weight: 720; font-size: 1.5rem; letter-spacing: -0.02em; color: var(--ink); }
-.h2-metric small { font-size: 0.74rem; color: var(--ink-3); }
+.h2-metric dd.h2-metric-sub { font-family: inherit; font-weight: 400; font-size: 0.74rem; letter-spacing: 0; color: var(--ink-3); }
 
 /* Áreas: lista editorial em colunas, hairlines, sem cards saltitantes. */
 .h2-areas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 clamp(28px, 4vw, 56px); border-top: 1px solid var(--edge); }
@@ -234,7 +241,8 @@
 
 /* ====================== RESPONSIVO ====================== */
 @media (max-width: 1020px) {
-  .h2-hero-grid { grid-template-columns: 1fr; }
+  .h2-hero-grid { grid-template-columns: minmax(0, 1fr); }
+  .h2-hero-grid > * { min-width: 0; }
   .h2-hero-copy { max-width: none; }
   .h2-data { grid-template-columns: 1fr; }
   .h2-areas { grid-template-columns: 1fr; }

@@ -17,6 +17,15 @@ const CAT_WORDS: [RegExp, string][] = [
   [/\b(musicas?|audios?|mp3)\b/, 'Áudios'],
   [/\b(zips?|compactados?|rar)\b/, 'Compactados'],
 ];
+const COLOR_WORDS: [RegExp, string][] = [
+  [/\bazul\b/, '#3d7bff'], [/\bverde\b/, '#2fd57f'], [/\bamarel[oa]\b/, '#ffdf00'], [/\blaranja\b/, '#ff7a1a'],
+  [/\brosa\b/, '#e5487a'], [/\broxo\b/, '#9b6bff'], [/\bbranc[oa]\b/, '#f4f7f2'], [/\bvermelh[oa]\b/, '#ff4d4d'],
+];
+const HAIR_WORDS: [RegExp, string][] = [
+  [/black ?power/, 'blackpower'], [/cachead/, 'cacheado'], [/tranca/, 'trancas'], [/rabo/, 'rabo'], [/coque/, 'coque'], [/franja/, 'franja'],
+  [/raspad/, 'raspado'], [/careca/, 'careca'], [/crista|moicano/, 'crista'], [/(cabelo )?longo/, 'longo'], [/(cabelo )?curto/, 'curto'],
+];
+
 const AREA_WORDS: [RegExp, string][] = [
   [/\b(inicio|home|comeco)\b/, 'inicio'], [/\b(central|arquivos?|acervo)\b/, 'arquivos'], [/\blaboratorio|3d\b/, 'laboratorio'],
   [/\bpersonagem|vigia 3d\b/, 'personagem'], [/\bseguranca|cofre|hash\b/, 'seguranca'], [/\brelatorios?\b/, 'relatorios'],
@@ -32,7 +41,11 @@ export const LOCAL_HELP = `Sem IA conectada, eu entendo comandos diretos, por ex
 • "organizar por tipo" (ou por formato, data, tamanho)
 • "tema escuro" / "tema claro"
 • "abrir segurança" / "ir para relatórios"
-• "estilo Núcleo Azul" (personagem)
+• "estilo Núcleo Azul", "personagem menina", "cabelo cacheado"
+• "deixa o site azul" / "cantos redondos" / "letra maior" / "visual original"
+• "me chama de chefe" / "sou mulher" / "seu nome é Íris"
+• "desfazer" / "restaurar lixeira" / "fazer backup"
+• "falar as respostas" / "parar de falar"
 Para conversar livremente, ative a IA grátis em Configurações → Assistente.`;
 
 type Run = (name: string, input?: Record<string, unknown>) => Promise<unknown>;
@@ -62,6 +75,70 @@ export async function runLocal(text: string, ctx: ToolContext, onTool: (t: Assis
   if (theme) {
     await run('mudar_tema', { tema: theme[1] });
     return `Pronto: tema ${theme[1]}.`;
+  }
+
+  // Visual do site
+  const cor = COLOR_WORDS.find(([re]) => re.test(t));
+  if (cor && /\b(site|cor|destaque|visual|deixa|muda|troca|botoes)\b/.test(t) && !/personagem/.test(t)) {
+    await run('personalizar_visual', { cor_destaque: cor[1] });
+    return `Pronto: destaque ${cor[1]} no site inteiro.`;
+  }
+  if (/\b(visual|aparencia) (original|padrao)\b|\brestaura(r)? (o )?visual/.test(t)) {
+    await run('personalizar_visual', { restaurar: true });
+    return 'Voltei o visual original.';
+  }
+  if (/\bcantos?\b/.test(t)) {
+    const cantos = /ret|quadrad/.test(t) ? 'reto' : /redond/.test(t) ? 'redondo' : 'padrao';
+    await run('personalizar_visual', { cantos });
+    return `Cantos: ${cantos}.`;
+  }
+  if (/\b(letra|texto|fonte)s? (maior|menor|normal)/.test(t)) {
+    const tamanho_texto = /maior/.test(t) ? Math.min(1.25, ctx.settings.uiFont + 0.1) : /menor/.test(t) ? Math.max(0.9, ctx.settings.uiFont - 0.1) : 1;
+    await run('personalizar_visual', { tamanho_texto });
+    return 'Tamanho do texto ajustado.';
+  }
+
+  // Perfil
+  const chama = /\b(me chama|me chame|pode me chamar)\s+de\s+(.+)$/.exec(t);
+  if (chama) {
+    const nome = text.trim().slice(-chama[2].length).replace(/[.!?]+$/, '');
+    await run('meu_perfil', { como_chamar: nome });
+    return `Combinado, ${nome}.`;
+  }
+  const nomeIa = /\b(seu nome (e|sera|vai ser)|voce (se chama|vai se chamar)|te chamar de)\s+(.+)$/.exec(t);
+  if (nomeIa) {
+    const nome = text.trim().slice(-nomeIa[4].length).replace(/[.!?]+$/, '');
+    await run('meu_perfil', { nome_assistente: nome });
+    return `Gostei. Agora eu sou ${nome}.`;
+  }
+  if (/\bsou (mulher|menina|moca)\b|\bno feminino\b/.test(t)) { await run('meu_perfil', { genero: 'feminino' }); return 'Anotado: falo com você no feminino.'; }
+  if (/\bsou (homem|menino|rapaz)\b|\bno masculino\b/.test(t)) { await run('meu_perfil', { genero: 'masculino' }); return 'Anotado: falo com você no masculino.'; }
+
+  // Operações da pasta e dados
+  if (/^desfaz|\bdesfazer\b/.test(t)) {
+    const r = (await run('desfazer')) as { desfeito: boolean; operacao?: string; motivo?: string };
+    return r.desfeito ? `Desfeito: ${r.operacao}.` : r.motivo ?? 'Nada para desfazer.';
+  }
+  if (/lixeira/.test(t) && /restaur|recuper|volta/.test(t)) {
+    const r = (await run('lixeira', { acao: 'restaurar' })) as { restaurados: number; motivo?: string };
+    return r.restaurados ? `Restaurei ${r.restaurados} arquivo(s) da lixeira.` : r.motivo ?? 'Nada restaurado.';
+  }
+  if (/\bbackup\b/.test(t)) {
+    await run('backup');
+    return 'Backup gerado. Guarde o arquivo em outro lugar (pendrive, nuvem).';
+  }
+  if (/\b(fala|falar|leia|ler) (as )?respostas|\bfala em voz alta|\bliga(r)? a voz/.test(t)) { await run('configurar', { falar_respostas: true }); return 'Vou falar as respostas em voz alta.'; }
+  if (/\b(para|parar|pare) de falar|\bdesliga(r)? a voz|\bsem voz\b/.test(t)) { await run('configurar', { falar_respostas: false }); return 'Ok, só por texto.'; }
+
+  // Personagem por partes
+  if (/\bpersonagem\b|\bvigia 3d\b/.test(t) && /menin[oa]|cabelo|black|tranca|cachead|coque|vestido|moletom|social|capa|oculos|\bcor\b/.test(t)) {
+    const input: Record<string, unknown> = {};
+    if (/menina|feminin/.test(t)) input.corpo = 'menina'; else if (/menino|masculin/.test(t)) input.corpo = 'menino';
+    const h = HAIR_WORDS.find(([re]) => re.test(t)); if (h) input.cabelo = h[1];
+    if (/vestido/.test(t)) input.traje = 'vestido'; else if (/moletom/.test(t)) input.traje = 'moletom'; else if (/social|gravata/.test(t)) input.traje = 'social'; else if (/esportiv/.test(t)) input.traje = 'esportivo';
+    const c = COLOR_WORDS.find(([re]) => re.test(t)); if (c) input.cor_principal = c[1];
+    await run('personagem', input);
+    return 'Personagem atualizado. Toque em Salvar no editor para guardar.';
   }
 
   const preset = PRESETS.find((p) => t.includes(norm(p.name)));

@@ -156,6 +156,14 @@ No build Artifact (`IS_ARTIFACT`) ficam escondidos ou ganham alternativa: servic
 - **PWA instalável** e offline, com manifesto e ícones.
 - **Senha (por variável de build), tema e Vigia IA com IA grátis no aparelho.**
 
+## 6f. Versão final para a apresentação (23/11)
+
+Pedido: "refinada em tudo… IA faz tudo que eu faço manualmente só por mensagem… versão final sem erro".
+- **Ferramentas novas** (`tools.ts`): `configurar` (qualquer opção de Configurações; leitura automática pede confirmação), `lixeira` (listar/restaurar; lê direto de `backend.listTrash()`, porque o estado do React não atualiza dentro do await), `desfazer`, `verificar_hash` (compara com hash de referência), `backup`.
+- **Prompt:** lista todas as ferramentas por assunto e proíbe responder "vá em Configurações…" quando existe ferramenta.
+- **Modo sem IA (`local.ts`):** entende cor do site, cantos, letra, visual original, "me chama de…", "seu nome é…", "sou mulher/homem", desfazer, restaurar lixeira, backup, ligar/desligar voz e personagem por partes ("personagem menina de cabelo cacheado"). Teste: `tests/local-commands.test.ts`.
+- **Início:** o `::before` do hero passava 6–10% da borda e criava rolagem lateral (pseudo-elemento não aparece em `querySelectorAll`): `overflow-x: clip` no `.h2-hero`. O palco 3D com `aspect-ratio` + `min-height: 440px` forçava 393 px no celular: `min-height: min(440px, 112vw)`. O cabeçalho escuro da Início ganhou tokens claros (texto estava ilegível).
+
 ## 6e. Personagem v2, seu perfil, aparência e pedidos ao Claude (04/11, mais recente)
 
 Pedido: "dê acesso ao microfone… acesso a todas as funções do site… mudar visual… quando for feito algum pedido de mudança no site, joga para você… personalização do personagem bem mais complexa, menino e menina e como a IA deve te chamar".

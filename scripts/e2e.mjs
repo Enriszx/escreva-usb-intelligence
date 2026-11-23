@@ -39,18 +39,14 @@ page.on('pageerror', (e) => errors.push(`${e.message} @ ${page.url()} :: ${(e.st
 const go = async (r) => { await page.goto(`${BASE}#${r}`); await page.waitForLoadState('networkidle'); };
 const toast = (t) => page.locator('.toast', { hasText: t }).first().waitFor({ timeout: 8000 });
 
-await test('1. Página inicial abre com título, ações e fluxo interativo', async () => {
+await test('1. Página inicial abre com título, ações e gráfico interativo', async () => {
   await go('/');
-  assert(/encaixe o pendrive/i.test(await page.locator('h1').innerText()), 'título ausente');
-  await page.getByRole('link', { name: /Começar agora/ }).waitFor();
-  await page.getByRole('link', { name: /Ver como funciona/ }).click();
-  await page.waitForTimeout(800);
-  assert(await page.locator('#como-funciona').isVisible(), 'seção como funciona');
-  await page.getByRole('button', { name: /Acha cópias/ }).click();
-  assert(/Compara conteúdo, não nome/.test(await page.locator('.flow-detail').innerText()), 'etapa interativa');
+  assert(/arquivos sob\s*controle/i.test(await page.locator('main h1').innerText()), 'título ausente');
+  assert((await page.getByRole('link', { name: /^Começar/ }).getAttribute('href')).endsWith('#/automatico'), 'Começar leva ao Automático');
+  await page.getByRole('link', { name: 'Abrir a central de arquivos' }).waitFor();
   assert(await page.locator('.bb').count(), 'fundo inspirado na bandeira');
-  await page.locator('#experiencia .seg label', { hasText: 'Quantidade' }).click();
-  assert(/Quantidade por tipo/.test(await page.locator('#experiencia .chart-title').innerText()), 'gráfico alterna a medida');
+  await page.getByRole('radiogroup', { name: 'Medida' }).getByRole('radio', { name: 'Quantidade' }).check();
+  await page.getByText('Quantidade por tipo (exemplo)').waitFor();
 });
 
 await test('2. Navegação: todas as rotas do índice abrem', async () => {
@@ -194,7 +190,7 @@ await test('18. Senha: recusa errada, aceita a certa (com espaço e outra caixa)
   await g.goto(`${BASE}#/`);
   await g.locator('#senha').waitFor();
   assert(/intelligence/i.test(await g.locator('main h1').innerText()), 'tela de senha');
-  assert(!(await g.locator('.hero').count()), 'app não carrega antes da senha');
+  assert(!(await g.locator('.h2-hero').count()), 'app não carrega antes da senha');
   await g.locator('#senha').fill('errada');
   await g.getByRole('button', { name: 'Entrar' }).click();
   await g.getByRole('alert').filter({ hasText: 'Senha incorreta' }).waitFor();
@@ -204,9 +200,9 @@ await test('18. Senha: recusa errada, aceita a certa (com espaço e outra caixa)
   // teclado de celular: espaço no fim e caixa trocada continuam valendo
   await g.locator('#senha').fill(`${SENHA.toLowerCase()} `);
   await g.getByRole('button', { name: 'Entrar' }).click();
-  await g.locator('.hero').waitFor();
+  await g.locator('.h2-hero').waitFor();
   await g.reload();
-  await g.locator('.hero').waitFor(); // continua liberado na mesma aba
+  await g.locator('.h2-hero').waitFor(); // continua liberado na mesma aba
   const g2 = await (await browser.newContext()).newPage();
   await g2.goto(`${BASE}#/`);
   for (let i = 0; i < 5; i++) {
@@ -216,7 +212,7 @@ await test('18. Senha: recusa errada, aceita a certa (com espaço e outra caixa)
   }
   await g2.getByText(/Muitas tentativas/).first().waitFor();
   assert(await g2.locator('#senha').isDisabled(), 'campo travado após 5 erros');
-  assert(!(await g2.locator('.hero').count()), 'continua bloqueado');
+  assert(!(await g2.locator('.h2-hero').count()), 'continua bloqueado');
   await c.close();
 });
 
@@ -345,7 +341,7 @@ await test('22. Soltar arquivos em qualquer lugar da página importa e abre a Ce
   await c.addInitScript(UNLOCK);
   const p = await c.newPage();
   await p.goto(`${BASE}#/`);
-  await p.locator('.hero').waitFor();
+  await p.locator('.h2-hero').waitFor();
   await p.evaluate(() => {
     const dt = new DataTransfer();
     dt.items.add(new File(['olá'], 'solto.txt', { type: 'text/plain' }));
@@ -672,10 +668,10 @@ await test('29. Personagem v2, seu perfil, aparência e pedidos de mudança', as
   assert((await p.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--r-1').trim())) === '2px', 'cantos retos');
   // Pedido de mudança: botão só vira link com descrição, e o link leva @claude.
   const sec = p.locator('#pedidos');
-  assert(await sec.getByRole('button', { name: /Enviar pedido ao Claude/ }).isDisabled(), 'sem descrição, bloqueado');
+  assert(await sec.getByRole('button', { name: /Enviar pedido/ }).isDisabled(), 'sem descrição, bloqueado');
   await p.locator('#ped-titulo').fill('Página de contato');
   await p.locator('#ped-desc').fill('Criar uma página de contato.');
-  const href = await sec.getByRole('link', { name: /Enviar pedido ao Claude/ }).getAttribute('href');
+  const href = await sec.getByRole('link', { name: /Enviar pedido/ }).getAttribute('href');
   const u = new URL(href);
   assert(u.pathname.endsWith('/issues/new') && /^@claude Criar/.test(u.searchParams.get('body')) && u.searchParams.get('labels') === 'pedido-site', href);
   // Voltar ao visual original.

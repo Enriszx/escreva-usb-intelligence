@@ -170,10 +170,10 @@ export default function HomePage() {
               </div>
             </div>
             <dl className="h2-metrics">
-              <div className="h2-metric"><dt>Arquivos</dt><dd>{DEMO_TOTAL.count.toLocaleString('pt-BR')}</dd><small>{formatBytes(DEMO_TOTAL.bytes)}</small></div>
-              <div className="h2-metric"><dt>Verificados</dt><dd>100%</dd><small>SHA-256</small></div>
-              <div className="h2-metric"><dt>Cópias extras</dt><dd>183</dd><small>{formatBytes(2_340_000_000)} recuperáveis</small></div>
-              <div className="h2-metric"><dt>Pastas sugeridas</dt><dd>8</dd><small>por tipo</small></div>
+              <div className="h2-metric"><dt>Arquivos</dt><dd>{DEMO_TOTAL.count.toLocaleString('pt-BR')}</dd><dd className="h2-metric-sub">{formatBytes(DEMO_TOTAL.bytes)}</dd></div>
+              <div className="h2-metric"><dt>Verificados</dt><dd>100%</dd><dd className="h2-metric-sub">SHA-256</dd></div>
+              <div className="h2-metric"><dt>Cópias extras</dt><dd>183</dd><dd className="h2-metric-sub">{formatBytes(2_340_000_000)} recuperáveis</dd></div>
+              <div className="h2-metric"><dt>Pastas sugeridas</dt><dd>8</dd><dd className="h2-metric-sub">por tipo</dd></div>
             </dl>
             <BarList
               title={`${view === 'bytes' ? 'Espaço' : 'Quantidade'} por tipo (exemplo)`}
